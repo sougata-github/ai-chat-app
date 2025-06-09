@@ -4,7 +4,6 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import { dark } from "@clerk/themes";
 
 export const metadata: Metadata = {
   title: "Vertext",
