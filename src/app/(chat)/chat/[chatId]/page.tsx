@@ -11,5 +11,10 @@ export default async function MessagesPage({ params }: Props) {
 
   const { chatId } = await params;
 
-  return <div>{chatId}</div>;
+  return (
+    <div>
+      {chatId}
+      MessageView
+    </div>
+  );
 }

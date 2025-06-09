@@ -42,6 +42,7 @@
   - Clicking on each chat will navigate to `/chat/chatId`
   - When a chat gets deleted, the chat below should animate-in (AnimatePresence popLayout)
   - Render chats which are not `archived=true (server-side)`
+  - Create modal global store for opening and closing of dialogs using zustand
 
 - /chat page
 
@@ -57,7 +58,7 @@
     - Stream response from LLM
     - Another LLM call to summarise response into a title
     - Update newly created chat with summarised title
-    - Create ai message
+    - Create ai message record
     - Update user message with responseId (ai message)
     - Return chat
   - On Frontend, route to `/chat/chatId` (router.push)
