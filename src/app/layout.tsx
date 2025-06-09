@@ -1,26 +1,32 @@
-import "@/styles/globals.css";
+import "./globals.css";
 
-import { TRPCReactProvider } from "@/trpc/react";
-import { ClerkProvider } from "@clerk/nextjs";
-import { GeistSans } from "geist/font/sans";
-import { type Metadata } from "next";
+import { Geist } from "next/font/google";
+import type { Metadata } from "next";
+
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
 
 export const metadata: Metadata = {
-  title: "Vertext",
-  description: "Ai chatbot powered by deepseek r1.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: "Chat Gemini",
+  description: "Advanced ai chat bot powered by Gemini.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <ClerkProvider>
-      <html lang="en" className={`${GeistSans.variable}`}>
-        <body className="dark">
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body
+        className={`${geistSans.className} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
   );
 }

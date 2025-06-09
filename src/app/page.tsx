@@ -1,11 +1,10 @@
-import Navbar from "@/components/home/Navbar";
-import Hero from "@/components/home/Hero";
+import Image from "next/image";
+
 
 export default function Home() {
   return (
-    <main className="flex flex-col overflow-hidden">
-      <Navbar />
-      <Hero />
-    </main>
+ <div>
+  hello
+ </div>
   );
 }
