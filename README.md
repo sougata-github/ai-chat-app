@@ -53,7 +53,7 @@
   - TextArea will also have image-generation mode toggle (that will enable image-generation based on toggle state in vercel ai sdk llm call)
   - Clicking on Submit will trigger chat.create() which is same as message.create but with no chatId. This procedure will:
     - Rate limit check
-    - Create chat
+    - Create chat (with name "New Chat")
     - Create user Message
     - Stream response from LLM
     - Another LLM call to summarise response into a title

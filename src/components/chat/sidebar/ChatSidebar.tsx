@@ -32,7 +32,7 @@ const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="py-3.5">
         <SidebarMenu>
           <SidebarMenuItem>
             <Link

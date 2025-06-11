@@ -12,15 +12,15 @@ export default function ChatLayout({
       <SidebarProvider
         style={
           {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--sidebar-width": "calc(var(--spacing) * 62)",
             "--header-height": "calc(var(--spacing) * 12)",
           } as React.CSSProperties
         }
       >
-        <ChatSidebar variant="inset" />
-        <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+        <ChatSidebar variant="sidebar" />
+        <SidebarInset className="flex-1 flex flex-col relative">
           <ChatHeader />
-          <div className="flex-1 flex flex-col overflow-hidden">{children}</div>
+          <section className="flex-1 flex flex-col">{children}</section>
         </SidebarInset>
       </SidebarProvider>
     </main>

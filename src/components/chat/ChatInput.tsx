@@ -13,9 +13,8 @@ import {
 import { chatInputSchema } from "@/schemas";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "../ui/sidebar";
 
 interface Props {
   variant: "message" | "chat";
@@ -23,9 +22,7 @@ interface Props {
   suggestion?: string;
 }
 
-const ChatInput = ({ variant = "chat", chatId, suggestion }: Props) => {
-  const { state, isMobile } = useSidebar();
-
+const ChatInput = ({ suggestion }: Props) => {
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
     defaultValues: {
@@ -40,39 +37,46 @@ const ChatInput = ({ variant = "chat", chatId, suggestion }: Props) => {
   };
 
   return (
-    <div
-      className={cn(
-        "max-w-2xl mx-auto fixed bottom-0 left-[calc(50%+8rem)] -translate-x-1/2 w-full z-20 bg-transparent p-2.5 pb-0 pointer-events-none"
-      )}
-      style={{
-        left: state === "collapsed" && !isMobile ? "50%" : "calc(50%+8rem)",
-      }}
-    >
-      <div className="max-w-3xl mx-auto backdrop-blur-md ">
+    <div className={cn("sticky bottom-0 inset-x-0 z-20 w-full px-4")}>
+      <div className="max-w-3xl mx-auto backdrop-blur-md relative">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="relative">
-            <div className="relative dark:bg-muted-foreground/5 rounded-t-xl dark:border dark:border-muted-foreground/10 border-b-0 dark:border-b-0 overflow-hidden p-3 pb-0 dark:shadow-none shadow">
+            <div className="rounded-t-xl dark:border dark:border-muted-foreground/10 border-b-0 dark:border-b-0 p-3 pb-0 dark:shadow-none shadow outline outline-muted-foreground/10">
               <FormField
                 control={form.control}
                 name="prompt"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="gap-0">
                     <FormControl>
                       <Textarea
-                        className="w-full h-24 resize-none bg-transparent focus:ring-0 focus:outline-none dark:border-1 dark:border-b-0 dark:border-muted-foreground/10 px-4 pt-3 placeholder:text-muted-foreground rounded-b-none shadow-none max-md:placeholder:text-sm max-md:text-sm"
+                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 
+                        dark:border-1 dark:border-b-0 dark:border-muted-foreground/10 px-4 pt-4 pb-8 placeholder:text-muted-foreground rounded-b-none shadow-none max-md:placeholder:text-sm max-md:text-sm"
                         {...field}
                         placeholder="Type your message here..."
                       />
                     </FormControl>
-                    <FormMessage className="bg-transparent pb-2 absolute bottom-1 left-6 right-0" />
+                    <FormMessage className="dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0 p-2" />
                   </FormItem>
                 )}
               />
-              <div className="absolute bottom-2 right-6">
+              <div className="flex items-center justify-between py-2.5 px-3 dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0">
                 <Button
+                  variant="outline"
+                  type="button"
+                  className={cn(
+                    "w-fit rounded-full bg-transparent text-xs"
+                    // image-gen selected && "some-bg"
+                  )}
+                >
+                  <ImageIcon />
+                  Image Gen
+                </Button>
+
+                <Button
+                  variant="outline"
                   type="submit"
                   size="icon"
-                  className="rounded-md bg-muted-foreground/10 hover:bg-muted-foreground/5 text-muted-foreground"
+                  className="rounded-full"
                 >
                   <ArrowUp />
                   <span className="sr-only">Send message</span>
@@ -81,8 +85,6 @@ const ChatInput = ({ variant = "chat", chatId, suggestion }: Props) => {
             </div>
           </form>
         </Form>
-        {/* 
-      image-gen mode button and model choose dropdown */}
       </div>
     </div>
   );
