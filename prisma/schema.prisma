@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "../src/generated/client"
+
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+
+  name      String?
+  clerkId   String?   @unique
+  email     String?   @unique
+  imageUrl  String?
+  
+  verified Boolean @default(false)
+  
+  messageCount Int  @default(0)
+  imageCount   Int  @default(0)
+  lastReset    DateTime? 
+
+  chats Chat[]
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Chat {
+  id       String   @id @default(uuid())
+  title    String   @default("New Chat")
+  archived Boolean  @default(false)
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    
+  messages Message[]
+    
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role  {
+    USER
+    AI
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  role Role
+  content String?  
+  imageKey String? 
+  imageUrl String?
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chatId String
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  promptId   String?     @unique
+  prompt     Message?    @relation("ResponseMessage", fields: [promptId], references: [id])
+  response   Message?    @relation("ResponseMessage")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

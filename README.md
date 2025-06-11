@@ -13,7 +13,7 @@
   - once a chat is created, chat info will be retained even after log out
   - chat useMutation will return limit status on every message when not logged-in (prompt to log in)
   - chat useMutation will return limit status after only after limit is reached when logged-in
-  - Abstract auth to context (when user lands for first time, on submission, ctx will check wether there is clerkId, userId, and also in cookie for userId, if no clerkId or userId in cookie, then generate random UUID, create user and add to context, if userId in cookie, then fetch user through DB call, add to ctx, if clerkId exists, then find user, add to context)
+  - Abstract auth to context (when user lands for first time, on submission, ctx will check wether there is clerkId and also in cookie for userId, if no clerkId or userId in cookie, then generate random UUID, create user and add to context, if userId in cookie, then fetch user through DB call, add to ctx, if clerkId exists, then find user, add to context)
   - Rate limit check to middleware (in case of mutation)
 
 - User Button (bottom of sidebar - for logged in else render login button)
@@ -34,7 +34,6 @@
   - Infinite loading of chats (client-component in layout.tsx) (not prefetched) (sorted on the basis of today, last 7 days, older)
   - Separator
   - Will have beautiful loading skeleton
-  - Invalidate chat.getMany and messages.getMany on chat creation (server-side rate limit check)
   - Each message will have dropdown with options:
     - Archive
     - Delete (Alert Dialog component)
@@ -61,7 +60,7 @@
     - Create ai message record
     - Update user message with responseId (ai message)
     - Return chat
-  - On Frontend, route to `/chat/chatId` (router.push)
+  - On Frontend, invalidate chat.getMany, route to `/chat/chatId` (router.push)
 
 - /chat/chatId dynamic route -> ChatMessage + ChatInput
 
