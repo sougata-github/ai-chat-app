@@ -99,9 +99,7 @@ export async function POST(req: Request) {
         clerkId: data.id,
       },
       data: {
-        name: `${data.first_name ? data.first_name : "user"} ${
-          data.last_name ? data.last_name : ""
-        }`,
+        name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
         imageUrl: data.image_url,
       },
     });
