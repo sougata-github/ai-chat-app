@@ -54,6 +54,7 @@
     "server-only": "^0.0.1",
     "sonner": "^2.0.5",
     "superjson": "^2.2.2",
+    "svix": "^1.67.0",
     "tailwind-merge": "^3.3.0",
     "vaul": "^1.1.2",
     "zod": "^3.25.56"
