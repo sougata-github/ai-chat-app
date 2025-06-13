@@ -61,8 +61,10 @@ export async function POST(req: Request) {
       data: {
         clerkId: data.id,
         name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
+        email: data.email_addresses[0].email_address,
         imageUrl: data.image_url,
         verified: true,
+        lastReset: new Date(),
       },
     });
 
@@ -101,6 +103,7 @@ export async function POST(req: Request) {
       data: {
         name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
         imageUrl: data.image_url,
+        email: data.email_addresses[0].email_address,
       },
     });
 
