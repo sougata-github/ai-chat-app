@@ -9,7 +9,7 @@ interface Props {
   chatId?: string;
 }
 
-const ShareButton = ({ chatId = "" }: Props) => {
+const ShareButton = ({}: Props) => {
   //   const [copied, setCopied] = useState(false);
 
   //   const url = `${process.env.NEXT_PUBLIC_VERCEL_URL}/share/${chatId}`;
