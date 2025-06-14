@@ -61,50 +61,34 @@ export async function POST(req: Request) {
 
     const clerkId = data.id;
 
-    const cookieUserId = req.headers
-      .get("cookie")
-      ?.match(/userId=([^;]+)/)?.[1];
+    const userId = req.headers.get("cookie")?.match(/userId=([^;]+)/)?.[1];
 
-    console.log(cookieUserId);
+    console.log("Cookie userId", userId);
 
-    await db.user.upsert({
-      where: {
-        id: cookieUserId,
-      },
-      create: {
-        clerkId,
-        name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
-        email: data.email_addresses[0].email_address,
-        imageUrl: data.image_url,
-        verified: true,
-        lastReset: new Date(),
-      },
-      update: {
-        clerkId,
-        name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
-        email: data.email_addresses[0].email_address,
-        imageUrl: data.image_url,
-        verified: true,
-        lastReset: new Date(),
-      },
-    });
-
-    return new Response("User created", { status: 201 });
-  }
-
-  if (eventType === "user.deleted") {
-    const { data } = evt;
-
-    if (!data.id) {
-      return new Response("User id missing", { status: 400 });
+    if (userId) {
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          clerkId,
+          name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
+          email: data.email_addresses[0].email_address,
+          imageUrl: data.image_url,
+          verified: true,
+          lastReset: new Date(),
+        },
+      });
+    } else {
+      await db.user.create({
+        data: {
+          clerkId,
+          name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
+          email: data.email_addresses[0].email_address,
+          imageUrl: data.image_url,
+          verified: true,
+          lastReset: new Date(),
+        },
+      });
     }
-
-    //delete user
-    await db.user.delete({
-      where: {
-        clerkId: data.id,
-      },
-    });
 
     return new Response("User deleted", { status: 200 });
   }
