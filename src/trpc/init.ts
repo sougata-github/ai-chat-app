@@ -1,38 +1,31 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { auth } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
 import superjson from "superjson";
-import { cache } from "react";
 import { db } from "@/db";
 
-export const createTRPCContext = cache(async () => {
-  //something that doesn't make an api call, this just destructures the JWT token
+const isProd = process.env.NODE_ENV === "production";
 
-  //first check for clerkId
+export const createTRPCContext = async ({
+  req,
+  resHeaders,
+}: {
+  req: Request;
+  resHeaders: Headers;
+}) => {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const cookies = Object.fromEntries(
+    cookieHeader
+      .split(";")
+      .map((c) => c.trim().split("=").map(decodeURIComponent))
+      .filter(([k, v]) => k && v)
+  );
+
+  const userId = cookies["userId"] ?? null;
+
   const { userId: clerkId } = await auth();
 
-  if (clerkId) {
-    return { clerkId };
-  }
-
-  // no clerk, check cookie
-  const cookiesStore = await cookies();
-  let userId = cookiesStore.get("userId")?.value;
-
-  // case where user lands for first time
-  if (!userId) {
-    userId = crypto.randomUUID();
-    cookiesStore.set("userId", userId, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 365, // 1 year
-    });
-  }
-
-  return { userId };
-});
+  return { userId, clerkId, resHeaders };
+};
 
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 // Avoid exporting the entire t-object
@@ -49,38 +42,83 @@ const t = initTRPC.context<Context>().create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 
-export const baseProcedure = t.procedure.use(async function isAuthed(opts) {
+export const baseProcedure = t.procedure.use(async function withUser(opts) {
   const { ctx } = opts;
 
-  let user;
+  const { clerkId, userId: cookieUserId, resHeaders } = ctx;
 
-  if (ctx.clerkId) {
+  let user = null;
+
+  if (clerkId) {
     user = await db.user.findUnique({
       where: {
-        clerkId: ctx.clerkId,
+        clerkId,
       },
     });
 
     if (!user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Clerk ID provided but user not found in DB.",
+      });
     }
-  } else if (ctx.userId) {
-    user = await db.user.findUnique({
-      where: {
-        id: ctx.userId,
+
+    console.log("Clerk user found.");
+
+    resHeaders.append(
+      "Set-Cookie",
+      `userId=${user.id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${
+        60 * 60 * 24 * 7
+      }${isProd ? "; Secure" : ""}`
+    );
+
+    return opts.next({
+      ctx: {
+        ...ctx,
+        user,
       },
     });
   }
 
-  if (!user) {
-    user = await db.user.create({
-      data: {
-        id: ctx.userId,
-        verified: false,
-        lastReset: new Date(),
-      },
-    });
+  //anonymous flow
+  if (cookieUserId) {
+    user = await db.user.findUnique({ where: { id: cookieUserId } });
+    if (user) {
+      console.log("Anonymous user found.");
+
+      resHeaders.append(
+        "Set-Cookie",
+        `userId=${user.id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${
+          60 * 60 * 24 * 7
+        }${isProd ? "; Secure" : ""}`
+      );
+
+      return opts.next({
+        ctx: {
+          ...ctx,
+          user,
+        },
+      });
+    }
   }
+
+  console.log("Creating New anonymous user...");
+
+  //fresh anonymous user
+  user = await db.user.create({
+    data: {
+      verified: false,
+    },
+  });
+
+  console.log("New anonymous user created with ID:", user.id);
+
+  resHeaders.append(
+    "Set-Cookie",
+    `userId=${user.id}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${
+      60 * 60 * 24 * 7
+    }${isProd ? "; Secure" : ""}`
+  );
 
   return opts.next({
     ctx: {

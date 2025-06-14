@@ -54,12 +54,33 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if (eventType === "user.created") {
+    /* if userId in cookie present that means user has come to the page before -> find and update user with clerkId and other credentials 
+       if no userId in cookie (user coming for first time), create a user with the clerkId and credentials. 
+    */
     const { data } = evt;
 
-    //create user
-    await db.user.create({
-      data: {
-        clerkId: data.id,
+    const clerkId = data.id;
+
+    const cookieUserId = req.headers
+      .get("cookie")
+      ?.match(/userId=([^;]+)/)?.[1];
+
+    console.log(cookieUserId);
+
+    await db.user.upsert({
+      where: {
+        id: cookieUserId,
+      },
+      create: {
+        clerkId,
+        name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
+        email: data.email_addresses[0].email_address,
+        imageUrl: data.image_url,
+        verified: true,
+        lastReset: new Date(),
+      },
+      update: {
+        clerkId,
         name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
         email: data.email_addresses[0].email_address,
         imageUrl: data.image_url,

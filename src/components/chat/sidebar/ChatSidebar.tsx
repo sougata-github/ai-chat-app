@@ -17,6 +17,7 @@ import { WandSparkles } from "lucide-react";
 
 import SidebarUtils from "./SidebarUtils";
 import ChatList from "./ChatList";
+
 // import LoginButton from "./LoginButton";
 
 const data = {
@@ -28,8 +29,6 @@ const data = {
 };
 
 const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
-  //todo: fetch user chats: chats.getMany (not prefetch)
-
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="py-3.5">

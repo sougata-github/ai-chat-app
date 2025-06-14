@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import "server-only"; // <-- ensure this file cannot be imported from the client
 
 import { createHydrationHelpers } from "@trpc/react-query/rsc";
@@ -13,7 +12,6 @@ import { appRouter } from "./routers/_app";
 export const getQueryClient = cache(makeQueryClient);
 const caller = createCallerFactory(appRouter)(createTRPCContext);
 export const { trpc, HydrateClient } = createHydrationHelpers<typeof appRouter>(
-  //@ts-expect-error
   caller,
   getQueryClient
 );

@@ -13,9 +13,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { IconDots, IconTrash } from "@tabler/icons-react";
 import { Edit, RefreshCcw } from "lucide-react";
 import Link from "next/link";
+
+export const ChatItemSkeleton = () => {
+  return <Skeleton className="h-6 rounded-md w-full" />;
+};
 
 const ChatItem = () => {
   const { isMobile } = useSidebar();
@@ -23,7 +28,9 @@ const ChatItem = () => {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild>
-        <Link href="/chat">untitled</Link>
+        <Link prefetch href="/chat">
+          untitled
+        </Link>
       </SidebarMenuButton>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

@@ -4,3 +4,5 @@ export const suggestions = [
   "Create a recipe for a healthy breakfast",
   "Generate ideas for a small business",
 ];
+
+export const DEFAULT_LIMIT = 10;
