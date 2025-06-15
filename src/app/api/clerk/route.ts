@@ -12,14 +12,10 @@ export async function POST(req: Request) {
   const { anonUserId } = await req.json().catch(() => ({}));
   const finalAnonId = anonUserId ?? "none";
 
-  const user = await clerkClient.users.getUser(userId);
-  const existingAnonId = user.privateMetadata?.anonUserId;
-
-  if (existingAnonId !== finalAnonId) {
-    await clerkClient.users.updateUser(userId, {
-      privateMetadata: { anonUserId: finalAnonId },
-    });
-  }
+  await clerkClient.users.updateUser(userId, {
+    privateMetadata: { anonUserId: finalAnonId },
+    unsafeMetadata: { trigger: Date.now() },
+  });
 
   return new Response("OK", { status: 200 });
 }
