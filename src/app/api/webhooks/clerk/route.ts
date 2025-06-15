@@ -53,66 +53,67 @@ export async function POST(req: Request) {
 
   const eventType = evt.type;
 
-  if (eventType === "user.created") {
-    /* if userId in cookie present that means user has come to the page before -> find and update user with clerkId and other credentials 
-       if no userId in cookie (user coming for first time), create a user with the clerkId and credentials. 
-    */
-    const { data } = evt;
-
-    const clerkId = data.id;
-
-    const userId = req.headers.get("cookie")?.match(/userId=([^;]+)/)?.[1];
-
-    console.log("Cookie userId", userId);
-
-    if (userId) {
-      await db.user.update({
-        where: { id: userId },
-        data: {
-          clerkId,
-          name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
-          email: data.email_addresses[0].email_address,
-          imageUrl: data.image_url,
-          verified: true,
-          lastReset: new Date(),
-        },
-      });
-    } else {
-      await db.user.create({
-        data: {
-          clerkId,
-          name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
-          email: data.email_addresses[0].email_address,
-          imageUrl: data.image_url,
-          verified: true,
-          lastReset: new Date(),
-        },
-      });
-    }
-
-    return new Response("User deleted", { status: 200 });
-  }
-
   if (eventType === "user.updated") {
-    const { data } = evt;
+    const data = evt.data;
+    const clerkId = data.id;
+    const anonUserId = data.private_metadata?.anonUserId;
+    const email = data.email_addresses?.[0]?.email_address;
+    const name = `${data.first_name || "user"} ${data.last_name || ""}`.trim();
+    const imageUrl = data.image_url;
 
-    if (!data.id) {
-      return new Response("User id missing", { status: 400 });
+    if (!clerkId || !email) {
+      console.warn("Missing Clerk ID or email in user.updated webhook");
+      return new Response("Invalid data", { status: 400 });
     }
 
-    //update user
-    await db.user.update({
-      where: {
-        clerkId: data.id,
-      },
-      data: {
-        name: `${data.first_name || "user"} ${data.last_name || ""}`.trim(),
-        imageUrl: data.image_url,
-        email: data.email_addresses[0].email_address,
-      },
-    });
+    try {
+      if (
+        anonUserId &&
+        typeof anonUserId === "string" &&
+        anonUserId.length > 0 &&
+        anonUserId !== "none"
+      ) {
+        // link anon
+        console.log("Linking anon user to Clerk ID:", anonUserId);
 
-    return new Response("User updated", { status: 200 });
+        await db.user.update({
+          where: { id: anonUserId },
+          data: {
+            clerkId,
+            name,
+            email,
+            imageUrl,
+            verified: true,
+            lastReset: new Date(),
+          },
+        });
+
+        return new Response("Anon user merged", { status: 200 });
+      }
+
+      //create new user
+      await db.user.upsert({
+        where: { clerkId },
+        update: {
+          email,
+          name,
+          imageUrl,
+        },
+        create: {
+          clerkId,
+          name,
+          email,
+          imageUrl,
+          verified: true,
+          lastReset: new Date(),
+        },
+      });
+
+      return new Response("User synced", { status: 200 });
+    } catch (err) {
+      console.error("Failed to sync user:", err);
+      return new Response("User sync failed", { status: 500 });
+    }
   }
 
   return new Response("Webhook received", { status: 200 });
