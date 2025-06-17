@@ -14,25 +14,73 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
+  id             String    @id @default(uuid())
 
-  name      String?
-  clerkId   String?   @unique
-  email     String?   @unique
-  imageUrl  String?
-  
-  verified Boolean @default(false)
-  
-  messageCount Int  @default(0)
-  imageCount   Int  @default(0)
-  lastReset    DateTime? 
+  name           String?
+  email          String?   @unique
+  emailVerified  Boolean   @default(false)
+  image          String?
 
-  chats Chat[]
-  messages Message[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isAnonymous    Boolean?  @default(false)
+  messageCount   Int       @default(0)
+  imageCount     Int       @default(0)
+  lastReset      DateTime?
+
+  chats          Chat[]
+  messages       Message[]
+  sessions       Session[]
+  accounts       Account[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  ipAddress   String?
+  userAgent   String?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Account {
+  id                      String   @id @default(uuid())
+  userId                  String
+  accountId               String
+  providerId              String
+  accessToken             String?
+  refreshToken            String?
+  accessTokenExpiresAt    DateTime?
+  refreshTokenExpiresAt   DateTime?
+  scope                   String?
+  idToken                 String?
+  password                String?
+
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([providerId, accountId]) 
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 
 model Chat {
   id       String   @id @default(uuid())

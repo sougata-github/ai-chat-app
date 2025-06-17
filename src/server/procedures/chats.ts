@@ -16,11 +16,9 @@ export const chatsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { id: userId } = ctx.user;
-
       const { cursor, limit } = input;
 
-      if (!userId)
+      if (!ctx.user)
         return {
           chats: { today: [], last7Days: [], older: [] },
           nextCursor: null,
@@ -28,7 +26,7 @@ export const chatsRouter = createTRPCRouter({
 
       const data = await db.chat.findMany({
         where: {
-          userId,
+          id: ctx.user.id,
           ...(cursor && {
             OR: [
               {

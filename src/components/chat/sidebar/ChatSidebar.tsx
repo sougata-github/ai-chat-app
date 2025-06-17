@@ -17,18 +17,15 @@ import { WandSparkles } from "lucide-react";
 
 import SidebarUtils from "./SidebarUtils";
 import ChatList from "./ChatList";
-
-// import LoginButton from "./LoginButton";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-};
+import LoginButton from "./LoginButton";
+import { trpc } from "@/trpc/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+  const { data, isLoading } = trpc.user.getCurrentUser.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="py-3.5">
@@ -49,13 +46,20 @@ const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
         <SidebarUtils />
 
         <SidebarSeparator />
-        {/* send all chats here */}
         <ChatList />
       </SidebarContent>
       <SidebarFooter>
-        {/* render this only when clerkId exists and isSignedIn else LoginButton */}
-        <UserInfo user={data.user} />
-        {/* <LoginButton /> */}
+        {isLoading ? (
+          <Skeleton className="h-5 rounded-md" />
+        ) : data && data.name === "Anonymous" ? (
+          <LoginButton />
+        ) : (
+          <UserInfo
+            name={data?.name ?? "John Doe"}
+            image={data?.image ?? "https://avatar.vercel.sh/jack"}
+            email={data?.email ?? "johndoe@example.com"}
+          />
+        )}
       </SidebarFooter>
     </Sidebar>
   );

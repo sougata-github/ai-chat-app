@@ -20,16 +20,35 @@ import {
 } from "@/components/ui/sidebar";
 import { CommandIcon } from "lucide-react";
 
-const UserInfo = ({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) => {
+import { createAuthClient } from "better-auth/react";
+import { trpc } from "@/trpc/client";
+
+interface Props {
+  name: string;
+  email: string;
+  image: string;
+}
+
+const UserInfo = ({ name, email, image }: Props) => {
   const { isMobile } = useSidebar();
+
+  const utils = trpc.useUtils();
+
+  const authClient = createAuthClient();
+
+  const signOut = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          utils.user.getCurrentUser.invalidate();
+          window.location.replace("/chat");
+        },
+        onError: (error) => {
+          console.log("Couldn't sign out", error);
+        },
+      },
+    });
+  };
 
   return (
     <SidebarMenu>
@@ -41,16 +60,13 @@ const UserInfo = ({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-full">
-                <AvatarImage
-                  src="https://avatar.vercel.sh/jack"
-                  alt={user.name}
-                />
+                <AvatarImage src={image} alt={name} />
                 <AvatarFallback className="rounded-full">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
+                  {email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -65,16 +81,13 @@ const UserInfo = ({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-full">
-                  <AvatarImage
-                    src="https://avatar.vercel.sh/jack"
-                    alt={user.name}
-                  />
+                  <AvatarImage src={image} alt={name} />
                   <AvatarFallback className="rounded-full">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{name}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
+                    {email}
                   </span>
                 </div>
               </div>
@@ -91,7 +104,7 @@ const UserInfo = ({
               {/* todo: Manage Account Settings from Clerk */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

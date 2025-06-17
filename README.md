@@ -1,27 +1,28 @@
 ## Features (MVP)
 
-- Auth
+- Auth (Better Auth)
 
-  - can chat without sign-in
-  - have to retain user info and a boolean of verified, when user logs in, verified state changes
-  - based on verified we will have rate limits
-  - 8 user messages in total across all chats when not verified
-  - 20 user messages when logged-in
+  - can chat without sign-in (guest mode)
+  - based on `isAnonymous` status, we will have rate limits
+  - 8 user messages in total across all chats when anonymous
+  - 20 user messages when not anonymous
   - 2 images for both logged-in or not
-  - Message limit resets everyday at 5:30am
-  - all this info will be kept in trpc baseProcedure context
-  - once a chat is created, chat info will be retained even after log out
+  - message limit resets everyday at 5:30am
+  - auth logic in tRPC Context
+  - if no session (logged-out), then new anon session will be created everytime
+  - anon and logged-in sessions will be different so chat info won't be retained across the two
+  - anon sessions will be destroyed once logged-in
+  - If user never logs in then chat info for anon session will be retained
+  - once logged-in the new chat info will be retained thereafter forever
   - chat useMutation will return limit status on every message when not logged-in (prompt to log in)
   - chat useMutation will return limit status after only after limit is reached when logged-in
-  - Abstract auth to context (when user lands for first time, on submission, ctx will check wether there is clerkId and also in cookie for userId, if no clerkId or userId in cookie, then generate random UUID, create user and add to context, if userId in cookie, then fetch user through DB call, add to ctx, if clerkId exists, then find user, add to context)
-  - Rate limit check to middleware (in case of mutation)
+  - Rate limit check in a separate middleware (in case of mutation)
 
 - User Button (bottom of sidebar - for logged in else render login button)
 
   - Display message limit info with progress bar
   - Display user avatar, name and email (only if logged in)
   - Shortcuts: Ctrl+K to open search (Command component)
-  - Account Settings (from Clerk)
   - Sign Out button
 
 - Sidebar
@@ -110,12 +111,12 @@
 - Next.js 15
 - React 19
 - TypeScript
-- tRPC
 - TailwindCSS
+- Better Auth
+- tRPC
 - Shadcn-ui
 - Framer Motion
 - Upstash (rate-limiting)
-- Clerk
 - Uploadthing
 - Vercel AI SDK
 - Gemini API

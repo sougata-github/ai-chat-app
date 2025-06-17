@@ -1,13 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { SignInButton } from "@clerk/nextjs";
+
+import { LogIn } from "lucide-react";
+import Link from "next/link";
 
 const LoginButton = () => {
   return (
-    <SignInButton>
-      <Button variant="ghost">Log In</Button>
-    </SignInButton>
+    <Link href="/auth" className="w-full flex" prefetch>
+      <Button variant="ghost" className="justify-start gap-4 w-full" size="lg">
+        <LogIn /> Log In
+      </Button>
+    </Link>
   );
 };
 
