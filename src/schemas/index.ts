@@ -10,3 +10,9 @@ export const chatInputSchema = z.object({
       message: "Prompt cannot exceed 50000 characters",
     }),
 });
+
+export const chatRenameSchema = z.object({
+  title: z.string().min(1, {
+    message: "Chat title must have at least one character.",
+  }),
+});

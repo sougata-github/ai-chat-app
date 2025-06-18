@@ -1,6 +1,6 @@
 ## Features (MVP)
 
-- Auth (Better Auth)
+- Auth (Better Auth) ✅
 
   - can chat without sign-in (guest mode)
   - based on `isAnonymous` status, we will have rate limits
