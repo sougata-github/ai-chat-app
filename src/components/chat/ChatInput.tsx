@@ -15,6 +15,7 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { ArrowUp, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ModelDropDown from "./ModelDropDown";
 
 interface Props {
   variant: "message" | "chat";
@@ -60,17 +61,20 @@ const ChatInput = ({ suggestion }: Props) => {
                 )}
               />
               <div className="flex items-center justify-between py-2.5 px-3 dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0">
-                <Button
-                  variant="outline"
-                  type="button"
-                  className={cn(
-                    "w-fit rounded-full bg-transparent text-xs"
-                    // image-gen selected && "some-bg"
-                  )}
-                >
-                  <ImageIcon />
-                  Image Gen
-                </Button>
+                <div className="flex items-center gap-1">
+                  <ModelDropDown />
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    size="icon"
+                    className={cn(
+                      "rounded-full bg-transparent"
+                      // image-gen selected && "some-bg"
+                    )}
+                  >
+                    <ImageIcon />
+                  </Button>
+                </div>
 
                 <Button
                   variant="outline"
