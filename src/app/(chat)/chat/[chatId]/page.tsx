@@ -1,3 +1,6 @@
+import { isChatPresent } from "@/lib/chat/isChatPresent";
+import { redirect } from "next/navigation";
+
 interface Props {
   params: Promise<{ chatId: string }>;
 }
@@ -5,11 +8,12 @@ interface Props {
 export const dynamic = "force-dynamic";
 
 export default async function MessagesPage({ params }: Props) {
-  //util check to ensure no random chatId page is visited
+  const { chatId } = await params;
+  const existingChat = await isChatPresent(chatId);
+
+  if (!existingChat) redirect("/chat");
 
   // todo: prefetch chat.getOne and messages.getMany
-
-  const { chatId } = await params;
 
   return (
     <div>

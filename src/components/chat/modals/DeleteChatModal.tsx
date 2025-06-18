@@ -2,15 +2,27 @@
 
 import { Button } from "@/components/ui/button";
 import ResponsiveModal from "./ResponsiveModal";
+import { ChatGetOneOutput } from "@/types";
+import { trpc } from "@/trpc/client";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  //will get chatId
+  chatId: ChatGetOneOutput["id"];
 }
 
-const DeleteChatModal = ({ open, onOpenChange, onCancel }: Props) => {
+const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
+  const utils = trpc.useUtils();
+
+  const deleteChat = trpc.chats.deleteOne.useMutation({
+    onSuccess: () => {
+      toast.success("Chat Deleted");
+      utils.chats.getMany.invalidate();
+    },
+  });
+
   return (
     <ResponsiveModal
       title="Delete Chat"
@@ -28,7 +40,12 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel }: Props) => {
           >
             Cancel
           </Button>
-          <Button className="w-full md:w-fit" variant="destructive">
+          <Button
+            className="w-full md:w-fit"
+            variant="destructive"
+            onClick={() => deleteChat.mutate({ chatId })}
+            disabled={deleteChat.isPending}
+          >
             Delete
           </Button>
         </div>

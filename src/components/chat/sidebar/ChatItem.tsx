@@ -20,12 +20,17 @@ import Link from "next/link";
 import { useState } from "react";
 import DeleteChatModal from "../modals/DeleteChatModal";
 import ChatRenameModal from "../modals/ChatRenameModal";
+import { ChatGetOneOutput } from "@/types";
 
 export const ChatItemSkeleton = () => {
   return <Skeleton className="h-6 rounded-md w-full" />;
 };
 
-const ChatItem = () => {
+interface Props {
+  chat: ChatGetOneOutput;
+}
+
+const ChatItem = ({ chat }: Props) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openRenameModal, setOpenRenameModal] = useState(false);
 
@@ -34,11 +39,13 @@ const ChatItem = () => {
   return (
     <>
       <ChatRenameModal
+        chatId={chat.id}
         open={openRenameModal}
         onOpenChange={setOpenRenameModal}
         onCancel={() => setOpenRenameModal(false)}
       />
       <DeleteChatModal
+        chatId={chat.id}
         open={openDeleteModal}
         onOpenChange={setOpenDeleteModal}
         onCancel={() => setOpenDeleteModal(false)}
@@ -46,7 +53,7 @@ const ChatItem = () => {
       <SidebarMenuItem>
         <SidebarMenuButton asChild>
           <Link prefetch href="/chat">
-            untitled
+            {chat.title}
           </Link>
         </SidebarMenuButton>
         <DropdownMenu>

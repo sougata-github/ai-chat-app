@@ -16,15 +16,18 @@ import { z } from "zod";
 import { chatRenameSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
+import { ChatGetOneOutput } from "@/types";
+import { trpc } from "@/trpc/client";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  //will get chatId
+  chatId: ChatGetOneOutput["id"];
 }
 
-const ChatRenameModal = ({ open, onOpenChange, onCancel }: Props) => {
+const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   const form = useForm<z.infer<typeof chatRenameSchema>>({
     resolver: zodResolver(chatRenameSchema),
     defaultValues: {
@@ -32,10 +35,18 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel }: Props) => {
     },
   });
 
+  const utils = trpc.useUtils();
+
+  const rename = trpc.chats.rename.useMutation({
+    onSuccess: () => {
+      toast.success("Chat Renamed");
+      utils.chats.getMany.invalidate();
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof chatRenameSchema>) => {
     const { title } = values;
-    console.log(title);
-    // perform mutation
+    rename.mutate({ chatId, title });
   };
 
   const onCancelForm = () => {
@@ -79,7 +90,11 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel }: Props) => {
             >
               Cancel
             </Button>
-            <Button type="submit" className="w-full md:w-fit">
+            <Button
+              type="submit"
+              className="w-full md:w-fit"
+              disabled={rename.isPending}
+            >
               Rename
             </Button>
           </div>

@@ -1,8 +1,103 @@
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { chatRenameSchema } from "@/schemas";
+import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
 import { z } from "zod";
 
 export const chatsRouter = createTRPCRouter({
+  getOne: baseProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { chatId } = input;
+
+      const { user } = ctx;
+
+      if (!user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const existingChat = await db.chat.findUnique({
+        where: {
+          id: chatId,
+          userId: user.id,
+        },
+      });
+
+      if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return existingChat;
+    }),
+  rename: baseProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+        title: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { chatId, title } = input;
+
+      const validatedFields = chatRenameSchema.safeParse({ title });
+
+      if (!validatedFields.success)
+        throw new TRPCError({ code: "BAD_REQUEST" });
+
+      const { user } = ctx;
+
+      if (!user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const updatedChat = await db.chat.update({
+        where: {
+          id: chatId,
+          userId: user.id,
+        },
+        data: {
+          title,
+        },
+      });
+
+      if (!updatedChat) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return updatedChat;
+    }),
+  deleteOne: baseProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { chatId } = input;
+
+      const { user } = ctx;
+
+      if (!user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const existingChat = await db.chat.findUnique({
+        where: {
+          id: chatId,
+          userId: user.id,
+        },
+      });
+
+      if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const deletedChat = await db.chat.delete({
+        where: {
+          id: existingChat.id,
+        },
+      });
+
+      return deletedChat;
+    }),
   getMany: baseProcedure
     .input(
       z.object({
@@ -26,7 +121,7 @@ export const chatsRouter = createTRPCRouter({
 
       const data = await db.chat.findMany({
         where: {
-          id: ctx.user.id,
+          userId: ctx.user.id,
           ...(cursor && {
             OR: [
               {

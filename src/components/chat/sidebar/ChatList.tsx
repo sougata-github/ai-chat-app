@@ -45,16 +45,18 @@ const ChatList = () => {
       {isLoading && <ChatListSkeleton />}
       {/* today group */}
 
-      <SidebarGroup>
-        <SidebarGroupLabel>Today</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {[...new Array(2)].fill(0).map((_, index) => (
-              <ChatItem key={index} />
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+      {merged.today.length > 0 && (
+        <SidebarGroup>
+          <SidebarGroupLabel>Today</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {merged.today.map((chat) => (
+                <ChatItem key={chat.id} chat={chat} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
 
       {/* last 7 Days group */}
       {merged.last7Days.length > 0 && (
@@ -63,7 +65,7 @@ const ChatList = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {merged.last7Days.map((chat) => (
-                <ChatItem key={chat.id} />
+                <ChatItem key={chat.id} chat={chat} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -77,7 +79,7 @@ const ChatList = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {merged.older.map((chat) => (
-                <ChatItem key={chat.id} />
+                <ChatItem key={chat.id} chat={chat} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
