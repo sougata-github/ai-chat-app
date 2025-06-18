@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,13 +14,21 @@ import {
 
 import { FaGoogle } from "react-icons/fa";
 import { createAuthClient } from "better-auth/react";
-
 import { trpc } from "@/trpc/client";
 
-export default function AuthPage() {
-  const utils = trpc.useUtils();
+const authClient = createAuthClient();
 
-  const authClient = createAuthClient();
+export default function AuthPage() {
+  const router = useRouter();
+  const utils = trpc.useUtils();
+  const { data: session } = authClient.useSession();
+
+  // Redirect logged-in users to /chat
+  useEffect(() => {
+    if (session && session.user.name !== "Anonymous") {
+      router.push("/chat");
+    }
+  }, [session, router]);
 
   const signIn = async () => {
     await authClient.signIn.social({
@@ -28,7 +39,7 @@ export default function AuthPage() {
           window.location.replace("/chat");
         },
         onError: (error) => {
-          console.log("Couldn't sign in", error);
+          console.error("Couldn't sign in", error);
         },
       },
     });
@@ -42,7 +53,7 @@ export default function AuthPage() {
       </CardHeader>
       <CardContent className="space-y-4 flex flex-col items-center justify-center">
         <Button className="w-full" onClick={signIn}>
-          <FaGoogle />
+          <FaGoogle className="mr-2" />
           Sign in with Google
         </Button>
       </CardContent>
