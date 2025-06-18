@@ -103,6 +103,7 @@
 
 - Display theme selection with light and dark mode toggles as well as basic shadcn theme colors (Popover)
 - Share Chat button that generates link -> /domain/share/chatId, copying it displays a toast (Link copied)
+- Share Chat button only for those chats that are not archived
 - /share/chatId page
   - Navigating to shared page will only have the shared chat messages and no textarea (just preview of shared chat)
 

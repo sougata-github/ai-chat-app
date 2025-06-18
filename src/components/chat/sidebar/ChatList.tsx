@@ -25,6 +25,7 @@ const ChatList = () => {
     trpc.chats.getMany.useInfiniteQuery(
       {
         limit: DEFAULT_LIMIT,
+        isArchived: false,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,

@@ -38,9 +38,10 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   const utils = trpc.useUtils();
 
   const rename = trpc.chats.rename.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Chat Renamed");
       utils.chats.getMany.invalidate();
+      utils.chats.getOne.invalidate({ chatId: data.id });
     },
   });
 

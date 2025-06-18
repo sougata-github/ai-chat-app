@@ -40,7 +40,7 @@ const InfiniteScroll = ({
       <div ref={targetRef} className="h-1" />
       {hasNextPage ? (
         <Button
-          variant="secondary"
+          variant="ghost"
           disabled={!hasNextPage || isFetchingNextPage}
           onClick={() => fetchNextPage()}
         >

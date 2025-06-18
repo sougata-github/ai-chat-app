@@ -5,6 +5,7 @@ import ResponsiveModal from "./ResponsiveModal";
 import { ChatGetOneOutput } from "@/types";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Props {
   open: boolean;
@@ -14,12 +15,15 @@ interface Props {
 }
 
 const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
+  const router = useRouter();
   const utils = trpc.useUtils();
 
   const deleteChat = trpc.chats.deleteOne.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Chat Deleted");
       utils.chats.getMany.invalidate();
+      utils.chats.getOne.invalidate({ chatId: data.id });
+      router.push("/chat");
     },
   });
 

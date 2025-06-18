@@ -91,7 +91,15 @@ const UserInfo = ({ name, email, image }: Props) => {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage src={image} alt={name} />
-                  <AvatarFallback className="rounded-full">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-full">
+                    <Image
+                      src="https://avatar.vercel.sh/jack"
+                      alt="fallback"
+                      height={32}
+                      width={32}
+                      className="rounded-full"
+                    />
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{name}</span>

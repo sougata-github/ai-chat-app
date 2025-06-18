@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { z } from "zod";
 
 export const chatsRouter = createTRPCRouter({
-  getOne: baseProcedure
+  restore: baseProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),
@@ -20,16 +20,48 @@ export const chatsRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const existingChat = await db.chat.findUnique({
+      const restoredChat = await db.chat.update({
         where: {
           id: chatId,
           userId: user.id,
         },
+        data: {
+          archived: false,
+        },
       });
 
-      if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!restoredChat) throw new TRPCError({ code: "NOT_FOUND" });
 
-      return existingChat;
+      return restoredChat;
+    }),
+  archive: baseProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { chatId } = input;
+
+      const { user } = ctx;
+
+      if (!user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const archivedChat = await db.chat.update({
+        where: {
+          id: chatId,
+          userId: user.id,
+        },
+        data: {
+          archived: true,
+        },
+      });
+
+      if (!archivedChat) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return archivedChat;
     }),
   rename: baseProcedure
     .input(
@@ -98,6 +130,112 @@ export const chatsRouter = createTRPCRouter({
 
       return deletedChat;
     }),
+  search: baseProcedure
+    .input(
+      z.object({
+        cursor: z
+          .object({
+            id: z.string().uuid(),
+            updatedAt: z.date(),
+          })
+          .nullish(),
+        query: z.string().nullish(),
+        limit: z.number().min(1).max(100),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { cursor, limit, query } = input;
+
+      if (!ctx.user)
+        return {
+          chats: [],
+          nextCursor: null,
+        };
+
+      if (!query) {
+        return {
+          chats: [],
+          nextCursor: null,
+        };
+      }
+
+      const data = await db.chat.findMany({
+        where: {
+          userId: ctx.user.id,
+          archived: false,
+          ...(query && {
+            title: {
+              contains: query,
+              mode: "insensitive",
+            },
+          }),
+          ...(cursor && {
+            OR: [
+              {
+                updatedAt: {
+                  lt: cursor.updatedAt,
+                },
+              },
+              {
+                updatedAt: cursor.updatedAt,
+                id: {
+                  lt: cursor.id,
+                },
+              },
+            ],
+          }),
+        },
+        orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+        include: {
+          user: true,
+        },
+        take: limit + 1,
+      });
+
+      const hasMore = data.length > limit;
+
+      const chats = hasMore ? data.slice(0, -1) : data;
+
+      const lastChat = chats[chats.length - 1];
+
+      const nextCursor = hasMore
+        ? {
+            id: lastChat.id,
+            updatedAt: lastChat.updatedAt,
+          }
+        : null;
+
+      return {
+        chats,
+        nextCursor,
+      };
+    }),
+  getOne: baseProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { chatId } = input;
+
+      const { user } = ctx;
+
+      if (!user) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const existingChat = await db.chat.findUnique({
+        where: {
+          id: chatId,
+          userId: user.id,
+        },
+      });
+
+      if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return existingChat;
+    }),
   getMany: baseProcedure
     .input(
       z.object({
@@ -107,11 +245,12 @@ export const chatsRouter = createTRPCRouter({
             updatedAt: z.date(),
           })
           .nullish(),
+        isArchived: z.boolean().default(false),
         limit: z.number().min(1).max(100),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { cursor, limit } = input;
+      const { cursor, limit, isArchived } = input;
 
       if (!ctx.user)
         return {
@@ -122,6 +261,7 @@ export const chatsRouter = createTRPCRouter({
       const data = await db.chat.findMany({
         where: {
           userId: ctx.user.id,
+          archived: isArchived,
           ...(cursor && {
             OR: [
               {

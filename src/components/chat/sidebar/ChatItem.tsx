@@ -21,6 +21,8 @@ import { useState } from "react";
 import DeleteChatModal from "../modals/DeleteChatModal";
 import ChatRenameModal from "../modals/ChatRenameModal";
 import { ChatGetOneOutput } from "@/types";
+import { trpc } from "@/trpc/client";
+import { toast } from "sonner";
 
 export const ChatItemSkeleton = () => {
   return <Skeleton className="h-6 rounded-md w-full" />;
@@ -35,6 +37,15 @@ const ChatItem = ({ chat }: Props) => {
   const [openRenameModal, setOpenRenameModal] = useState(false);
 
   const { isMobile } = useSidebar();
+
+  const utils = trpc.useUtils();
+  const archiveChat = trpc.chats.archive.useMutation({
+    onSuccess: (data) => {
+      toast.success("Chat Archived");
+      utils.chats.getMany.invalidate();
+      utils.chats.getOne.invalidate({ chatId: data.id });
+    },
+  });
 
   return (
     <>
@@ -71,7 +82,11 @@ const ChatItem = ({ chat }: Props) => {
             side={isMobile ? "bottom" : "right"}
             align={isMobile ? "end" : "start"}
           >
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                archiveChat.mutate({ chatId: chat.id });
+              }}
+            >
               <RefreshCcw />
               <span>Archive</span>
             </DropdownMenuItem>
