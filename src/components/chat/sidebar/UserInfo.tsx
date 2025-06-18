@@ -22,6 +22,7 @@ import { CommandIcon } from "lucide-react";
 
 import { createAuthClient } from "better-auth/react";
 import { trpc } from "@/trpc/client";
+import Image from "next/image";
 
 interface Props {
   name: string;
@@ -61,7 +62,15 @@ const UserInfo = ({ name, email, image }: Props) => {
             >
               <Avatar className="h-8 w-8 rounded-full">
                 <AvatarImage src={image} alt={name} />
-                <AvatarFallback className="rounded-full">CN</AvatarFallback>
+                <AvatarFallback className="rounded-full">
+                  <Image
+                    src="https://avatar.vercel.sh/jack"
+                    alt="fallback"
+                    height={32}
+                    width={32}
+                    className="rounded-full"
+                  />
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{name}</span>
