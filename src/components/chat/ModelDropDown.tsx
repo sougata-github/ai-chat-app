@@ -1,4 +1,3 @@
-import { RiGeminiFill } from "react-icons/ri";
 import { ChevronUpIcon } from "lucide-react";
 
 import {
@@ -27,11 +26,11 @@ const ModelDropDown = () => {
         align="start"
         sideOffset={4}
       >
-        <DropdownMenuItem>
-          <RiGeminiFill /> gemini-2.5-flash-exp
+        <DropdownMenuItem className="max-md:text-xs">
+          gemini-2.5-flash-exp
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <RiGeminiFill /> gemini-1.5-flash-exp
+        <DropdownMenuItem className="max-md:text-xs">
+          gemini-1.5-flash-exp
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

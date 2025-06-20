@@ -53,7 +53,7 @@ export default function AuthPage() {
       </CardHeader>
       <CardContent className="space-y-4 flex flex-col items-center justify-center">
         <Button className="w-full" onClick={signIn}>
-          <FaGoogle className="mr-2" />
+          <FaGoogle />
           Sign in with Google
         </Button>
       </CardContent>

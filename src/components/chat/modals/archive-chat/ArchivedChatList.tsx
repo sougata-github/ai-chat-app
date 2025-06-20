@@ -42,7 +42,11 @@ const ArchivedChatList = () => {
     merged.today.length === 0 &&
     merged.today.length === 0
   )
-    return <p className="text-center p-4">No archived Chats</p>;
+    return (
+      <p className="text-center p-4 pt-0 text-muted-foreground text-sm">
+        No archived Chats
+      </p>
+    );
 
   return (
     <div className="flex flex-col gap-4 py-4 max-md:px-4">
