@@ -31,7 +31,7 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   const form = useForm<z.infer<typeof chatRenameSchema>>({
     resolver: zodResolver(chatRenameSchema),
     defaultValues: {
-      title: "Untitled",
+      title: "New Chat",
     },
   });
 
@@ -51,7 +51,6 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   };
 
   const onCancelForm = () => {
-    form.reset();
     onCancel();
   };
 

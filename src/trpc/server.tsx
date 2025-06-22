@@ -1,27 +1,29 @@
-import "server-only"; // <-- ensure this file cannot be imported from the client
+import "server-only";
 
 import { createHydrationHelpers } from "@trpc/react-query/rsc";
-import { headers } from "next/headers";
 import { cache } from "react";
 
 import { createCallerFactory, createTRPCContext } from "./init";
 import { makeQueryClient } from "./query-client";
 import { appRouter } from "./routers/_app";
 
-/* IMPORTANT: Create a stable getter for the query client that
-             will return the same client during the same request.*/
+// Get a stable query client per request
 export const getQueryClient = cache(makeQueryClient);
 
-const caller = await (async () => {
+// Create a stable server-side tRPC caller per request
+export const getServerCaller = cache(async () => {
   const req = new Request("http://localhost", {
-    headers: await headers(),
+    headers: new Headers(),
   });
+
   const resHeaders = new Headers();
   const ctx = await createTRPCContext({ req, resHeaders });
-  return createCallerFactory(appRouter)(ctx);
-})();
 
+  return createCallerFactory(appRouter)(ctx);
+});
+
+// Hydration helpers using server-side caller
 export const { trpc, HydrateClient } = createHydrationHelpers<typeof appRouter>(
-  caller,
+  await getServerCaller(),
   getQueryClient
 );

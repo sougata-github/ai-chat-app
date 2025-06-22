@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/client";
 import { ChatGetOneOutput } from "@/types";
-import { IconArrowCurveRight, IconTrash } from "@tabler/icons-react";
+import { IconRestore, IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ const ArchivedChatItem = ({ chat }: Props) => {
     },
   });
 
-  const restoreChat = trpc.chats.deleteOne.useMutation({
+  const restoreChat = trpc.chats.restore.useMutation({
     onSuccess: (data) => {
       toast.success("Chat Restored");
       utils.chats.getMany.invalidate();
@@ -38,9 +38,9 @@ const ArchivedChatItem = ({ chat }: Props) => {
     <Link
       prefetch
       href={`/chat/${chat.id}`}
-      className="p-2 rounded-md w-full flex items-center justify-between group md:hover:bg-muted-foreground/5"
+      className="p-1 pl-2 rounded-lg w-full flex items-center justify-between group md:hover:bg-muted-foreground/5"
     >
-      <div className="text-base line-clamp-1">{chat.title}</div>
+      <div className="text-sm line-clamp-1">{chat.title}</div>
       <div className="flex items-center gap-1">
         <Button
           variant="ghost"
@@ -49,7 +49,7 @@ const ArchivedChatItem = ({ chat }: Props) => {
           disabled={restoreChat.isPending}
           className="md:group-hover:opacity-100 opacity-0"
         >
-          <IconArrowCurveRight />
+          <IconRestore />
         </Button>
         <Button
           variant="ghost"

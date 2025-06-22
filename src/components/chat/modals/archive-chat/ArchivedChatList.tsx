@@ -56,7 +56,7 @@ const ArchivedChatList = () => {
       {merged.today.length > 0 && (
         <div className="flex flex-col">
           Today
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-2">
             {merged.today.map((chat) => (
               <ArchivedChatItem key={chat.id} chat={chat} />
             ))}
@@ -68,7 +68,7 @@ const ArchivedChatList = () => {
       {merged.last7Days.length > 0 && (
         <div className="flex flex-col">
           Last 7 Days
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-2">
             {merged.last7Days.map((chat) => (
               <ArchivedChatItem key={chat.id} chat={chat} />
             ))}
@@ -80,7 +80,7 @@ const ArchivedChatList = () => {
       {merged.older.length > 0 && (
         <div className="flex flex-col">
           Older
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-2">
             {merged.older.map((chat) => (
               <ArchivedChatItem key={chat.id} chat={chat} />
             ))}

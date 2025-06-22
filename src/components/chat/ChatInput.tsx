@@ -3,27 +3,41 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { chatInputSchema } from "@/schemas";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { ArrowUp, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
+import React, { ChangeEvent, useEffect } from "react";
+import { ChatRequestOptions } from "ai";
 
 interface Props {
-  variant: "message" | "chat";
   chatId?: string;
   suggestion?: string;
+  status: "streaming" | "submitted" | "ready" | "error";
+  input: string;
+  setInput: (value: string) => void;
+  handleSubmit: (
+    event?: {
+      preventDefault?: () => void;
+    },
+    chatRequestOptions?: ChatRequestOptions
+  ) => void;
+  handleInputChange: (
+    e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
+  ) => void;
 }
 
-const ChatInput = ({ suggestion }: Props) => {
+const ChatInput = ({
+  suggestion,
+  status,
+  input,
+  setInput,
+  handleSubmit,
+  handleInputChange,
+}: Props) => {
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
     defaultValues: {
@@ -32,9 +46,24 @@ const ChatInput = ({ suggestion }: Props) => {
   });
 
   const onSubmit = (values: z.infer<typeof chatInputSchema>) => {
-    //depending on the variant, perform the mutation
-    //variant === "chat" then chat.create (no chatId) else message.create (with ChatId)
-    console.log(values);
+    if (!values.prompt.trim()) return;
+
+    const syntheticEvent = {
+      preventDefault: () => {},
+      target: { value: values.prompt },
+    };
+
+    setInput(values.prompt);
+    handleSubmit(syntheticEvent);
+  };
+
+  useEffect(() => {
+    form.setValue("prompt", input);
+  }, [input, form]);
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    form.setValue("prompt", e.target.value);
+    handleInputChange(e);
   };
 
   return (
@@ -54,9 +83,11 @@ const ChatInput = ({ suggestion }: Props) => {
                         dark:border-1 dark:border-b-0 dark:border-muted-foreground/10 px-4 pt-4 pb-8 placeholder:text-muted-foreground rounded-b-none shadow-none max-md:placeholder:text-sm max-md:text-sm"
                         {...field}
                         placeholder="Type your message here..."
+                        onChange={handleTextareaChange}
+                        disabled={status === "streaming"}
                       />
                     </FormControl>
-                    <FormMessage className="dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0 p-2" />
+                    {/* <FormMessage className="dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0 p-2" /> */}
                   </FormItem>
                 )}
               />
@@ -80,6 +111,10 @@ const ChatInput = ({ suggestion }: Props) => {
                   variant="outline"
                   type="submit"
                   size="icon"
+                  disabled={
+                    !form.watch("prompt")?.trim().length ||
+                    status === "streaming"
+                  }
                   className="rounded-full"
                 >
                   <ArrowUp />

@@ -6,6 +6,7 @@ import { ChatGetOneOutput } from "@/types";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { IconLoader2 } from "@tabler/icons-react";
 
 interface Props {
   open: boolean;
@@ -50,6 +51,9 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
             onClick={() => deleteChat.mutate({ chatId })}
             disabled={deleteChat.isPending}
           >
+            {deleteChat.isPending && (
+              <IconLoader2 className="size-4 animate-spin transition" />
+            )}
             Delete
           </Button>
         </div>

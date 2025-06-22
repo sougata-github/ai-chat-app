@@ -25,7 +25,7 @@
   - Shortcuts: Ctrl+K to open search (Command component)
   - Sign Out button
 
-- Sidebar
+- Sidebar ✅
 
   - Logo at the top
   - Create Chat Button -> navigates to `/chat` (no mutation until form is submitted)
@@ -99,6 +99,26 @@
   - Invalidate messages.getMany
   - Provide a detailed SYSTEM_PROMPT in llm call
 
+- chat page
+
+  - generate a uuid()
+  - pass the generated id to ChatView (this is so that we can create a new chat record and route to /chat/chatId)
+  - Render ChatView
+  - Inside ChatView render ChatSuggestions and ChatInput
+  - Set ChatSuggestions and pass into ChatInput
+  - use useChat (but make api call to /api/chat -> for chat creation)
+
+- /chat/chatId
+
+  - Check for existing chat using params id, if not present redirect to /chat
+  - Fetch existing messages in the chat (server action)
+  - Convert to ai sdk messages
+  - Pass into MessagesView component
+  - In MessagesView:
+    - use useChat hook for chat interface and making llm calls (but make api call to /api/messages -> for existing chat)
+    - get handleSubmit, messages, loading-state, etc from the hook and pass to Messages Component and ChatInput component
+    - in messages component, map over the messages from prop to display message-item component
+
 - Header (layout.tsx)
 
 - Display theme selection with light and dark mode toggles as well as basic shadcn theme colors (Popover)
@@ -106,6 +126,17 @@
 - Share Chat button only for those chats that are not archived
 - /share/chatId page
   - Navigating to shared page will only have the shared chat messages and no textarea (just preview of shared chat)
+
+Todo:
+
+- /chat/chatId page with plain text (getting response and displaying stuff)
+- resumable streams
+- Code generation and syntax highlighting, structured outputs
+- Image Generation, multi model setup, scroll hooks (scroll to bottom, auto-scroll)
+- Rate limiting (messages and chats for logged in and guest users)
+- Share page
+- Refinements (Animations, UX improvement)
+- Future updates (tool calling, edit message)
 
 ## Tech Stack
 
@@ -117,7 +148,7 @@
 - tRPC
 - Shadcn-ui
 - Framer Motion
-- Upstash (rate-limiting)
+- Upstash
 - Uploadthing
 - Vercel AI SDK
 - Gemini API

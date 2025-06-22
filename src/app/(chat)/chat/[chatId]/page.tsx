@@ -1,24 +1,21 @@
-import { isChatPresent } from "@/lib/chat/isChatPresent";
+import MessagesView from "@/components/messages/MessagesView";
+import { getChatById, getMessagesByChatId } from "@/lib/chat";
+import { convertToAISDKMessages } from "@/lib/utils";
 import { redirect } from "next/navigation";
 
 interface Props {
   params: Promise<{ chatId: string }>;
 }
 
-export const dynamic = "force-dynamic";
-
 export default async function MessagesPage({ params }: Props) {
   const { chatId } = await params;
-  const existingChat = await isChatPresent(chatId);
+  const existingChat = await getChatById(chatId);
 
   if (!existingChat) redirect("/chat");
 
-  // todo: prefetch chat.getOne and messages.getMany
+  const messages = await getMessagesByChatId(chatId);
 
-  return (
-    <div>
-      {chatId}
-      MessageView
-    </div>
-  );
+  const initialMessages = convertToAISDKMessages(messages);
+
+  return <MessagesView chatId={chatId} initialMessages={initialMessages} />;
 }

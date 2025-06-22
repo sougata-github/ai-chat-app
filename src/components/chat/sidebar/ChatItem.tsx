@@ -63,7 +63,7 @@ const ChatItem = ({ chat }: Props) => {
       />
       <SidebarMenuItem>
         <SidebarMenuButton asChild>
-          <Link prefetch href="/chat">
+          <Link prefetch href={`/chat/${chat.id}`}>
             {chat.title}
           </Link>
         </SidebarMenuButton>
