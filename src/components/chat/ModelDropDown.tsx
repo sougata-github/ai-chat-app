@@ -12,11 +12,7 @@ const ModelDropDown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="text-sm">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-full max-md:text-xs"
-        >
+        <Button variant="ghost" size="sm" className="rounded-lg max-md:text-xs">
           gemini-flash-2.5-exp <ChevronUpIcon />
         </Button>
       </DropdownMenuTrigger>

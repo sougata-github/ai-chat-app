@@ -46,7 +46,7 @@ const UserInfo = ({ name, email, image }: Props) => {
       fetchOptions: {
         onSuccess: () => {
           utils.user.getCurrentUser.invalidate();
-          window.location.replace("/chat");
+          window.location.replace("/");
         },
         onError: (error) => {
           console.log("Couldn't sign out", error);

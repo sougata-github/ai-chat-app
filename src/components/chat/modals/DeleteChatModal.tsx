@@ -24,7 +24,7 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
       toast.success("Chat Deleted");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId: data.id });
-      router.push("/chat");
+      router.push("/");
     },
   });
 

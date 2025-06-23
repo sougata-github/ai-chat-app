@@ -31,11 +31,7 @@ const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
       <SidebarHeader className="py-3.5">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link
-              prefetch
-              href="/chat"
-              className="p-1.5 flex gap-2 items-center"
-            >
+            <Link prefetch href="/" className="p-1.5 flex gap-2 items-center">
               <WandSparkles className="!size-5" />
               <span className="text-base font-semibold">Chat Gemini</span>
             </Link>

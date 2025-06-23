@@ -14,9 +14,8 @@ import React, { ChangeEvent, useEffect } from "react";
 import { ChatRequestOptions } from "ai";
 
 interface Props {
-  chatId?: string;
   suggestion?: string;
-  status: "streaming" | "submitted" | "ready" | "error";
+  status?: "streaming" | "submitted" | "ready" | "error";
   input: string;
   setInput: (value: string) => void;
   handleSubmit: (
@@ -28,6 +27,7 @@ interface Props {
   handleInputChange: (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
   ) => void;
+  onSubmitPrompt?: (prompt: string) => void;
 }
 
 const ChatInput = ({
@@ -37,6 +37,7 @@ const ChatInput = ({
   setInput,
   handleSubmit,
   handleInputChange,
+  onSubmitPrompt,
 }: Props) => {
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
@@ -48,13 +49,17 @@ const ChatInput = ({
   const onSubmit = (values: z.infer<typeof chatInputSchema>) => {
     if (!values.prompt.trim()) return;
 
-    const syntheticEvent = {
-      preventDefault: () => {},
-      target: { value: values.prompt },
-    };
+    if (onSubmitPrompt) {
+      onSubmitPrompt(values.prompt);
+    } else {
+      const syntheticEvent = {
+        preventDefault: () => {},
+        target: { value: values.prompt },
+      };
 
-    setInput(values.prompt);
-    handleSubmit(syntheticEvent);
+      setInput(values.prompt);
+      handleSubmit(syntheticEvent);
+    }
   };
 
   useEffect(() => {
@@ -84,10 +89,15 @@ const ChatInput = ({
                         {...field}
                         placeholder="Type your message here..."
                         onChange={handleTextareaChange}
-                        disabled={status === "streaming"}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            form.handleSubmit(onSubmit)();
+                          }
+                        }}
+                        disabled={status && status === "streaming"}
                       />
                     </FormControl>
-                    {/* <FormMessage className="dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0 p-2" /> */}
                   </FormItem>
                 )}
               />
@@ -113,7 +123,7 @@ const ChatInput = ({
                   size="icon"
                   disabled={
                     !form.watch("prompt")?.trim().length ||
-                    status === "streaming"
+                    (status && status === "streaming")
                   }
                   className="rounded-full"
                 >

@@ -24,14 +24,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  chatId: ChatGetOneOutput["id"];
+  chat: ChatGetOneOutput;
 }
 
-const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
+const ChatRenameModal = ({ open, onOpenChange, onCancel, chat }: Props) => {
   const form = useForm<z.infer<typeof chatRenameSchema>>({
     resolver: zodResolver(chatRenameSchema),
     defaultValues: {
-      title: "New Chat",
+      title: chat.title ?? "",
     },
   });
 
@@ -47,7 +47,7 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
 
   const onSubmit = (values: z.infer<typeof chatRenameSchema>) => {
     const { title } = values;
-    rename.mutate({ chatId, title });
+    rename.mutate({ chatId: chat.id, title });
   };
 
   const onCancelForm = () => {
@@ -84,6 +84,7 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
           />
           <div className="flex flex-col md:flex-row items-centers md:justify-end gap-2">
             <Button
+              type="button"
               variant="secondary"
               className="w-full md:w-fit"
               onClick={onCancelForm}

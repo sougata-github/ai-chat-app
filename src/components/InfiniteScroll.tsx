@@ -51,9 +51,7 @@ const InfiniteScroll = ({
           )}
         </Button>
       ) : (
-        <p className="text-xs text-muted-foreground">
-          You have reached the end of the list.
-        </p>
+        <></>
       )}
     </div>
   );

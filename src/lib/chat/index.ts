@@ -1,6 +1,8 @@
 "use server";
 
 import { db } from "@/db";
+import { google } from "@ai-sdk/google";
+import { generateText } from "ai";
 
 export async function getChatById(chatId: string) {
   try {
@@ -30,4 +32,18 @@ export async function getMessagesByChatId(chatId: string) {
     console.log("Failed to fetch messages", error);
     throw error;
   }
+}
+
+export async function generateTitleFromUserMessage(message: string) {
+  const { text: title } = await generateText({
+    model: google("gemini-1.5-flash"),
+    prompt: message,
+    system: `\n
+    - you will generate a short title based on the first message a user begins a conversation with
+    - ensure it is not more than 80 characters long
+    - the title should be a summary of the user's message
+    - do not use quotes or colons`,
+  });
+
+  return title;
 }

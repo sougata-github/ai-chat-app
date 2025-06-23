@@ -52,7 +52,7 @@ const ChatItem = ({ chat }: Props) => {
   return (
     <>
       <ChatRenameModal
-        chatId={chat.id}
+        chat={chat}
         open={openRenameModal}
         onOpenChange={setOpenRenameModal}
         onCancel={() => setOpenRenameModal(false)}

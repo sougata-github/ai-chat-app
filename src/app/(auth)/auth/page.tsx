@@ -23,10 +23,10 @@ export default function AuthPage() {
   const utils = trpc.useUtils();
   const { data: session } = authClient.useSession();
 
-  // Redirect logged-in users to /chat
+  // Redirect logged-in users to /
   useEffect(() => {
     if (session && session.user.name !== "Anonymous") {
-      router.push("/chat");
+      router.push("/");
     }
   }, [session, router]);
 
@@ -36,7 +36,7 @@ export default function AuthPage() {
       fetchOptions: {
         onSuccess: () => {
           utils.user.getCurrentUser.invalidate();
-          window.location.replace("/chat");
+          window.location.replace("/");
         },
         onError: (error) => {
           console.error("Couldn't sign in", error);
