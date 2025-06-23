@@ -6,7 +6,7 @@ import ShareButton from "./ShareButton";
 
 import { useParams } from "next/navigation";
 import { trpc } from "@/trpc/client";
-import { Skeleton } from "../ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 const ChatHeader = () => {
   const { chatId } = useParams();
@@ -24,7 +24,7 @@ const ChatHeader = () => {
     <header className="backdrop-blur-lg sticky top-0 z-20 py-8 flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
-        {isLoading && <Skeleton className="h-4 w-8 rounded-md" />}
+        {isLoading && <Loader2 className="animate-spin size-5 transition" />}
         {!isLoading && data && data.title ? (
           <h1 className="text-lg font-semibold">{data.title}</h1>
         ) : (

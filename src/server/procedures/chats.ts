@@ -248,13 +248,6 @@ export const chatsRouter = createTRPCRouter({
           nextCursor: null,
         };
 
-      if (!query) {
-        return {
-          chats: [],
-          nextCursor: null,
-        };
-      }
-
       const data = await db.chat.findMany({
         where: {
           userId: ctx.user.id,

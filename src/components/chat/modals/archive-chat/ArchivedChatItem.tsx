@@ -38,7 +38,7 @@ const ArchivedChatItem = ({ chat }: Props) => {
     <Link
       prefetch
       href={`/chat/${chat.id}`}
-      className="p-1 pl-2 rounded-lg w-full flex items-center justify-between group md:hover:bg-muted-foreground/5"
+      className="p-1 pl-3 rounded-lg w-full flex items-center justify-between md:hover:bg-muted-foreground/5"
     >
       <div className="text-sm line-clamp-1">{chat.title}</div>
       <div className="flex items-center gap-1">
@@ -47,7 +47,6 @@ const ArchivedChatItem = ({ chat }: Props) => {
           size="icon"
           onClick={() => restoreChat.mutate({ chatId: chat.id })}
           disabled={restoreChat.isPending}
-          className="md:group-hover:opacity-100 opacity-0"
         >
           <IconRestore />
         </Button>
@@ -56,7 +55,6 @@ const ArchivedChatItem = ({ chat }: Props) => {
           size="icon"
           onClick={() => deleteChat.mutate({ chatId: chat.id })}
           disabled={deleteChat.isPending}
-          className="md:group-hover:opacity-100 opacity-0"
         >
           <IconTrash />
         </Button>

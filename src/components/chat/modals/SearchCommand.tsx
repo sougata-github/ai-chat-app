@@ -24,7 +24,7 @@ const SearchChatListSkeleton = () => {
   return (
     <div className="flex flex-col gap-2 px-2 pb-4">
       {[...new Array(5)].fill(0).map((_, index) => (
-        <Skeleton className="h-4 rounded" key={index} />
+        <Skeleton className="h-4 rounded-lg" key={index} />
       ))}
     </div>
   );
@@ -64,7 +64,7 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
+      <CommandList className="p-2">
         <CommandEmpty>No chats found.</CommandEmpty>
 
         {isLoading && <SearchChatListSkeleton />}
@@ -72,7 +72,11 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
         {!isLoading &&
           data?.pages?.flatMap((page) =>
             page.chats.map((chat) => (
-              <CommandItem key={chat.id} asChild>
+              <CommandItem
+                key={chat.id}
+                asChild
+                className="cursor-pointer rounded-lg px-2"
+              >
                 <Link
                   href={`/chat/${chat.id}`}
                   onClick={() => onOpenChange(false)}

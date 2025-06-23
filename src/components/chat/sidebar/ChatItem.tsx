@@ -23,6 +23,7 @@ import ChatRenameModal from "../modals/ChatRenameModal";
 import { ChatGetOneOutput } from "@/types";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
+import { usePathname } from "next/navigation";
 
 export const ChatItemSkeleton = () => {
   return <Skeleton className="h-6 rounded-md w-full" />;
@@ -37,6 +38,7 @@ const ChatItem = ({ chat }: Props) => {
   const [openRenameModal, setOpenRenameModal] = useState(false);
 
   const { isMobile } = useSidebar();
+  const pathname = usePathname();
 
   const utils = trpc.useUtils();
   const archiveChat = trpc.chats.archive.useMutation({
@@ -62,7 +64,7 @@ const ChatItem = ({ chat }: Props) => {
         onCancel={() => setOpenDeleteModal(false)}
       />
       <SidebarMenuItem>
-        <SidebarMenuButton asChild>
+        <SidebarMenuButton asChild isActive={pathname === `/chat/${chat.id}`}>
           <Link prefetch href={`/chat/${chat.id}`}>
             {chat.title}
           </Link>
