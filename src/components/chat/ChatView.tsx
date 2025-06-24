@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
@@ -16,33 +15,19 @@ interface Props {
   chatId: string;
 }
 
-const ChatView = ({ initialMessages, chatId: initialChatId }: Props) => {
-  const utils = trpc.useUtils();
-  const router = useRouter();
+const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
   const pathname = usePathname();
+  const utils = trpc.useUtils();
 
-  // extract chatId from URL
-  const getChatIdFromUrl = useCallback(() => {
-    const match = pathname.match(/\/chat\/(.+)/);
-    return match ? match[1] : initialChatId;
-  }, [initialChatId, pathname]);
-
-  const [currentChatId, setCurrentChatId] = useState(getChatIdFromUrl());
-
-  // update currentChatId when URL changes
-  useEffect(() => {
-    const newChatId = getChatIdFromUrl();
-    if (newChatId !== currentChatId) {
-      setCurrentChatId(newChatId);
-    }
-  }, [currentChatId, getChatIdFromUrl, pathname]);
+  const chatId = pathname.startsWith("/chat/")
+    ? pathname.replace("/chat/", "")
+    : fallbackChatId;
 
   const { input, handleInputChange, handleSubmit, status, setInput, messages } =
     useChat({
       api: "/api/chat",
-      id: currentChatId,
-      initialMessages:
-        pathname === `/chat/${currentChatId}` ? initialMessages : [],
+      id: chatId,
+      initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
       generateId: () => uuidv4(),
       sendExtraMessageFields: true,
       onFinish: () => {
@@ -50,35 +35,23 @@ const ChatView = ({ initialMessages, chatId: initialChatId }: Props) => {
         utils.chats.getMany.invalidate();
       },
       onError: (error) => {
-        console.log(error);
+        console.error(error);
         toast.error("Error generating response");
       },
     });
 
-  // for back/forward navigation
-  useEffect(() => {
-    const handlePopstate = () => {
-      const newChatId = getChatIdFromUrl();
-      setCurrentChatId(newChatId);
-      // force navigation to ensure re-render
-      router.replace(`/chat/${newChatId}`);
-    };
-
-    window.addEventListener("popstate", handlePopstate);
-    return () => window.removeEventListener("popstate", handlePopstate);
-  }, [getChatIdFromUrl, router]);
-
   const handleChatSubmit = () => {
     handleSubmit();
-    if (messages.length === 0) {
-      window.history.replaceState({}, "", `/chat/${currentChatId}`);
+
+    if (messages.length === 0 && pathname === "/") {
+      window.history.replaceState({}, "", `/chat/${chatId}`);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col" key={currentChatId}>
+    <div className="flex-1 flex flex-col" key={pathname}>
       <div className="flex-1 px-4 pb-8 md:pb-12 h-full">
-        {messages.length === 0 && pathname !== `/chat/${currentChatId}` ? (
+        {messages.length === 0 && pathname === "/" ? (
           <div className="flex items-center justify-center h-full">
             <ChatSuggestions setSuggestions={setInput} />
           </div>

@@ -172,16 +172,6 @@
   }
 } */
 
-.hide-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-  scrollbar-width: none;
-}
-
 button {
   cursor: pointer;
 }
@@ -192,5 +182,17 @@ button {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    scrollbar-width: none !important;
   }
 }

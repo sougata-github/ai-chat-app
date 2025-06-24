@@ -36,7 +36,6 @@ const ArchivedChatItem = ({ chat }: Props) => {
 
   return (
     <Link
-      prefetch
       href={`/chat/${chat.id}`}
       className="p-1 pl-3 rounded-lg w-full flex items-center justify-between md:hover:bg-muted-foreground/5"
     >

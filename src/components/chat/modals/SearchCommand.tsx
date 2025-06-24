@@ -74,6 +74,8 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
             page.chats.map((chat) => (
               <CommandItem
                 key={chat.id}
+                value={chat.title}
+                title={chat.title}
                 asChild
                 className="cursor-pointer rounded-lg px-2"
               >
