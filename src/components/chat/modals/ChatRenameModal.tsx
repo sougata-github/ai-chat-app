@@ -42,6 +42,7 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chat }: Props) => {
       toast.success("Chat Renamed");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId: data.id });
+      onCancel();
     },
   });
 

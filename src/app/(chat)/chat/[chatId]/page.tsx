@@ -3,6 +3,8 @@ import { convertToAISDKMessages } from "@/lib/utils";
 import ChatView from "@/components/chat/ChatView";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ chatId: string }>;
 }
