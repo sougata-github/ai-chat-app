@@ -64,7 +64,7 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList className="p-2">
+      <CommandList className="px-2 py-4">
         <CommandEmpty>No chats found.</CommandEmpty>
 
         {isLoading && <SearchChatListSkeleton />}
@@ -77,7 +77,7 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
                 value={chat.title}
                 title={chat.title}
                 asChild
-                className="cursor-pointer rounded-lg px-2"
+                className="cursor-pointer rounded-lg h-8 mt-2 first:mt-0"
               >
                 <Link
                   href={`/chat/${chat.id}`}

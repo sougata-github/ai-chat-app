@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
@@ -23,26 +24,39 @@ const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
     ? pathname.replace("/chat/", "")
     : fallbackChatId;
 
-  const { input, handleInputChange, handleSubmit, status, setInput, messages } =
-    useChat({
-      api: "/api/chat",
-      id: chatId,
-      initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
-      generateId: () => uuidv4(),
-      sendExtraMessageFields: true,
-      onFinish: () => {
-        setInput("");
-        utils.chats.getMany.invalidate();
-      },
-      onError: (error) => {
-        console.error(error);
-        toast.error("Error generating response");
-      },
-    });
+  const {
+    input,
+    handleInputChange,
+    handleSubmit,
+    status,
+    setInput,
+    messages,
+    setMessages,
+  } = useChat({
+    key: chatId,
+    api: "/api/chat",
+    id: chatId,
+    initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
+    generateId: () => uuidv4(),
+    sendExtraMessageFields: true,
+    onFinish: () => {
+      setInput("");
+      utils.chats.getMany.invalidate();
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Error generating response");
+    },
+  });
+
+  useEffect(() => {
+    if (pathname === "/") {
+      setMessages([]);
+    }
+  }, [pathname, setMessages]);
 
   const handleChatSubmit = () => {
     handleSubmit();
-
     if (messages.length === 0 && pathname === "/") {
       window.history.replaceState({}, "", `/chat/${chatId}`);
     }
