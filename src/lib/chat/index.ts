@@ -36,7 +36,7 @@ export async function getMessagesByChatId(chatId: string) {
 
 export async function generateTitleFromUserMessage(message: string) {
   const { text: title } = await generateText({
-    model: google("gemini-1.5-flash"),
+    model: google("gemini-2.0-flash"),
     prompt: message,
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with

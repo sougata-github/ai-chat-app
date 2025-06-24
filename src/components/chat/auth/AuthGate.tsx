@@ -34,7 +34,7 @@ const AuthGate = ({ children }: { children: React.ReactNode }) => {
 
   if (!ready) {
     return (
-      <div className="overflow-hidden h-screen w-screen flex items-center justify-center">
+      <div className="fixed inset-0 overflow-hidden flex items-center justify-center">
         Redirecting to chat
       </div>
     );

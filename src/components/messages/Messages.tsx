@@ -28,7 +28,7 @@ const Messages = ({ messages, status }: Props) => {
         messages.length > 0 &&
         messages[messages.length - 1].role === "user" && (
           <div className="flex w-full justify-start">
-            <div className="px-4 py-2.5 whitespace-pre-wrap bg-destructive rounded-lg">
+            <div className="px-4 py-2.5 whitespace-pre-wrap bg-destructive rounded-lg dark:text-foreground text-background">
               There was an error generating the response.
             </div>
           </div>

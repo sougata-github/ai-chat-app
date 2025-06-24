@@ -113,7 +113,7 @@
 }
 
 /* clerk styles */
-.cl-footer .cl-internal-1dauvpw {
+/* .cl-footer .cl-internal-1dauvpw {
   display: none !important;
 }
 
@@ -170,6 +170,16 @@
     color: var(--muted-foreground);
     opacity: 0.4;
   }
+} */
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+  scrollbar-width: none;
 }
 
 button {
