@@ -12,7 +12,8 @@ export const getQueryClient = cache(makeQueryClient);
 
 // Create a stable server-side tRPC caller per request
 export const getServerCaller = cache(async () => {
-  const req = new Request("http://localhost", {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const req = new Request(baseUrl, {
     headers: new Headers(),
   });
 

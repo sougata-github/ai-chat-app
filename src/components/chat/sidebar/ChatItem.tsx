@@ -65,7 +65,11 @@ const ChatItem = ({ chat }: Props) => {
       />
       <SidebarMenuItem>
         <SidebarMenuButton asChild isActive={pathname === `/chat/${chat.id}`}>
-          <Link prefetch href={`/chat/${chat.id}`}>
+          <Link
+            prefetch
+            href={`/chat/${chat.id}`}
+            className="line-clamp-1 flex-nowrap"
+          >
             {chat.title}
           </Link>
         </SidebarMenuButton>

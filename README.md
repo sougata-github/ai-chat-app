@@ -92,6 +92,7 @@
   - In ChatView:
     - use useChat hook for chat interface and making llm calls
     - since now there are messages, map over them and display MessageItem
+    - looks for changes in chatId to always ensure fresh state
     - create handleChatSubmit that replaces history state in browser on initial submit
     - get handleSubmit, messages, loading-state, etc from the hook and pass to Messages Component and ChatInput component
 
