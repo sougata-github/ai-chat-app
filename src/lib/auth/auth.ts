@@ -4,7 +4,10 @@ import { betterAuth } from "better-auth";
 import { db } from "@/db";
 
 export const auth = betterAuth({
-  trustedOrigins: ["https://ai-chat-app-gemini.vercel.app"],
+  trustedOrigins: [
+    "https://ai-chat-app-gemini.vercel.app",
+    "https://ai-chat-app-dev.vercel.app",
+  ],
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
