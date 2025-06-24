@@ -33,7 +33,7 @@ const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
           <SidebarMenuItem>
             <Link href="/" className="p-1.5 flex gap-2 items-center">
               <WandSparkles className="!size-5" />
-              <span className="text-base font-semibold">Chat Gemini</span>
+              <span className="text-base font-semibold">Ai Chat</span>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -48,7 +48,7 @@ export default function AuthPage() {
   return (
     <Card className="max-w-sm w-full py-10">
       <CardHeader className="text-center">
-        <CardTitle>Welcome to Chat Gemini</CardTitle>
+        <CardTitle>Welcome to Ai Chat</CardTitle>
         <CardDescription>Sign in for more credits</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 flex flex-col items-center justify-center">

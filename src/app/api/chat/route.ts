@@ -2,9 +2,9 @@ import { generateTitleFromUserMessage, getChatById } from "@/lib/chat";
 import { streamText, Message, smoothStream } from "ai";
 import { SYSTEM_PROMPT } from "@/constants";
 import { extractText } from "@/lib/utils";
-import { google } from "@ai-sdk/google";
 import { auth } from "@/lib/auth/auth";
 import { v4 as uuidv4 } from "uuid";
+import { groq } from "@ai-sdk/groq";
 import { db } from "@/db";
 
 export async function POST(req: Request) {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   }));
 
   const result = streamText({
-    model: google("gemini-2.0-flash"),
+    model: groq("llama3-70b-8192"),
     system: SYSTEM_PROMPT,
     messages: coreMessages,
     experimental_transform: smoothStream({ chunking: "word" }),

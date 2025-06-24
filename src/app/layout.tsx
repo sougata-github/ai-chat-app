@@ -12,7 +12,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Chat Gemini",
+  title: "Ai Chat",
   description: "Advanced ai chat bot powered by Gemini.",
 };
 
