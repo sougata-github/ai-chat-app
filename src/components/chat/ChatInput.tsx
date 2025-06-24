@@ -31,7 +31,6 @@ interface Props {
 }
 
 const ChatInput = ({
-  suggestion,
   status,
   input,
   setInput,
@@ -42,7 +41,7 @@ const ChatInput = ({
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
     defaultValues: {
-      prompt: suggestion ?? "",
+      prompt: "",
     },
   });
 
@@ -61,6 +60,12 @@ const ChatInput = ({
       handleSubmit(syntheticEvent);
     }
   };
+
+  useEffect(() => {
+    if (input.length > 0) {
+      form.setFocus("prompt");
+    }
+  }, [input, form]);
 
   useEffect(() => {
     form.setValue("prompt", input);

@@ -98,11 +98,26 @@
 - Flow:
 
   - One ChatView component and one unified api
+  - will use a combination of useChat and streamText
   - generate chatId and pass into ChatView and empty initialMessages array
   - user on home page -> render ChatView -> render Suggestions (since no messages)
   - submit prompt
   - url changes to /chat/chatId
   - api call
+    - check for id, check for messages (at least one should exist (user message))
+    - check for user session
+    - get last message (user prompt)
+    - check if chat exists with the id
+    - if chat does not exist
+      - generate title using generateText
+      - create new chat record with the id, userId and title
+    - if chat exists -> proceed
+    - create user message
+    - convert uiMessages to coreMessages to provide context
+    - stream response using streamText
+    - onFinish -> update db with response
+    - return streamed response
+  - onFinish -> invalidate chats.getMany
   - messages.length get updated
   - user message gets appended
   - response starts streaming

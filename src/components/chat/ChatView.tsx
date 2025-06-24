@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
@@ -14,14 +16,33 @@ interface Props {
   chatId: string;
 }
 
-const ChatView = ({ initialMessages, chatId }: Props) => {
+const ChatView = ({ initialMessages, chatId: initialChatId }: Props) => {
   const utils = trpc.useUtils();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // extract chatId from URL
+  const getChatIdFromUrl = useCallback(() => {
+    const match = pathname.match(/\/chat\/(.+)/);
+    return match ? match[1] : initialChatId;
+  }, [initialChatId, pathname]);
+
+  const [currentChatId, setCurrentChatId] = useState(getChatIdFromUrl());
+
+  // update currentChatId when URL changes
+  useEffect(() => {
+    const newChatId = getChatIdFromUrl();
+    if (newChatId !== currentChatId) {
+      setCurrentChatId(newChatId);
+    }
+  }, [currentChatId, getChatIdFromUrl, pathname]);
 
   const { input, handleInputChange, handleSubmit, status, setInput, messages } =
     useChat({
       api: "/api/chat",
-      id: chatId,
-      initialMessages,
+      id: currentChatId,
+      initialMessages:
+        pathname === `/chat/${currentChatId}` ? initialMessages : [],
       generateId: () => uuidv4(),
       sendExtraMessageFields: true,
       onFinish: () => {
@@ -34,19 +55,32 @@ const ChatView = ({ initialMessages, chatId }: Props) => {
       },
     });
 
+  // for back/forward navigation
+  useEffect(() => {
+    const handlePopstate = () => {
+      const newChatId = getChatIdFromUrl();
+      setCurrentChatId(newChatId);
+      // force navigation to ensure re-render
+      router.replace(`/chat/${newChatId}`);
+    };
+
+    window.addEventListener("popstate", handlePopstate);
+    return () => window.removeEventListener("popstate", handlePopstate);
+  }, [getChatIdFromUrl, router]);
+
   const handleChatSubmit = () => {
     handleSubmit();
     if (messages.length === 0) {
-      window.history.replaceState({}, "", `/chat/${chatId}`);
+      window.history.replaceState({}, "", `/chat/${currentChatId}`);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <div className="flex-1 px-4 pb-20 h-full">
-        {messages.length === 0 ? (
+    <div className="flex-1 flex flex-col" key={currentChatId}>
+      <div className="flex-1 px-4 pb-8 md:pb-12 h-full">
+        {messages.length === 0 && pathname !== `/chat/${currentChatId}` ? (
           <div className="flex items-center justify-center h-full">
-            <ChatSuggestions />
+            <ChatSuggestions setSuggestions={setInput} />
           </div>
         ) : (
           <div className="flex-1 px-4 pt-10 pb-20 overflow-y-auto h-full">

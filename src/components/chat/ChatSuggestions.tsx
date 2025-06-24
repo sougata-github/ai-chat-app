@@ -2,7 +2,11 @@ import { suggestions } from "@/constants";
 
 import { Button } from "../ui/button";
 
-const ChatSuggestions = () => {
+interface Props {
+  setSuggestions: (suggestion: string) => void;
+}
+
+const ChatSuggestions = ({ setSuggestions }: Props) => {
   return (
     <div className="max-w-5xl flex flex-col gap-2 mx-auto mt-20 overflow-x-hidden">
       <h1 className="text-3xl md:text-5xl font-bold">
@@ -17,6 +21,7 @@ const ChatSuggestions = () => {
             <Button
               className="flex-shrink-0 justify-start w-full mb-1 last:-mt-2 pl-1.5 max-md:text-sm"
               variant="ghost"
+              onClick={() => setSuggestions(suggestion)}
             >
               {suggestion}
             </Button>
