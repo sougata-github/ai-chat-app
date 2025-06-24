@@ -13,7 +13,7 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "Ai Chat",
-  description: "Advanced ai chat bot powered by Gemini.",
+  description: "Advanced ai chat bot powered.",
 };
 
 export default function RootLayout({
