@@ -44,36 +44,8 @@
   - Render chats which are not `archived=true (server-side)`
   - Create modal global store for opening and closing of dialogs using zustand
 
-- /chat page
-
-  - A list of recommended chat ideas, clicking on which should populate text-area with that prompt
-  - A TextArea (within form) (sticky at bottom) which if has some input should not render any suggestions mentioned above
-  - Send button disabled if no characters or when limit is reached or response is being streamed
-  - Textarea (chat-input component) will have send button and multiple ai models listed in dropdown (persist the client side model state using jotai or zustand, this info will be sent to vercel-ai sdk on the backend) (future: searchmode, attach files, mcp tools like fetch weather in real time)
-  - TextArea will also have image-generation mode toggle (that will enable image-generation based on toggle state in vercel ai sdk llm call)
-  - Clicking on Submit will trigger chat.create() which is same as message.create but with no chatId. This procedure will:
-    - Rate limit check
-    - Create chat (with name "New Chat")
-    - Create user Message
-    - Stream response from LLM
-    - Another LLM call to summarise response into a title
-    - Update newly created chat with summarised title
-    - Create ai message record
-    - Update user message with responseId (ai message)
-    - Return chat
-  - On Frontend, invalidate chat.getMany, route to `/chat/chatId` (router.push)
-
 - /chat/chatId dynamic route -> ChatMessage + ChatInput
 
-  - Infinite loading of messages (createdAt: asc) (prefetched on server and then hydrated on client)
-    (void trpc.messages.getMany.prefecthInfinite({
-    limit, chatId (from params)
-    }))
-  - UseScroll to scroll into view on mount
-  - Should have enough padding bottom at the end
-  - Page will consist of multiple `ChatMessage` components (responsible for displaying prompt/response based on variant (either user or ai))
-  - When user submits their prompt, useSubscription creates a message record and a ChatMessage component is appended (optimistic ui)
-  - A loading indicator when response is getting ready and then rendering the response from LLM in chunks (streaming) (Another ChatMessage component)
   - Flow:
     - User Message (useSubscription) (optimistic ui update)
     - Server-side rate limit check (sending bad request and displaying toast on frontend)
@@ -99,25 +71,45 @@
   - Invalidate messages.getMany
   - Provide a detailed SYSTEM_PROMPT in llm call
 
-- chat page
+- home page
 
   - generate a uuid()
   - pass the generated id to ChatView (this is so that we can create a new chat record and route to /chat/chatId)
+  - pass initial messages as empty array since this is the starting point
   - Render ChatView
   - Inside ChatView render ChatSuggestions and ChatInput
-  - Set ChatSuggestions and pass into ChatInput
+  - ChatView is a resuable component
+  - Display ChatSuggestions if no messages else Messages component
+  - /api/chat is a unified api endpoint that checks for an existing chat else creates one
   - use useChat (but make api call to /api/chat -> for chat creation)
 
 - /chat/chatId
 
-  - Check for existing chat using params id, if not present redirect to /chat
+  - Check for existing chat using params id, if not present redirect to /
   - Fetch existing messages in the chat (server action)
   - Convert to ai sdk messages
-  - Pass into MessagesView component
-  - In MessagesView:
-    - use useChat hook for chat interface and making llm calls (but make api call to /api/messages -> for existing chat)
+  - Pass both chatId and ai sdk messages (as initial messages) into ChatView
+  - In ChatView:
+    - use useChat hook for chat interface and making llm calls
+    - since now there are messages, map over them and display MessageItem
+    - create handleChatSubmit that replaces history state in browser on initial submit
     - get handleSubmit, messages, loading-state, etc from the hook and pass to Messages Component and ChatInput component
-    - in messages component, map over the messages from prop to display message-item component
+
+- Flow:
+
+  - One ChatView component and one unified api
+  - generate chatId and pass into ChatView and empty initialMessages array
+  - user on home page -> render ChatView -> render Suggestions (since no messages)
+  - submit prompt
+  - url changes to /chat/chatId
+  - api call
+  - messages.length get updated
+  - user message gets appended
+  - response starts streaming
+  - Render Messages and continue chatting
+  - on going to /chat/chatId -> fetch exisiting chat and it's messages
+  - pass to ChatView
+  - Render Messages and continue chatting
 
 - Header (layout.tsx)
 
@@ -129,7 +121,7 @@
 
 Todo:
 
-- /chat/chatId page with plain text (getting response and displaying stuff)
+- /chat/chatId page with plain text (getting response and displaying stuff)✅
 - resumable streams
 - Code generation and syntax highlighting, structured outputs
 - Image Generation, multi model setup, scroll hooks (scroll to bottom, auto-scroll)
