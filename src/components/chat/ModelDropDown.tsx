@@ -13,7 +13,7 @@ const ModelDropDown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="text-sm">
         <Button variant="ghost" size="sm" className="rounded-lg max-md:text-xs">
-          llama3-70b-8192
+          llama3-8b-8192
           <ChevronUpIcon />
         </Button>
       </DropdownMenuTrigger>
@@ -23,6 +23,9 @@ const ModelDropDown = () => {
         align="start"
         sideOffset={4}
       >
+        <DropdownMenuItem className="max-md:text-xs">
+          llama3-8b-8192
+        </DropdownMenuItem>
         <DropdownMenuItem className="max-md:text-xs">
           llama3-70b-8192
         </DropdownMenuItem>

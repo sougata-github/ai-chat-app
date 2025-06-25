@@ -42,6 +42,7 @@ export async function generateTitleFromUserMessage(message: string) {
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 50 characters long
+    - do not use more than 4 words
     - avoid the word "title"
     - do not use quotes
     - the title should be a summary of the user's message

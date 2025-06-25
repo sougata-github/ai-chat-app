@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   }));
 
   const result = streamText({
-    model: groq("llama3-70b-8192"),
+    model: groq("llama3-8b-8192"),
     system: SYSTEM_PROMPT,
     messages: coreMessages,
     experimental_transform: smoothStream({ chunking: "word" }),

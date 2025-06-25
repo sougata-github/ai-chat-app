@@ -29,3 +29,7 @@ export function convertToAISDKMessages(messages: Array<DBMessage>): Message[] {
     createdAt: msg.createdAt,
   }));
 }
+
+export function sanitizeText(text: string) {
+  return text.replace("<has_function_call>", "");
+}

@@ -1,0 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+
+pre {
+  overflow-x: auto;
+}
+
+code {
+  display: inline-block;
+  max-width: 100%;
+}
