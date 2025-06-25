@@ -42,34 +42,6 @@
   - Clicking on each chat will navigate to `/chat/chatId`
   - When a chat gets deleted, the chat below should animate-in (AnimatePresence popLayout)
   - Render chats which are not `archived=true (server-side)`
-  - Create modal global store for opening and closing of dialogs using zustand
-
-- /chat/chatId dynamic route -> ChatMessage + ChatInput
-
-  - Flow:
-    - User Message (useSubscription) (optimistic ui update)
-    - Server-side rate limit check (sending bad request and displaying toast on frontend)
-    - Creating a user message record in db (role = "user")
-    - fetching all chat messages in the chat to provide context to llm (using chatId and userId -> chat.messages)
-    - Making api call to LLM (with prompt, all messages) using vercel ai sdk (await StreamText)
-    - No response: return error and display toast on frontend
-    - Loading on the frontend
-    - Getting the response and streaming it on the frontend
-    - Once response has arrived, create a message record (role="ai")
-    - Update user message with responseId (ai message)
-    - UseScroll hook scrolls as response is streamed
-    - All real time using useSubscription from tRPC
-  - ChatMessage component will be responsible from rendering complex responses from LLMs such as code blocks (with copy code button and beautiful minimal theme), emojis, bullets, tables, headings, bold text, italics, underlined text, links, separators etc (basically rendering beautiful content) (maybe by using tailwind typography classes (prose) or any other solution)
-  - When streaming the response on frontend, animate using TypeWriter component
-  - Only display those user messages where (role === "user" and responseId exists, else don't render)
-  - Each message will also have imageUrl, imageKey field (both being optional, if image generation is selected in text-area, that info will passed to procedure call and based on that the imageUrl will be sent as a response (1 image per prompt and when response finised then increment user's images field, when mode (input to procedure) is image-gen, then besides message rate-limit check user's total images count before making api call and send "BAD_REQUEST" and display corresponding toast on frontend))
-  - For image-gen, extract image from response, uploaded to uploadthing, then retrieve uploadthing url and create message (role="ai", imageUrl: uploadthingUrl, imageKey: uploadthingKey)
-  - In ChatMessage Component, if returned chat.imageUrl exists, then render the image and display separate skeleton for image response
-  - Each ChatMessage Component will have a copy button, a retry button (if user prompt -> make another llm call but this time dont append user message again, send responseId and update existing response for that user prompt, and stream response back again)
-  - future: add edit button to ChatMessage Component (only for user message) (when editing, ChatMessage becomes a text-area/input with send and cancel buttons) (on send will basically update the response (with corresponding response id) but keeps the user prompt)
-  - Server-side: if procedure call has a responseId, then update existing response, else create a new message record with new updated prompt
-  - Invalidate messages.getMany
-  - Provide a detailed SYSTEM_PROMPT in llm call
 
 - home page
 
@@ -133,14 +105,21 @@
 - Share Chat button that generates link -> /domain/share/chatId, copying it displays a toast (Link copied)
 - Share Chat button only for those chats that are not archived
 - /share/chatId page
+
   - Navigating to shared page will only have the shared chat messages and no textarea (just preview of shared chat)
+
+- Multi-model flow:
+  - use zustand to store current model
+  - store current model in cookies
+  - use cookies to fetch current model/provider in api endpoint
+  - when in image-gen or web-search mode -> disable model selection and default to corresponding models
 
 Todo:
 
 - /chat/chatId page with plain text (getting response and displaying stuff)✅
 - resumable streams
 - Code generation and syntax highlighting, structured outputs
-- Image Generation, multi model setup, scroll hooks (scroll to bottom, auto-scroll)
+- Image Generation, Web Search tool, Check Weather tool, multi model setup, scroll hooks (scroll to bottom, auto-scroll)
 - Rate limiting (messages and chats for logged in and guest users)
 - Share page
 - Refinements (Animations, UX improvement)
