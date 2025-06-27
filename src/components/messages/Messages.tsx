@@ -13,8 +13,10 @@ const Messages = ({ messages, status }: Props) => {
   if (messages.length === 0)
     <p className="text-center">No messages in this chat.</p>;
 
+  console.log(messages[messages.length - 1]);
+
   return (
-    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+    <div className="flex flex-col gap-5 md:gap-8 max-w-2xl w-full mx-auto">
       {messages.map((message) => (
         <MessageItem message={message} key={message.id} />
       ))}

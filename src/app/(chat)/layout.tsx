@@ -20,7 +20,7 @@ export default function ChatLayout({
           }
         >
           <ChatSidebar variant="sidebar" />
-          <SidebarInset className="flex-1 flex flex-col relative">
+          <SidebarInset className="flex-1 flex flex-col relative min-w-0">
             <ChatHeader />
             <section className="flex-1 flex flex-col">{children}</section>
           </SidebarInset>

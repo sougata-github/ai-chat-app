@@ -34,7 +34,7 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
       open={open}
       onOpenChange={onOpenChange}
     >
-      <div className="flex flex-col gap-4 max-md:px-4 max-w-lg mx-auto max-md:py-5">
+      <div className="flex flex-col gap-4 max-md:px-4 max-w-lg mx-auto py-5">
         Are you sure you want to delete this chat? This action is permanent and
         cannot be undone.
         <div className="flex flex-col md:flex-row items-centers md:justify-end gap-2">

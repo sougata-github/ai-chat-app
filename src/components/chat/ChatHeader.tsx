@@ -27,7 +27,7 @@ const ChatHeader = () => {
         {isLoading ? (
           <Loader2 className="animate-spin size-5 transition" />
         ) : data && data.title ? (
-          <h1 className="text-lg font-semibold">{data.title}</h1>
+          <h1 className="text-base md:text-lg font-semibold">{data.title}</h1>
         ) : (
           <h1 className="text-lg font-semibold">Chat</h1>
         )}

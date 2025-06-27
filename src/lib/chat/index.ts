@@ -39,15 +39,17 @@ export async function generateTitleFromUserMessage(message: string) {
   const { text: title } = await generateText({
     model: groq("llama3-70b-8192"),
     prompt: message,
-    system: `\n
-    - you will generate a short title based on the first message a user begins a conversation with
-    - ensure it is not more than 50 characters long
-    - do not use more than 4 words
-    - avoid the word "title"
-    - do not use quotes
-    - the title should be a summary of the user's message
-    - do not use quotes or colons`,
+    system: `
+You are a helpful assistant that summarizes the user's first message into a short, clear title.
+
+Guidelines:
+- The title should summarize the message's intent or topic.
+- Limit to 4 words or fewer.
+- Keep it under 50 characters.
+- Do not use quotation marks, colons, or the word "title".
+- Return only the title text, nothing else.
+    `,
   });
 
-  return title;
+  return title.trim();
 }

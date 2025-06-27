@@ -34,28 +34,32 @@ const CodeBlock = ({ className = "", children }: CodeBlockProps) => {
   };
 
   return (
-    <div className="my-4 rounded-xl border overflow-hidden shadow-xs dark:shadow-none">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between bg-muted px-4 py-2 text-xs text-muted-foreground border-b">
-        <span className="capitalize font-medium">{lang}</span>
-        <Button variant="ghost" size="sm" onClick={onCopy}>
+    <div className="my-4 w-full overflow-hidden rounded-xl border shadow-xs dark:shadow-none">
+      <div className="flex items-center justify-between bg-muted px-4 py-1 text-xs text-muted-foreground border-b border-muted-foreground/10 rounded-t-xl">
+        <span className="font-medium text-sm">{lang}</span>
+        <Button variant="ghost" size="icon" onClick={onCopy}>
           {copied ? <Check /> : <Copy />}
         </Button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="text-xs md:text-sm overflow-x-auto font-[--font-geist-mono]">
         <SyntaxHighlighter
           language={lang}
           style={isLight ? materialLight : materialDark}
-          showLineNumbers
-          wrapLines={false}
+          showLineNumbers={lang === "plaintext" ? false : true}
           customStyle={{
-            overflow: "auto",
             margin: 0,
+            whiteSpace: "pre",
+            fontFamily: "var(--font-geist-mono), monospace",
           }}
           codeTagProps={{
-            style: {},
+            style: {
+              whiteSpace: "pre",
+              fontFamily: "inherit",
+            },
           }}
+          wrapLines={false}
+          wrapLongLines={false}
         >
           {String(children).replace(/\n$/, "")}
         </SyntaxHighlighter>

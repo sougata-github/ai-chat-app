@@ -65,7 +65,7 @@ const ChatItem = ({ chat }: Props) => {
       />
       <SidebarMenuItem>
         <SidebarMenuButton asChild isActive={pathname === `/chat/${chat.id}`}>
-          <Link href={`/chat/${chat.id}`} className="line-clamp-1 truncate">
+          <Link href={`/chat/${chat.id}`} className="truncate">
             {chat.title}
           </Link>
         </SidebarMenuButton>
