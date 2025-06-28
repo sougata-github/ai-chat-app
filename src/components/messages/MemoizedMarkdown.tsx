@@ -39,13 +39,17 @@ const components: Partial<Components> = {
     }
 
     return (
-      <p {...props} className="py-0.5 text-xs sm:text-sm md:text-base">
+      <p {...props} className="py-0.5 text-sm md:text-base">
         {children}
       </p>
     );
   },
   li: ({ node, children, ...props }) => {
-    return <li {...props}>{children}</li>;
+    return (
+      <li {...props} className="text-sm sm:text-base">
+        {children}
+      </li>
+    );
   },
   ul: ({ node, children, ...props }) => {
     return (
@@ -65,7 +69,7 @@ const components: Partial<Components> = {
     return (
       // @ts-expect-error
       <Link
-        className="text-blue-500 hover:underline text-xs sm:text-sm"
+        className="text-blue-500 hover:underline text-sm"
         target="_blank"
         rel="noreferrer"
         {...props}
@@ -90,7 +94,7 @@ const components: Partial<Components> = {
   },
   h3: ({ node, children, ...props }) => {
     return (
-      <h3 className="text-base md:text-lg font-semibold my-4" {...props}>
+      <h3 className="text-lg font-semibold my-4" {...props}>
         {children}
       </h3>
     );
@@ -157,7 +161,7 @@ const components: Partial<Components> = {
   },
   td: ({ node, children, ...props }) => {
     return (
-      <td className="px-4 py-2 text-xs sm:text-sm" {...props}>
+      <td className="px-4 py-2 text-sm" {...props}>
         {children}
       </td>
     );

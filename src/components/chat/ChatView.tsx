@@ -70,7 +70,7 @@ const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
             <ChatSuggestions setSuggestions={setInput} />
           </div>
         ) : (
-          <div className="px-4 pt-10 pb-20 overflow-y-auto h-full">
+          <div className="px-4 pt-10 pb-5 md:pb-8 overflow-y-auto h-full">
             <Messages messages={messages} status={status} />
           </div>
         )}

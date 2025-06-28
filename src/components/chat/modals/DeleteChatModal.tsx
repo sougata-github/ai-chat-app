@@ -26,6 +26,11 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
       utils.chats.getOne.invalidate({ chatId: data.id });
       router.push("/");
     },
+    onError: (error) => {
+      toast.error("Failed to delete chat", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
+    },
   });
 
   return (

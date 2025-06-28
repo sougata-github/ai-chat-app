@@ -24,6 +24,11 @@ const ArchivedChatItem = ({ chat }: Props) => {
       utils.chats.getOne.invalidate({ chatId: data.id });
       router.push("/");
     },
+    onError: (error) => {
+      toast.error("Failed to delete chat", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
+    },
   });
 
   const restoreChat = trpc.chats.restore.useMutation({
@@ -31,6 +36,11 @@ const ArchivedChatItem = ({ chat }: Props) => {
       toast.success("Chat Restored");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId: data.id });
+    },
+    onError: (error) => {
+      toast.error("Failed to restore chat", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
     },
   });
 

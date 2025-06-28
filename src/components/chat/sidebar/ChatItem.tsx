@@ -36,8 +36,8 @@ interface Props {
 const ChatItem = ({ chat }: Props) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openRenameModal, setOpenRenameModal] = useState(false);
+  const { isMobile, setOpenMobile } = useSidebar();
 
-  const { isMobile } = useSidebar();
   const pathname = usePathname();
 
   const utils = trpc.useUtils();
@@ -47,7 +47,18 @@ const ChatItem = ({ chat }: Props) => {
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId: data.id });
     },
+    onError: (error) => {
+      toast.error("Failed to archive chat", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
+    },
   });
+
+  const handleChatClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <>
@@ -65,7 +76,11 @@ const ChatItem = ({ chat }: Props) => {
       />
       <SidebarMenuItem>
         <SidebarMenuButton asChild isActive={pathname === `/chat/${chat.id}`}>
-          <Link href={`/chat/${chat.id}`} className="truncate">
+          <Link
+            href={`/chat/${chat.id}`}
+            className="truncate"
+            onClick={handleChatClick}
+          >
             {chat.title}
           </Link>
         </SidebarMenuButton>

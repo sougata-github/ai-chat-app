@@ -44,6 +44,11 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chat }: Props) => {
       utils.chats.getOne.invalidate({ chatId: data.id });
       onCancel();
     },
+    onError: (error) => {
+      toast.error("Failed to rename chat", {
+        description: error.message || "Something went wrong. Please try again.",
+      });
+    },
   });
 
   const onSubmit = (values: z.infer<typeof chatRenameSchema>) => {
