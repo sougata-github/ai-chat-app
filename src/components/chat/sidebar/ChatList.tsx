@@ -3,10 +3,12 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import InfiniteScroll from "@/components/InfiniteScroll";
 import { DEFAULT_LIMIT } from "@/constants";
 import { trpc } from "@/trpc/client";
+import { useEffect } from "react";
 
 import ChatItem, { ChatItemSkeleton } from "./ChatItem";
 
@@ -21,19 +23,32 @@ const ChatListSkeleton = () => {
 };
 
 const ChatList = () => {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    trpc.chats.getMany.useInfiniteQuery(
-      {
-        limit: DEFAULT_LIMIT,
-        isArchived: false,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: 1000 * 60 * 5,
-      }
-    );
+  const { isMobile, openMobile } = useSidebar();
+
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = trpc.chats.getMany.useInfiniteQuery(
+    {
+      limit: DEFAULT_LIMIT,
+      isArchived: false,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60,
+    }
+  );
+
+  useEffect(() => {
+    if (isMobile && openMobile) {
+      refetch();
+    }
+  }, [isMobile, openMobile, refetch]);
 
   const merged = {
     today: data?.pages.flatMap((p) => p.chats.today) ?? [],
