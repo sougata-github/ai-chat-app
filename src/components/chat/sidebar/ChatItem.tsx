@@ -23,7 +23,7 @@ import ChatRenameModal from "../modals/ChatRenameModal";
 import { ChatGetOneOutput } from "@/types";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export const ChatItemSkeleton = () => {
   return <Skeleton className="h-6 rounded-md w-full" />;
@@ -39,6 +39,7 @@ const ChatItem = ({ chat }: Props) => {
   const { isMobile, setOpenMobile } = useSidebar();
 
   const pathname = usePathname();
+  const router = useRouter();
 
   const utils = trpc.useUtils();
   const archiveChat = trpc.chats.archive.useMutation({
@@ -46,6 +47,7 @@ const ChatItem = ({ chat }: Props) => {
       toast.success("Chat Archived");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId: data.id });
+      router.push("/");
     },
     onError: (error) => {
       toast.error("Failed to archive chat", {

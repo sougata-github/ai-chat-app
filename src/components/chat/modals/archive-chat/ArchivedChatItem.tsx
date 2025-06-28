@@ -10,18 +10,19 @@ import { toast } from "sonner";
 
 interface Props {
   chat: ChatGetOneOutput;
+  onOpenChange: (open: boolean) => void;
 }
 
-const ArchivedChatItem = ({ chat }: Props) => {
+const ArchivedChatItem = ({ chat, onOpenChange }: Props) => {
   const router = useRouter();
 
   const utils = trpc.useUtils();
 
   const deleteChat = trpc.chats.deleteOne.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Chat Deleted");
       utils.chats.getMany.invalidate();
-      utils.chats.getOne.invalidate({ chatId: data.id });
+      onOpenChange(false);
       router.push("/");
     },
     onError: (error) => {
@@ -36,6 +37,7 @@ const ArchivedChatItem = ({ chat }: Props) => {
       toast.success("Chat Restored");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId: data.id });
+      onOpenChange(false);
     },
     onError: (error) => {
       toast.error("Failed to restore chat", {
@@ -45,11 +47,14 @@ const ArchivedChatItem = ({ chat }: Props) => {
   });
 
   return (
-    <Link
-      href={`/chat/${chat.id}`}
-      className="p-1 pl-3 rounded-lg w-full flex items-center justify-between md:hover:bg-muted-foreground/5"
-    >
-      <div className="text-sm line-clamp-1">{chat.title}</div>
+    <div className="p-1 pl-3 rounded-lg w-full flex items-center justify-between md:hover:bg-muted-foreground/5">
+      <Link
+        className="text-sm font-medium line-clamp-1"
+        onClick={() => onOpenChange(false)}
+        href={`/chat/${chat.id}`}
+      >
+        {chat.title}
+      </Link>
       <div className="flex items-center gap-1">
         <Button
           variant="ghost"
@@ -68,7 +73,7 @@ const ArchivedChatItem = ({ chat }: Props) => {
           <IconTrash />
         </Button>
       </div>
-    </Link>
+    </div>
   );
 };
 

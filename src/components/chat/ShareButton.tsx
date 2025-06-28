@@ -24,7 +24,7 @@ const ShareButton = ({ chatId }: Props) => {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={onCopy}>
+    <Button variant="ghost" onClick={onCopy}>
       {copied ? "Copied" : <Share />}
     </Button>
   );

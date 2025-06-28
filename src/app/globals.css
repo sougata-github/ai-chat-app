@@ -261,11 +261,11 @@ button {
   }
 
   .content-styles th {
-    @apply text-left border-b border-muted-foreground/15 px-4 pt-2 pb-4 font-semibold text-xs sm:text-sm;
+    @apply text-foreground text-left border-b border-muted-foreground/15 px-4 pt-2 pb-4 font-semibold text-xs sm:text-sm;
   }
 
   .content-styles td {
-    @apply px-4 py-2 text-xs sm:text-sm;
+    @apply px-4 py-2 text-xs sm:text-sm text-foreground;
   }
 
   .content-styles tr {

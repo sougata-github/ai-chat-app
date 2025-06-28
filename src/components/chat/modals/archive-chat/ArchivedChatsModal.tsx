@@ -15,7 +15,7 @@ const ArchivedChatsModal = ({ open, onOpenChange }: Props) => {
       open={open}
       onOpenChange={onOpenChange}
     >
-      <ArchivedChatList />
+      <ArchivedChatList onOpenChange={onOpenChange} />
     </ResponsiveModal>
   );
 };

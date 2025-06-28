@@ -19,7 +19,11 @@ const ArchivedChatListSkeleton = () => {
   );
 };
 
-const ArchivedChatList = () => {
+interface Props {
+  onOpenChange: (open: boolean) => void;
+}
+
+const ArchivedChatList = ({ onOpenChange }: Props) => {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     trpc.chats.getMany.useInfiniteQuery(
       {
@@ -58,7 +62,11 @@ const ArchivedChatList = () => {
           Today
           <div className="flex flex-col gap-2 mt-2">
             {merged.today.map((chat) => (
-              <ArchivedChatItem key={chat.id} chat={chat} />
+              <ArchivedChatItem
+                key={chat.id}
+                chat={chat}
+                onOpenChange={onOpenChange}
+              />
             ))}
           </div>
         </div>
@@ -70,7 +78,11 @@ const ArchivedChatList = () => {
           Last 7 Days
           <div className="flex flex-col gap-2 mt-2">
             {merged.last7Days.map((chat) => (
-              <ArchivedChatItem key={chat.id} chat={chat} />
+              <ArchivedChatItem
+                key={chat.id}
+                chat={chat}
+                onOpenChange={onOpenChange}
+              />
             ))}
           </div>
         </div>
@@ -82,7 +94,11 @@ const ArchivedChatList = () => {
           Older
           <div className="flex flex-col gap-2 mt-2">
             {merged.older.map((chat) => (
-              <ArchivedChatItem key={chat.id} chat={chat} />
+              <ArchivedChatItem
+                key={chat.id}
+                chat={chat}
+                onOpenChange={onOpenChange}
+              />
             ))}
           </div>
         </div>

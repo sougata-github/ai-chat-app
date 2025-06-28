@@ -20,10 +20,9 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   const utils = trpc.useUtils();
 
   const deleteChat = trpc.chats.deleteOne.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Chat Deleted");
       utils.chats.getMany.invalidate();
-      utils.chats.getOne.invalidate({ chatId: data.id });
       router.push("/");
     },
     onError: (error) => {
@@ -51,7 +50,7 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
             Cancel
           </Button>
           <Button
-            className="w-full md:w-fit transition-all"
+            className="transition-all"
             variant="destructive"
             onClick={() => deleteChat.mutate({ chatId })}
             disabled={deleteChat.isPending}
