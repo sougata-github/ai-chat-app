@@ -9,7 +9,7 @@ interface Props {
 const ChatSuggestions = ({ setSuggestions }: Props) => {
   return (
     <div className="max-w-5xl flex flex-col gap-2 mx-auto mt-20 overflow-x-hidden">
-      <h1 className="text-3xl md:text-5xl font-bold">
+      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">
         What&apos;s on your mind
       </h1>
       <ul className="flex flex-col gap-4 mt-5">

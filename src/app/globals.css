@@ -1,4 +1,3 @@
-@import "./code.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -206,5 +205,70 @@ button {
   .hide-scrollbar::-webkit-scrollbar {
     display: none !important;
     scrollbar-width: none !important;
+  }
+}
+
+@layer components {
+  .content-styles {
+    @apply prose dark:prose-invert prose-sm sm:prose-base max-w-none;
+  }
+
+  .content-styles h1,
+  .content-styles h2,
+  .content-styles h3,
+  .content-styles h4,
+  .content-styles h5,
+  .content-styles h6 {
+    @apply text-foreground my-4 font-semibold;
+  }
+
+  .content-styles p {
+    @apply text-foreground my-3;
+  }
+
+  .content-styles ul,
+  .content-styles ol {
+    @apply text-foreground ml-5 my-3;
+  }
+
+  .content-styles ul {
+    @apply list-disc;
+  }
+
+  .content-styles ul > li::marker,
+  .content-styles ol > li::marker {
+    @apply text-muted-foreground;
+  }
+
+  .content-styles blockquote {
+    @apply border-l-4 border-muted-foreground pl-4 italic text-muted-foreground my-4;
+  }
+
+  .content-styles hr {
+    @apply border-muted-foreground my-6;
+  }
+
+  .content-styles a {
+    @apply text-blue-500 hover:text-blue-600;
+  }
+
+  .content-styles strong {
+    @apply font-semibold text-foreground;
+  }
+
+  .content-styles table {
+    @apply my-4 w-full border-collapse;
+  }
+
+  .content-styles th {
+    @apply text-left border-b border-muted-foreground/15 px-4 pt-2 pb-4 font-semibold text-xs sm:text-sm;
+  }
+
+  .content-styles td {
+    @apply px-4 py-2 text-xs sm:text-sm;
+  }
+
+  .content-styles tr {
+    @apply border-b border-muted-foreground/15 last:border-0;
   }
 }

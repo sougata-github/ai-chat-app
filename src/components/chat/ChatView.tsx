@@ -39,6 +39,12 @@ const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
+    onResponse: (response) => {
+      utils.chats.getMany.invalidate();
+      if (!response.ok) {
+        toast.error("Failed to get response from AI");
+      }
+    },
     onFinish: () => {
       setInput("");
       utils.chats.getMany.invalidate();

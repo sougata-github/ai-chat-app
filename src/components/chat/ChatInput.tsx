@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { chatInputSchema } from "@/schemas";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { ArrowUp, Image as ImageIcon } from "lucide-react";
+import { ArrowUp, GlobeIcon, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
 import React, { ChangeEvent, useEffect } from "react";
@@ -119,6 +119,17 @@ const ChatInput = ({
                     )}
                   >
                     <ImageIcon />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    size="icon"
+                    className={cn(
+                      "rounded-full bg-transparent"
+                      // image-gen selected && "some-bg"
+                    )}
+                  >
+                    <GlobeIcon />
                   </Button>
                 </div>
 

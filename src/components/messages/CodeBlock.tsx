@@ -34,7 +34,7 @@ const CodeBlock = ({ className = "", children }: CodeBlockProps) => {
   };
 
   return (
-    <div className="my-4 w-full overflow-hidden rounded-xl border shadow-xs dark:shadow-none">
+    <div className="my-4 w-full overflow-hidden rounded-xl border shadow-xs dark:shadow-none not-prose">
       <div className="flex items-center justify-between bg-muted px-4 py-1 text-xs text-muted-foreground border-b border-muted-foreground/10 rounded-t-xl">
         <span className="font-medium text-sm">{lang}</span>
         <Button variant="ghost" size="icon" onClick={onCopy}>
