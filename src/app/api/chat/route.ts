@@ -1,14 +1,19 @@
+import {
+  createModelInstance,
+  DEFAULT_MODEL_ID,
+  isValidModelId,
+  ModelId,
+} from "@/lib/model/model";
 import { generateTitleFromUserMessage, getChatById } from "@/lib/chat";
 import { streamText, Message, smoothStream } from "ai";
 import { SYSTEM_PROMPT } from "@/constants";
 import { extractText } from "@/lib/utils";
 import { auth } from "@/lib/auth/auth";
 import { v4 as uuidv4 } from "uuid";
-import { groq } from "@ai-sdk/groq";
 import { db } from "@/db";
 
 export async function POST(req: Request) {
-  const { messages, id: chatId } = await req.json();
+  const { messages, id: chatId, model: requestedModel } = await req.json();
 
   const session = await auth.api.getSession({
     headers: req.headers,
@@ -30,6 +35,17 @@ export async function POST(req: Request) {
   if (!chatId) {
     return new Response("Chat ID is required", { status: 400 });
   }
+
+  let selectedModel: ModelId = DEFAULT_MODEL_ID;
+  if (requestedModel && isValidModelId(requestedModel)) {
+    selectedModel = requestedModel;
+  } else if (requestedModel) {
+    console.warn(
+      `Invalid model requested: ${requestedModel}, falling back to ${DEFAULT_MODEL_ID}`
+    );
+  }
+
+  const modelInstance = createModelInstance(selectedModel);
 
   if (
     !lastMessage ||
@@ -77,7 +93,7 @@ export async function POST(req: Request) {
   }));
 
   const result = streamText({
-    model: groq("llama3-8b-8192"),
+    model: modelInstance,
     system: SYSTEM_PROMPT,
     messages: coreMessages,
     experimental_transform: smoothStream({ chunking: "word" }),

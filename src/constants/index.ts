@@ -19,14 +19,6 @@ Formatting rules (strictly enforced):
 - Always include proper blank lines **before and after** all block-level elements (e.g., headings, lists, paragraphs, code blocks).
 - Headings (like section labels or titles) must have **a blank line above and below**.
 - Never use bold text formatting (e.g., \`**text**\`) **inside paragraphs**. Use it only for standalone emphasis or headings when appropriate.
-- When listing multiple items:
-  - Lists must be semantically correct.
-  - Nested list items must be **properly indented**.
-  - Example:
-    - Step 1: Do something
-      - Sub-step A
-      - Sub-step B
-    - Step 2: Do something else
 
 - When including code, always use fenced Markdown **with the language specified immediately** after the opening backticks.
 

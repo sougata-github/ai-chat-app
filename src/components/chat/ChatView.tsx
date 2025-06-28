@@ -10,13 +10,19 @@ import { Message } from "ai";
 import { trpc } from "@/trpc/client";
 import Messages from "../messages/Messages";
 import { toast } from "sonner";
+import { ModelId } from "@/lib/model/model";
 
 interface Props {
   initialMessages: Message[];
   chatId: string;
+  selectedModel: ModelId;
 }
 
-const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
+const ChatView = ({
+  initialMessages,
+  chatId: fallbackChatId,
+  selectedModel,
+}: Props) => {
   const pathname = usePathname();
   const utils = trpc.useUtils();
 
@@ -36,6 +42,9 @@ const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
     key: chatId,
     api: "/api/chat",
     id: chatId,
+    body: {
+      model: selectedModel,
+    },
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
@@ -83,6 +92,7 @@ const ChatView = ({ initialMessages, chatId: fallbackChatId }: Props) => {
       </div>
 
       <ChatInput
+        initialModel={selectedModel}
         input={input}
         setInput={setInput}
         handleSubmit={handleChatSubmit}

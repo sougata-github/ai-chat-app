@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
 import React, { ChangeEvent, useEffect } from "react";
 import { ChatRequestOptions } from "ai";
+import { ModelId } from "@/lib/model/model";
 
 interface Props {
   suggestion?: string;
@@ -28,6 +29,7 @@ interface Props {
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
   ) => void;
   onSubmitPrompt?: (prompt: string) => void;
+  initialModel: ModelId;
 }
 
 const ChatInput = ({
@@ -37,6 +39,7 @@ const ChatInput = ({
   handleSubmit,
   handleInputChange,
   onSubmitPrompt,
+  initialModel,
 }: Props) => {
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
@@ -108,7 +111,7 @@ const ChatInput = ({
               />
               <div className="flex items-center justify-between py-2.5 px-3 dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0">
                 <div className="flex items-center gap-1">
-                  <ModelDropDown />
+                  <ModelDropDown initialModel={initialModel} />
                   <Button
                     variant="ghost"
                     type="button"
