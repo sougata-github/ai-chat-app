@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Ai Chat",
-  description: "Advanced ai chat bot powered.",
+  description: "Advanced Ai ChatBot built using Next.js and Vercel's AI SDK.",
 };
 
 export default function RootLayout({
