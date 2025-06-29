@@ -1,9 +1,9 @@
 "use server";
 
 import { db } from "@/db";
-// import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 import { generateText } from "ai";
+import { Redis } from "@upstash/redis";
 
 export async function getChatById(chatId: string) {
   try {
@@ -52,4 +52,32 @@ Guidelines:
   });
 
   return title.trim();
+}
+
+/*for resumable streams*/
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+const STREAM_KEY_PREFIX = "chat:streams";
+
+/**
+ * Append a streamId to the list of stream IDs for a chat
+ */
+export async function appendStreamId({
+  chatId,
+  streamId,
+}: {
+  chatId: string;
+  streamId: string;
+}) {
+  await redis.rpush(`${STREAM_KEY_PREFIX}:${chatId}`, streamId);
+}
+
+/**
+ * Load all stream IDs for a given chat
+ */
+export async function loadStreams(chatId: string): Promise<string[]> {
+  return (await redis.lrange(`${STREAM_KEY_PREFIX}:${chatId}`, 0, -1)) ?? [];
 }

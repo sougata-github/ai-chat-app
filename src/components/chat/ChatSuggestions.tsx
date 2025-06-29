@@ -9,17 +9,17 @@ interface Props {
 const ChatSuggestions = ({ setSuggestions }: Props) => {
   return (
     <div className="max-w-5xl flex flex-col gap-2 mx-auto mt-20 overflow-x-hidden">
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-        What&apos;s on your mind
+      <h1 className="text-3xl font-semibold">
+        What&apos;s on your mind today?
       </h1>
-      <ul className="flex flex-col gap-4 mt-5">
+      <ul className="flex flex-col gap-4 mt-8">
         {suggestions.map((suggestion) => (
           <li
             key={suggestion}
             className="border-b last:border-b-0 last:border-none flex flex-col"
           >
             <Button
-              className="flex-shrink-0 justify-start w-full mb-1 last:-mt-2 pl-1.5 max-md:text-sm"
+              className="flex-shrink-0 justify-start w-full mb-1 last:-mt-2 pl-1.5 max-md:text-sm font-medium"
               variant="ghost"
               onClick={() => setSuggestions(suggestion)}
             >

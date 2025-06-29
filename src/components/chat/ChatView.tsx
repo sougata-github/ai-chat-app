@@ -11,6 +11,7 @@ import { trpc } from "@/trpc/client";
 import Messages from "../messages/Messages";
 import { toast } from "sonner";
 import { ModelId } from "@/lib/model/model";
+import { useAutoResume } from "@/hooks/use-auto-resume";
 
 interface Props {
   initialMessages: Message[];
@@ -38,6 +39,8 @@ const ChatView = ({
     setInput,
     messages,
     setMessages,
+    data,
+    experimental_resume,
   } = useChat({
     key: chatId,
     api: "/api/chat",
@@ -63,6 +66,14 @@ const ChatView = ({
       console.error(error);
       toast.error("Error generating response");
     },
+  });
+
+  useAutoResume({
+    autoResume: true,
+    initialMessages: initialMessages,
+    experimental_resume,
+    data,
+    setMessages,
   });
 
   useEffect(() => {

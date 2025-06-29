@@ -245,7 +245,7 @@ button {
   }
 
   .content-styles hr {
-    @apply border-muted-foreground my-6;
+    @apply border-muted-foreground/20 my-6;
   }
 
   .content-styles a {

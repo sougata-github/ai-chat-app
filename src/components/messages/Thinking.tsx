@@ -9,7 +9,7 @@ const Thinking = () => {
           key={dot}
           className="size-2 rounded-full bg-muted-foreground/60"
           initial={{ y: 0 }}
-          whileInView={{ y: [0, -5, 0] }}
+          whileInView={{ y: [0, -4, 0] }}
           transition={{
             duration: 0.8,
             repeat: Number.POSITIVE_INFINITY,
