@@ -2,17 +2,23 @@ import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
 export const MODEL_REGISTRY = {
+  "llama3-70b-8192": {
+    provider: groq,
+    id: "llama3-70b-8192",
+    name: "Llama 3 70B",
+    description: "Faster and more capable model",
+  },
   "llama3-8b-8192": {
     provider: groq,
     id: "llama3-8b-8192",
     name: "Llama 3 8B",
     description: "Fast and efficient model",
   },
-  "llama3-70b-8192": {
+  "gemma2-9b-it": {
     provider: groq,
-    id: "llama3-70b-8192",
-    name: "Llama 3 70B",
-    description: "More capable, slower model",
+    id: "gemma2-9b-it",
+    name: "Gemma 2",
+    description: "All rounder model by Google",
   },
   "gemini-2.0-flash": {
     provider: google,
@@ -49,3 +55,21 @@ export function createModelInstance(modelId: ModelId) {
 export function isValidModelId(modelId: string): modelId is ModelId {
   return modelId in MODEL_REGISTRY;
 }
+
+// export const reasoningModel = groq("meta-llama/llama-4-scout-17b-16e-instruct") ->  for tool calling
+
+// for tool-calling:
+// "meta-llama/llama-4-scout-17b-16e-instruct": {
+//   provider: groq,
+//   id: "meta-llama/llama-4-scout-17b-16e-instruct",
+//   name: "Llama 4",
+//   description: "Best for tool calling",
+// },
+
+// for reasoning:
+// "deepseek-r1-distill-llama-70b": {
+//   provider: groq,
+//   id: "deepseek-r1-distill-llama-70b",
+//   name: "DeepSeek R1 Distill Llama",
+//   description: "More robust and better reasoning model",
+// },

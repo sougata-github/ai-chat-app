@@ -5,7 +5,7 @@
 
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import Link from "next/link";
+import Link, { LinkProps } from "next/link";
 import React, { memo, useMemo } from "react";
 import { marked } from "marked";
 import CodeBlock from "./CodeBlock";
@@ -21,6 +21,20 @@ const components: Partial<Components> = {
   // @ts-expect-error
   code: CodeBlock,
   pre: ({ children }) => <>{children}</>,
+  p: ({ children }) => {
+    const isOnlyText = React.Children.toArray(children).every(
+      (child) => typeof child === "string" || typeof child === "number"
+    );
+
+    return isOnlyText ? <p>{children}</p> : <>{children}</>;
+  },
+  a: ({ node, children, ...props }) => {
+    return (
+      <Link target="_blank" rel="noreferrer" {...(props as LinkProps)}>
+        {children}
+      </Link>
+    );
+  },
   table: ({ node, children, ...props }) => {
     return (
       <div className="overflow-x-auto">

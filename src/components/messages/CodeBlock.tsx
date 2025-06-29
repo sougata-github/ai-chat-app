@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import type React from "react";
@@ -16,14 +17,16 @@ import { Button } from "../ui/button";
 interface CodeBlockProps {
   className?: string;
   children: React.ReactNode;
+  inline?: boolean;
+  [key: string]: any;
 }
 
-const CodeBlock = ({ className = "", children }: CodeBlockProps) => {
+const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
   const { theme } = useTheme();
   const isLight = theme === "light";
 
   const match = /language-(\w+)/.exec(className);
-  const lang = match?.[1] ?? "plaintext";
+  const lang = match?.[1] ?? "text";
 
   const [copied, setCopied] = useState(false);
 
@@ -32,6 +35,14 @@ const CodeBlock = ({ className = "", children }: CodeBlockProps) => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (inline) {
+    return (
+      <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">
+        {children}
+      </code>
+    );
+  }
 
   return (
     <div className="my-4 w-full overflow-hidden rounded-lg border shadow-xs dark:shadow-none not-prose">

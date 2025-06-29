@@ -48,6 +48,7 @@ const ChatView = ({
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
+    experimental_throttle: 50,
     onResponse: (response) => {
       utils.chats.getMany.invalidate();
       if (!response.ok) {
@@ -79,7 +80,7 @@ const ChatView = ({
 
   return (
     <div className="flex-1 flex flex-col" key={pathname}>
-      <div className="px-4 pb-8 md:pb-12 h-full">
+      <div className="px-4 pb-5 md:pb-12 h-full">
         {messages.length === 0 && pathname === "/" ? (
           <div className="flex items-center justify-center h-full">
             <ChatSuggestions setSuggestions={setInput} />
