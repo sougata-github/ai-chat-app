@@ -10,7 +10,10 @@ import {
   isValidModelId,
   ModelId,
 } from "@/lib/model/model";
-import { createResumableStreamContext } from "resumable-stream";
+import {
+  createResumableStreamContext,
+  type ResumableStreamContext,
+} from "resumable-stream";
 import { streamText, Message, smoothStream } from "ai";
 import { getMessagesByChatId } from "@/lib/chat";
 import { SYSTEM_PROMPT } from "@/constants";
@@ -21,11 +24,26 @@ import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
 import { db } from "@/db";
 
-const streamContext = createResumableStreamContext({
-  waitUntil: after,
-});
+let globalStreamContext: ResumableStreamContext | null = null;
+
+export function getStreamContext() {
+  if (!globalStreamContext) {
+    try {
+      globalStreamContext = createResumableStreamContext({ waitUntil: after });
+    } catch (err) {
+      console.warn("Resumable stream disabled", err);
+    }
+  }
+  return globalStreamContext;
+}
 
 export async function GET(req: Request) {
+  const streamContext = getStreamContext();
+
+  if (!streamContext) {
+    return new Response(null, { status: 204 });
+  }
+
   const { searchParams } = new URL(req.url);
   const chatId = searchParams.get("chatId");
 
@@ -175,13 +193,24 @@ export async function POST(req: Request) {
             });
           }
         },
+        onError: () => {
+          console.log("An error occured during stream");
+        },
       });
+
+      result.consumeStream();
 
       result.mergeIntoDataStream(dataStream);
     },
   });
 
-  return new Response(
-    await streamContext.resumableStream(streamId, () => stream)
-  );
+  const streamContext = getStreamContext();
+
+  if (streamContext) {
+    return new Response(
+      await streamContext.resumableStream(streamId, () => stream)
+    );
+  } else {
+    return new Response(stream);
+  }
 }

@@ -2,7 +2,7 @@ export const suggestions = [
   "Generate 10 micro saas ideas",
   "Explain in depth how AI Works",
   "Write Hello World in TypeScript",
-  "What are advantages of Next.js?",
+  "What are advantages of Next.js",
 ];
 
 export const DEFAULT_LIMIT = 20;
