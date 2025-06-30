@@ -10,7 +10,7 @@ const ChatSuggestions = ({ setSuggestions }: Props) => {
   return (
     <div className="max-w-5xl flex flex-col gap-2 mx-auto mt-10 sm:mt-20 overflow-x-hidden">
       <h1 className="text-2xl sm:text-4xl font-semibold">
-        What&apos;s on your mind <span className="max-sm:hidden">today?</span>
+        What&apos;s on your mind?
       </h1>
       <ul className="flex flex-col gap-4 mt-8">
         {suggestions.map((suggestion) => (
