@@ -1,6 +1,6 @@
 export const suggestions = [
   "Generate 10 micro saas ideas",
-  "Explain in depth how AI Works",
+  "Explain in depth how AI works",
   "Write Hello World in TypeScript",
   "What are advantages of Next.js",
 ];

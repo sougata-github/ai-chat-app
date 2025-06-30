@@ -24,6 +24,8 @@ import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
 import { db } from "@/db";
 
+export const maxDuration = 60;
+
 let globalStreamContext: ResumableStreamContext | null = null;
 
 function getStreamContext() {
