@@ -235,6 +235,10 @@ button {
     @apply list-disc;
   }
 
+  .content-styles li {
+    @apply p-0 m-0;
+  }
+
   .content-styles ul > li::marker,
   .content-styles ol > li::marker {
     @apply text-muted-foreground;

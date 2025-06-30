@@ -153,7 +153,7 @@ export async function POST(req: Request) {
   await appendStreamId({ chatId, streamId });
 
   const stream = createDataStream({
-    async execute(controller) {
+    execute: (dataStream) => {
       const result = streamText({
         model: modelInstance,
         system: SYSTEM_PROMPT,
@@ -177,7 +177,7 @@ export async function POST(req: Request) {
         },
       });
 
-      result.mergeIntoDataStream(controller);
+      result.mergeIntoDataStream(dataStream);
     },
   });
 

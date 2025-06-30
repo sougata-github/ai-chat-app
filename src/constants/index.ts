@@ -1,8 +1,8 @@
 export const suggestions = [
-  "Write a creative story about time travel",
-  "Explain quantum physics in simple terms",
-  "Create a recipe for a healthy breakfast",
-  "Generate ideas for a small business",
+  "Generate 10 micro saas ideas",
+  "Explain in depth how AI Works",
+  "Write Hello World in TypeScript",
+  "What are advantages of Next.js?",
 ];
 
 export const DEFAULT_LIMIT = 20;
@@ -41,7 +41,6 @@ Use proper semantic Markdown instead:
 
 Additional rules:
 
-- You do **not** need to begin every response with a title. Only include a title if it is explicitly required.
 - If you include a title, use a Markdown heading — never plain text, never quotes, and never labels like "Title:".
 - Do **not** wrap or group content using \`<div>\` or similar HTML tags — these are disallowed.
 
