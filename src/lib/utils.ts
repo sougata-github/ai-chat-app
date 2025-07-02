@@ -22,12 +22,16 @@ export function extractText(content: any): string {
 }
 
 export function convertToAISDKMessages(messages: Array<DBMessage>): Message[] {
-  return messages.map((msg) => ({
-    id: msg.id,
-    role: msg.role === "USER" ? "user" : "assistant",
-    content: msg.content || "",
-    createdAt: msg.createdAt,
-  }));
+  return messages.map((msg) => {
+    const message: Message = {
+      id: msg.id,
+      role: msg.role === "USER" ? "user" : "assistant",
+      parts: msg.parts as Message["parts"],
+      content: msg.content || "",
+      createdAt: msg.createdAt,
+    };
+    return message;
+  });
 }
 
 export function sanitizeText(text: string) {

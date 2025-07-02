@@ -1,4 +1,11 @@
 import {
+  generateImageTool,
+  getModelForMode,
+  isValidToolMode,
+  ToolMode,
+  webSearchTool,
+} from "@/lib/tools/tool";
+import {
   appendStreamId,
   generateTitleFromUserMessage,
   getChatById,
@@ -14,7 +21,7 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from "resumable-stream";
-import { streamText, Message, smoothStream } from "ai";
+import { streamText, Message, smoothStream, appendResponseMessages } from "ai";
 import { getMessagesByChatId } from "@/lib/chat";
 import { SYSTEM_PROMPT } from "@/constants";
 import { extractText } from "@/lib/utils";
@@ -97,7 +104,12 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const { messages, id: chatId, model: requestedModel } = await req.json();
+  const {
+    messages,
+    id: chatId,
+    model: requestedModel,
+    mode: requestedMode,
+  } = await req.json();
 
   const session = await auth.api.getSession({
     headers: req.headers,
@@ -119,16 +131,22 @@ export async function POST(req: Request) {
     return new Response("Chat ID is required", { status: 400 });
   }
 
+  // handle tool mode
+  let toolMode: ToolMode = "text";
+
+  if (requestedMode && isValidToolMode(requestedMode)) {
+    toolMode = requestedMode;
+  }
+
+  // get appropriate model
   let selectedModel: ModelId = DEFAULT_MODEL_ID;
   if (requestedModel && isValidModelId(requestedModel)) {
     selectedModel = requestedModel;
-  } else if (requestedModel) {
-    console.warn(
-      `Invalid model requested: ${requestedModel}, falling back to ${DEFAULT_MODEL_ID}`
-    );
   }
 
-  const modelInstance = createModelInstance(selectedModel);
+  // override model if tool mode requires specific model
+  const finalModel = getModelForMode(toolMode, selectedModel);
+  const modelInstance = createModelInstance(finalModel);
 
   if (
     !lastMessage ||
@@ -159,6 +177,7 @@ export async function POST(req: Request) {
       chatId,
       userId: user.id,
       content: lastMessage.content,
+      parts: lastMessage.parts,
       createdAt: lastMessage.createdAt || new Date(),
     },
   });
@@ -178,30 +197,172 @@ export async function POST(req: Request) {
         model: modelInstance,
         system: SYSTEM_PROMPT,
         messages: coreMessages,
+        experimental_activeTools:
+          toolMode === "image-gen"
+            ? ["generateImageTool"]
+            : toolMode === "web-search"
+            ? ["webSearchTool"]
+            : [],
+        tools: {
+          generateImageTool,
+          webSearchTool,
+        },
+        toolCallStreaming: true,
+        maxSteps: 5,
         experimental_transform: smoothStream({ chunking: "word" }),
-        async onFinish({ response }) {
-          const aiMessage = response.messages[0];
-          if (aiMessage) {
-            await db.message.create({
-              data: {
-                id: uuidv4(),
-                role: "AI",
-                chatId,
-                userId: user.id,
-                content: extractText(aiMessage.content),
-                promptId: userMessage.id,
-                createdAt: new Date(),
-              },
-            });
+        onStepFinish: async ({
+          toolResults,
+          toolCalls,
+          response,
+          stepType,
+          finishReason,
+        }) => {
+          if (toolMode === "text") return;
+
+          console.log("On step finish called...");
+          console.log("Step Type: ", stepType);
+          console.log("Finish Reason: ", finishReason);
+
+          if (!toolResults || toolResults.length === 0) return;
+
+          const toolName = toolCalls[0]?.toolName;
+
+          console.log(`${toolCalls[0].toolName} called`);
+
+          const assistantMessages = appendResponseMessages({
+            messages,
+            responseMessages: response.messages,
+          }).filter((message) => message.role === "assistant");
+
+          const lastAssistantMessage = assistantMessages.at(-1);
+
+          if (lastAssistantMessage) {
+            //extract image key and url
+            if (toolName === "generateImageTool") {
+              const imageResult = toolResults.find(
+                (
+                  res
+                ): res is typeof res & {
+                  result: { imageUrl: string; imageKey: string };
+                } =>
+                  res.toolName === "generateImageTool" &&
+                  typeof res.result === "object" &&
+                  !Array.isArray(res.result) &&
+                  res.result !== null &&
+                  "imageUrl" in res.result &&
+                  "imageKey" in res.result
+              );
+
+              const imageUrl = imageResult?.result.imageUrl;
+              const imageKey = imageResult?.result.imageKey;
+
+              console.log("Saving image-response to DB...");
+
+              //create ai response
+              await db.message.create({
+                data: {
+                  id: uuidv4(),
+                  role: "AI",
+                  chatId,
+                  userId: user.id,
+                  content: "",
+                  parts: JSON.parse(
+                    JSON.stringify(lastAssistantMessage.parts ?? [])
+                  ),
+                  imageKey,
+                  imageUrl,
+                  promptId: userMessage.id,
+                  createdAt: new Date(),
+                },
+              });
+
+              console.log("Image Response saved to DB");
+            }
+
+            if (toolName === "webSearchTool") {
+              console.log("Saving web-search result to DB...");
+
+              await db.message.create({
+                data: {
+                  id: uuidv4(),
+                  role: "AI",
+                  chatId,
+                  userId: user.id,
+                  content: extractText(lastAssistantMessage.content),
+                  parts: JSON.parse(
+                    JSON.stringify(lastAssistantMessage.parts ?? [])
+                  ),
+                  imageKey: null,
+                  imageUrl: null,
+                  promptId: userMessage.id,
+                  createdAt: new Date(),
+                },
+              });
+
+              console.log("Web Search result saved to DB.");
+            }
           }
         },
-        onError: () => {
-          console.log("An error occured during stream");
+        async onFinish({ response }) {
+          try {
+            const assistantMessages = appendResponseMessages({
+              messages,
+              responseMessages: response.messages,
+            }).filter((message) => message.role === "assistant");
+
+            const lastAssistantMessage = assistantMessages.at(-1);
+
+            if (!lastAssistantMessage) {
+              console.warn("No assistant message found in response.");
+              return;
+            }
+
+            //for tool calls messages will be created before-hand in on StepFinish
+            const existingMessage = await db.message.findFirst({
+              where: { promptId: userMessage.id },
+            });
+
+            if (!existingMessage) {
+              await db.message.create({
+                data: {
+                  id: uuidv4(),
+                  role: "AI",
+                  chatId,
+                  userId: user.id,
+                  content: extractText(lastAssistantMessage.content),
+                  parts: JSON.parse(
+                    JSON.stringify(lastAssistantMessage.parts ?? [])
+                  ),
+                  promptId: userMessage.id,
+                  createdAt: new Date(),
+                },
+              });
+            } else {
+              await db.message.update({
+                where: {
+                  id: existingMessage.id,
+                },
+                data: {
+                  userId: user.id,
+                  content: extractText(lastAssistantMessage.content),
+                  parts: JSON.parse(
+                    JSON.stringify(lastAssistantMessage.parts ?? [])
+                  ),
+                  promptId: userMessage.id,
+                },
+              });
+            }
+          } catch (error) {
+            console.error("Error in onFinish:", error);
+          }
+        },
+
+        onError: (error) => {
+          console.error("Stream error details:", error);
         },
       });
 
       result.consumeStream();
-
       result.mergeIntoDataStream(dataStream);
     },
   });

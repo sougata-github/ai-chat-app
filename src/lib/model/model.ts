@@ -2,6 +2,12 @@ import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
 export const MODEL_REGISTRY = {
+  "meta-llama/llama-4-scout-17b-16e-instruct": {
+    provider: groq,
+    id: "meta-llama/llama-4-scout-17b-16e-instruct",
+    name: "Llama 4",
+    description: "Best for tool calling",
+  },
   "llama3-70b-8192": {
     provider: groq,
     id: "llama3-70b-8192",
@@ -59,13 +65,6 @@ export function isValidModelId(modelId: string): modelId is ModelId {
 // export const reasoningModel = groq("meta-llama/llama-4-scout-17b-16e-instruct") ->  for tool calling
 
 // for tool-calling:
-// "meta-llama/llama-4-scout-17b-16e-instruct": {
-//   provider: groq,
-//   id: "meta-llama/llama-4-scout-17b-16e-instruct",
-//   name: "Llama 4",
-//   description: "Best for tool calling",
-// },
-
 // for reasoning:
 // "deepseek-r1-distill-llama-70b": {
 //   provider: groq,

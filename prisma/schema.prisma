@@ -106,7 +106,8 @@ model Message {
   id String @id @default(uuid())
 
   role Role
-  content String?  
+  content String? 
+  parts Json 
   imageKey String? 
   imageUrl String?
 

@@ -1,106 +1,11 @@
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { chatRenameSchema } from "@/schemas";
-import { SYSTEM_PROMPT } from "@/constants";
+import { UTApi } from "uploadthing/server";
 import { TRPCError } from "@trpc/server";
-import { google } from "@ai-sdk/google";
-import { streamText } from "ai";
 import { db } from "@/db";
 import { z } from "zod";
 
 export const chatsRouter = createTRPCRouter({
-  createOne: baseProcedure
-    .input(
-      z.object({
-        prompt: z.string().min(1),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { prompt } = input;
-
-      const { user } = ctx;
-
-      if (!user) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-
-      // 1. Create chat
-      const chat = await db.chat.create({
-        data: {
-          userId: user.id,
-          title: "New Chat",
-        },
-      });
-
-      // 2. Create user message
-      const userMessage = await db.message.create({
-        data: {
-          role: "USER",
-          chatId: chat.id,
-          userId: user.id,
-          content: prompt,
-        },
-      });
-
-      // 3. Stream response from LLM
-      const llmStream = streamText({
-        model: google("gemini-1.5-flash"),
-        prompt: input.prompt,
-        system: SYSTEM_PROMPT,
-      });
-
-      let fullResponse = "";
-      for await (const delta of llmStream.textStream) {
-        fullResponse += delta;
-      }
-
-      if (!fullResponse) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch response",
-        });
-      }
-
-      // 4. Create AI message
-      const aiMessage = await db.message.create({
-        data: {
-          role: "AI",
-          chatId: chat.id,
-          userId: user.id,
-          content: fullResponse,
-          promptId: userMessage.id,
-        },
-      });
-
-      if (!aiMessage)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create ai message record",
-        });
-
-      // 6. Generate a summarised title using LLM
-      const titleResult = streamText({
-        model: google("gemini-1.5-flash"),
-        prompt: `Summarise this response in 4-6 words: ${fullResponse}`,
-        system: "You are a title summarizer.",
-      });
-
-      let summary = "";
-      for await (const delta of titleResult.textStream) {
-        summary += delta;
-      }
-
-      // 7. Update chat with title
-      await db.chat.update({
-        where: { id: chat.id },
-        data: {
-          title: summary.trim() || "Untitled",
-        },
-      });
-
-      return {
-        chatId: chat.id,
-      };
-    }),
   restore: baseProcedure
     .input(
       z.object({
@@ -217,6 +122,41 @@ export const chatsRouter = createTRPCRouter({
       });
 
       if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
+
+      // all the messages with images
+      const messages = await db.message.findMany({
+        where: {
+          chatId: existingChat.id,
+          AND: [
+            {
+              imageKey: {
+                not: null,
+              },
+            },
+            {
+              imageUrl: {
+                not: null,
+              },
+            },
+          ],
+        },
+      });
+
+      if (messages.length > 0) {
+        console.log("Deleting from UploadThing...");
+
+        const images = messages
+          .map((message) => message.imageKey)
+          .filter((key): key is string => Boolean(key));
+
+        try {
+          const utiapi = new UTApi();
+          await utiapi.deleteFiles(images);
+          console.log("Cleanup successful");
+        } catch (error) {
+          console.error("UploadThing cleanup failed:", error);
+        }
+      }
 
       const deletedChat = await db.chat.delete({
         where: {

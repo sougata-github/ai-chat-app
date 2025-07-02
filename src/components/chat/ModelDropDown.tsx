@@ -9,19 +9,25 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { startTransition, useOptimistic } from "react";
-import { MODEL_REGISTRY, ModelId } from "@/lib/model/model";
+import { MODEL_REGISTRY, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
 
 interface ModelDropDownProps {
   initialModel: ModelId;
+  disabled?: boolean;
 }
 
-const ModelDropDown = ({ initialModel }: ModelDropDownProps) => {
+const ModelDropDown = ({
+  initialModel,
+  disabled = false,
+}: ModelDropDownProps) => {
   const [optimisticModel, setOptimisticModel] = useOptimistic(
     initialModel || "llama3-8b-8192"
   );
 
   const handleModelChange = (modelId: ModelId) => {
+    if (disabled) return;
+
     startTransition(async () => {
       setOptimisticModel(modelId);
       await saveChatModelAsCookie(modelId);
@@ -33,13 +39,20 @@ const ModelDropDown = ({ initialModel }: ModelDropDownProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="text-sm">
-        <Button variant="ghost" size="sm" className="rounded-lg max-md:text-xs">
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`rounded-lg max-md:text-xs ${
+            disabled ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={disabled}
+        >
           {currentModel.name}
           <ChevronUpIcon className="h-4 w-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg px-2"
         side="top"
         align="start"
         sideOffset={4}
@@ -49,8 +62,9 @@ const ModelDropDown = ({ initialModel }: ModelDropDownProps) => {
             key={modelId}
             className={`mb-2 max-md:text-xs cursor-pointer ${
               modelId === optimisticModel ? "bg-muted font-semibold" : ""
-            }`}
-            onClick={() => handleModelChange(modelId as ModelId)}
+            } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            onClick={() => !disabled && handleModelChange(modelId as ModelId)}
+            disabled={disabled}
           >
             <div className="flex flex-col">
               <span>{config.name}</span>

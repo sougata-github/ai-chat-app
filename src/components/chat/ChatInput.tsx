@@ -10,9 +10,17 @@ import { Button } from "../ui/button";
 import { ArrowUp, GlobeIcon, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
-import React, { ChangeEvent, useEffect } from "react";
+import React, {
+  ChangeEvent,
+  startTransition,
+  useEffect,
+  useOptimistic,
+} from "react";
 import { ChatRequestOptions } from "ai";
 import { ModelId } from "@/lib/model/model";
+import { getModelForMode, ToolMode } from "@/lib/tools/tool";
+import { saveToolModeAsCookie } from "@/lib/tools";
+import { saveChatModelAsCookie } from "@/lib/model";
 
 interface Props {
   suggestion?: string;
@@ -30,6 +38,7 @@ interface Props {
   ) => void;
   onSubmitPrompt?: (prompt: string) => void;
   initialModel: ModelId;
+  initialMode: ToolMode;
 }
 
 const ChatInput = ({
@@ -40,7 +49,11 @@ const ChatInput = ({
   handleInputChange,
   onSubmitPrompt,
   initialModel,
+  initialMode,
 }: Props) => {
+  const [optimisticMode, setOptimisticMode] =
+    useOptimistic<ToolMode>(initialMode);
+
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
     defaultValues: {
@@ -79,6 +92,21 @@ const ChatInput = ({
     handleInputChange(e);
   };
 
+  const handleToolModeChange = (mode: ToolMode) => {
+    startTransition(async () => {
+      setOptimisticMode(mode);
+      await saveToolModeAsCookie(mode);
+
+      // set appropriate model for the tool
+      if (mode !== "text") {
+        const toolModel = getModelForMode(mode, initialModel);
+        await saveChatModelAsCookie(toolModel as ModelId);
+      }
+    });
+  };
+
+  const isToolMode = optimisticMode !== "text";
+
   return (
     <div className={cn("sticky bottom-0 inset-x-0 z-20 w-full px-4")}>
       <div className="max-w-3xl mx-auto backdrop-blur-md relative">
@@ -111,26 +139,41 @@ const ChatInput = ({
               />
               <div className="flex items-center justify-between py-2.5 px-3 dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0">
                 <div className="flex items-center gap-1">
-                  <ModelDropDown initialModel={initialModel} />
+                  <ModelDropDown
+                    initialModel={initialModel}
+                    disabled={isToolMode}
+                  />
                   <Button
-                    variant="ghost"
+                    variant={
+                      optimisticMode === "image-gen" ? "default" : "ghost"
+                    }
                     type="button"
                     size="icon"
-                    className={cn(
-                      "rounded-full bg-transparent"
-                      // image-gen selected && "some-bg"
-                    )}
+                    className="rounded-full"
+                    onClick={() =>
+                      handleToolModeChange(
+                        optimisticMode === "image-gen" ? "text" : "image-gen"
+                      )
+                    }
+                    //todo: disable when limit is hit
+                    disabled={status === "streaming"}
                   >
                     <ImageIcon />
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant={
+                      optimisticMode === "web-search" ? "default" : "ghost"
+                    }
                     type="button"
                     size="icon"
-                    className={cn(
-                      "rounded-full bg-transparent"
-                      // image-gen selected && "some-bg"
-                    )}
+                    className="rounded-full"
+                    onClick={() =>
+                      handleToolModeChange(
+                        optimisticMode === "web-search" ? "text" : "web-search"
+                      )
+                    }
+                    //todo: disable when limit is hit
+                    disabled={status === "streaming"}
                   >
                     <GlobeIcon />
                   </Button>

@@ -12,17 +12,20 @@ import Messages from "../messages/Messages";
 import { toast } from "sonner";
 import { ModelId } from "@/lib/model/model";
 import { useAutoResume } from "@/hooks/use-auto-resume";
+import { ToolMode } from "@/lib/tools/tool";
 
 interface Props {
   initialMessages: Message[];
   chatId: string;
   selectedModel: ModelId;
+  selectedMode: ToolMode;
 }
 
 const ChatView = ({
   initialMessages,
   chatId: fallbackChatId,
   selectedModel,
+  selectedMode,
 }: Props) => {
   const pathname = usePathname();
   const utils = trpc.useUtils();
@@ -47,7 +50,9 @@ const ChatView = ({
     id: chatId,
     body: {
       model: selectedModel,
+      mode: selectedMode,
     },
+    maxSteps: 5,
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
@@ -63,7 +68,7 @@ const ChatView = ({
       utils.chats.getMany.invalidate();
     },
     onError: (error) => {
-      console.error(error);
+      console.error(error.message);
       toast.error("Error generating response");
     },
   });
@@ -104,6 +109,7 @@ const ChatView = ({
       </div>
 
       <ChatInput
+        initialMode={selectedMode}
         initialModel={selectedModel}
         input={input}
         setInput={setInput}
