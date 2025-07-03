@@ -108,7 +108,7 @@ const ChatInput = ({
   const isToolMode = optimisticMode !== "text";
 
   return (
-    <div className={cn("sticky bottom-0 inset-x-0 z-20 w-full px-4")}>
+    <div className={cn("sticky h-[auto] bottom-0 inset-x-0 z-20 w-full px-4")}>
       <div className="max-w-3xl mx-auto backdrop-blur-md relative">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="relative">

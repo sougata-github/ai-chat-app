@@ -9,8 +9,8 @@ export default function ChatLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthGate>
-      <main>
+    <main className="h-dvh">
+      <AuthGate>
         <SidebarProvider
           style={
             {
@@ -25,7 +25,7 @@ export default function ChatLayout({
             <section className="flex-1 flex flex-col">{children}</section>
           </SidebarInset>
         </SidebarProvider>
-      </main>
-    </AuthGate>
+      </AuthGate>
+    </main>
   );
 }

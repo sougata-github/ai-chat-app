@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
@@ -27,7 +27,6 @@ const ChatView = ({
   selectedModel,
   selectedMode,
 }: Props) => {
-  const router = useRouter();
   const pathname = usePathname();
   const utils = trpc.useUtils();
 
@@ -60,6 +59,7 @@ const ChatView = ({
     experimental_throttle: 50,
     onResponse: (response) => {
       utils.chats.getMany.invalidate();
+      utils.chats.getOne.invalidate({ chatId });
       if (!response.ok) {
         toast.error("Failed to get response from AI");
       }
@@ -68,7 +68,6 @@ const ChatView = ({
       setInput("");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId });
-      router.refresh();
     },
     onError: (error) => {
       console.error(error.message);

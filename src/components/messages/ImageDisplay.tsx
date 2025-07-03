@@ -37,7 +37,7 @@ const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
   };
 
   return (
-    <div className="space-y-3 max-w-sm">
+    <div className="space-y-3 max-w-sm max-md:max-w-full">
       <div
         className="relative group cursor-pointer"
         onClick={() => setIsOpen(true)}
@@ -47,17 +47,19 @@ const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
             src={imageUrl}
             alt={prompt}
             fill
+            quality={100}
+            priority
             className="object-cover transition-transform"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center max-sm:hidden">
             <Expand className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-sm text-muted-foreground line-clamp-1 max-w-xs">
           {prompt.at(0)?.toUpperCase() + prompt.slice(1)}
         </p>
         <Button variant="ghost" size="icon" onClick={handleDownload}>
@@ -76,12 +78,14 @@ const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
                 src={imageUrl}
                 alt={prompt}
                 fill
+                quality={100}
+                priority
                 className="object-contain"
                 sizes="(max-width: 768px) 100vw, 80vw"
               />
             </div>
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground max-w-xs line-clamp-1">
                 {prompt.at(0)?.toUpperCase() + prompt.slice(1)}
               </p>
               <Button onClick={handleDownload}>
