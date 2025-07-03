@@ -13,8 +13,14 @@ export function extractText(content: any): string {
 
   if (Array.isArray(content)) {
     return content
-      .map((block) => (typeof block.text === "string" ? block.text : ""))
-      .join("")
+      .map((block) => {
+        if (typeof block === "string") return block;
+        if (block?.text) return block.text;
+        if (block?.code) return `\`\`\`\n${block.code}\n\`\`\``;
+        if (block?.url) return `[Link](${block.url})`;
+        return "";
+      })
+      .join("\n\n")
       .trim();
   }
 

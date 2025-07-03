@@ -73,11 +73,7 @@ const MessageItem = ({ message }: Props) => {
                       results={result}
                       query={toolInvocation.args.query}
                     />
-                  ) : (
-                    <pre className="text-xs bg-muted p-2 rounded overflow-auto">
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
-                  )}
+                  ) : null}
                 </div>
               );
             }

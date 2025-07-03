@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MemoizedMarkdown } from "./MemoizedMarkdown";
 
 interface WebSearchResult {
   title: string;
@@ -24,7 +25,7 @@ interface WebSearchCardProps {
 
 const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-transparent shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center text-lg">
           Web Search Results
@@ -35,7 +36,10 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {results.map((result, index) => (
-          <div key={index} className="border rounded-lg p-4 space-y-2">
+          <div
+            key={index}
+            className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-nonw shadow outline outline-muted-foreground/15 rounded-lg p-4 space-y-2"
+          >
             <div className="flex items-start justify-between gap-2">
               <h4 className="font-medium text-sm line-clamp-2 flex-1">
                 {result.title}
@@ -46,13 +50,13 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
                 className="shrink-0"
                 onClick={() => window.open(result.url, "_blank")}
               >
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="size-4" />
               </Button>
             </div>
 
-            <p className="text-sm text-muted-foreground line-clamp-3">
-              {result.content}
-            </p>
+            <div className="text-sm text-muted-foreground line-clamp-5">
+              <MemoizedMarkdown id={result.url} content={result.content} />
+            </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span className="truncate">{new URL(result.url).hostname}</span>

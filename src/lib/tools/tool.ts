@@ -71,23 +71,51 @@ export const generateImageTool = tool({
 export const webSearchTool = tool({
   description: "Search the web for up-to-date information",
   parameters: z.object({
-    query: z.string().min(1).max(100).describe("The search query"),
+    query: z.string().min(1).max(400).describe("The search query"),
   }),
   execute: async ({ query }) => {
     console.log("Searching the web...");
-
     const exa = getExaClient();
 
-    const { results } = await exa.searchAndContents(query, {
-      livecrawl: "always",
-      numResults: 2,
-    });
-    return results.map((result) => ({
-      title: result.title,
-      url: result.url,
-      content: result.text.slice(0, 1000),
-      publishedDate: result.publishedDate,
-    }));
+    try {
+      console.log("Query:", query);
+
+      const { results } = await exa.searchAndContents(query, {
+        livecrawl: "always",
+        numResults: 2,
+      });
+
+      if (!results || results.length === 0) {
+        return [
+          {
+            title: "No results found",
+            url: "",
+            content:
+              "No recent information was found for this search query. This might be due to the search service being temporarily unavailable or the query being too specific.",
+            publishedDate: null,
+          },
+        ];
+      }
+
+      return results.map((result) => ({
+        title: result.title || "Untitled",
+        url: result.url || "",
+        content:
+          result.text?.slice(0, 500) || "No content available for this result.",
+        publishedDate: result.publishedDate || null,
+      }));
+    } catch (err) {
+      console.error("Web search error:", err);
+      return [
+        {
+          title: "Search temporarily unavailable",
+          url: "",
+          content:
+            "The web search service is currently experiencing issues. Please try again in a few moments.",
+          publishedDate: null,
+        },
+      ];
+    }
   },
 });
 

@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LoadingSkeletonProps {
@@ -12,28 +11,20 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
 
   if (type === "web-search") {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-32" />
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="w-full flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-7 w-48 rounded-lg" />
+          <Skeleton className="h-5 w-32 rounded-lg" />
+        </div>
+        <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="border rounded-lg p-4 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-8 w-8" />
-              </div>
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            </div>
+            <Skeleton
+              key={i}
+              className="h-20 max-w-md rounded-lg p-4 space-y-2"
+            />
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 

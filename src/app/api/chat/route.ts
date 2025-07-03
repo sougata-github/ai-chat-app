@@ -210,101 +210,25 @@ export async function POST(req: Request) {
         toolCallStreaming: true,
         maxSteps: 5,
         experimental_transform: smoothStream({ chunking: "word" }),
-        onStepFinish: async ({
-          toolResults,
-          toolCalls,
-          response,
-          stepType,
-          finishReason,
-        }) => {
+        onStepFinish: async ({ toolCalls, stepType, finishReason }) => {
           if (toolMode === "text") return;
 
           console.log("On step finish called...");
           console.log("Step Type: ", stepType);
           console.log("Finish Reason: ", finishReason);
 
-          if (!toolResults || toolResults.length === 0) return;
+          if (toolCalls.length > 0) {
+            console.log(`${toolCalls[0].toolName} called`);
+          }
 
-          const toolName = toolCalls[0]?.toolName;
-
-          console.log(`${toolCalls[0].toolName} called`);
-
-          const assistantMessages = appendResponseMessages({
-            messages,
-            responseMessages: response.messages,
-          }).filter((message) => message.role === "assistant");
-
-          const lastAssistantMessage = assistantMessages.at(-1);
-
-          if (lastAssistantMessage) {
-            //extract image key and url
-            if (toolName === "generateImageTool") {
-              const imageResult = toolResults.find(
-                (
-                  res
-                ): res is typeof res & {
-                  result: { imageUrl: string; imageKey: string };
-                } =>
-                  res.toolName === "generateImageTool" &&
-                  typeof res.result === "object" &&
-                  !Array.isArray(res.result) &&
-                  res.result !== null &&
-                  "imageUrl" in res.result &&
-                  "imageKey" in res.result
-              );
-
-              const imageUrl = imageResult?.result.imageUrl;
-              const imageKey = imageResult?.result.imageKey;
-
-              console.log("Saving image-response to DB...");
-
-              //create ai response
-              await db.message.create({
-                data: {
-                  id: uuidv4(),
-                  role: "AI",
-                  chatId,
-                  userId: user.id,
-                  content: "",
-                  parts: JSON.parse(
-                    JSON.stringify(lastAssistantMessage.parts ?? [])
-                  ),
-                  imageKey,
-                  imageUrl,
-                  promptId: userMessage.id,
-                  createdAt: new Date(),
-                },
-              });
-
-              console.log("Image Response saved to DB");
-            }
-
-            if (toolName === "webSearchTool") {
-              console.log("Saving web-search result to DB...");
-
-              await db.message.create({
-                data: {
-                  id: uuidv4(),
-                  role: "AI",
-                  chatId,
-                  userId: user.id,
-                  content: extractText(lastAssistantMessage.content),
-                  parts: JSON.parse(
-                    JSON.stringify(lastAssistantMessage.parts ?? [])
-                  ),
-                  imageKey: null,
-                  imageUrl: null,
-                  promptId: userMessage.id,
-                  createdAt: new Date(),
-                },
-              });
-
-              console.log("Web Search result saved to DB.");
-            }
+          if (finishReason === "error") {
+            console.error("Step finished with error");
           }
         },
-        async onFinish({ response }) {
+        async onFinish({ response, finishReason }) {
           try {
+            console.log("onFinish hit with reason:", finishReason);
+
             const assistantMessages = appendResponseMessages({
               messages,
               responseMessages: response.messages,
@@ -317,41 +241,69 @@ export async function POST(req: Request) {
               return;
             }
 
-            //for tool calls messages will be created before-hand in on StepFinish
-            const existingMessage = await db.message.findFirst({
-              where: { promptId: userMessage.id },
+            const hasToolResults = lastAssistantMessage.parts?.some(
+              (part) =>
+                part.type === "tool-invocation" &&
+                part.toolInvocation.state === "result"
+            );
+
+            let imageUrl: string | null = null;
+            let imageKey: string | null = null;
+
+            if (hasToolResults) {
+              for (const part of lastAssistantMessage.parts ?? []) {
+                if (
+                  part.type === "tool-invocation" &&
+                  part.toolInvocation.toolName === "generateImageTool" &&
+                  part.toolInvocation.state === "result"
+                ) {
+                  const result = part.toolInvocation.result;
+                  if (
+                    typeof result === "object" &&
+                    result !== null &&
+                    "imageUrl" in result &&
+                    "imageKey" in result
+                  ) {
+                    imageUrl = result.imageUrl as string;
+                    imageKey = result.imageKey as string;
+                    break;
+                  }
+                }
+              }
+            }
+
+            console.log("Image Url: ", imageUrl);
+
+            console.log("Saving message to DB...");
+
+            after(async () => {
+              try {
+                console.log("Saving message to DB...");
+
+                await db.message.create({
+                  data: {
+                    id: uuidv4(),
+                    role: "AI",
+                    chatId,
+                    userId: user.id,
+                    content: extractText(lastAssistantMessage.content),
+                    parts: JSON.parse(
+                      JSON.stringify(lastAssistantMessage.parts ?? [])
+                    ),
+                    imageUrl,
+                    imageKey,
+                    promptId: userMessage.id,
+                    createdAt: new Date(),
+                  },
+                });
+
+                console.log("Message saved to DB");
+              } catch (error) {
+                console.error("Error saving message to DB:", error);
+              }
             });
 
-            if (!existingMessage) {
-              await db.message.create({
-                data: {
-                  id: uuidv4(),
-                  role: "AI",
-                  chatId,
-                  userId: user.id,
-                  content: extractText(lastAssistantMessage.content),
-                  parts: JSON.parse(
-                    JSON.stringify(lastAssistantMessage.parts ?? [])
-                  ),
-                  promptId: userMessage.id,
-                  createdAt: new Date(),
-                },
-              });
-            } else {
-              await db.message.update({
-                where: {
-                  id: existingMessage.id,
-                },
-                data: {
-                  userId: user.id,
-                  content: extractText(lastAssistantMessage.content),
-                  parts: JSON.parse(
-                    JSON.stringify(lastAssistantMessage.parts ?? [])
-                  ),
-                  promptId: userMessage.id,
-                },
-              });
-            }
+            console.log("Message saved to DB");
           } catch (error) {
             console.error("Error in onFinish:", error);
           }

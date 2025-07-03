@@ -14,8 +14,11 @@ import Link from "next/link";
 import { useState } from "react";
 import ArchivedChatsModal from "../modals/archive-chat/ArchivedChatsModal";
 import SearchCommand from "../modals/SearchCommand";
+import { useRouter } from "next/navigation";
 
 const SidebarUtils = () => {
+  const router = useRouter();
+
   const [openArchivedChats, setOpenArchivedChats] = useState(false);
   const [openSearch, setOpenSearch] = useState(false);
 
@@ -25,6 +28,8 @@ const SidebarUtils = () => {
     if (isMobile) {
       setOpenMobile(false);
     }
+
+    router.refresh();
   };
 
   return (

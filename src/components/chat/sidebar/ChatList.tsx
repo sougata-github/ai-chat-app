@@ -40,7 +40,7 @@ const ChatList = () => {
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       refetchOnWindowFocus: false,
-      staleTime: 1000 * 60,
+      staleTime: 10 * 60,
     }
   );
 

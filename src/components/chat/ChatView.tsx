@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
@@ -27,6 +27,7 @@ const ChatView = ({
   selectedModel,
   selectedMode,
 }: Props) => {
+  const router = useRouter();
   const pathname = usePathname();
   const utils = trpc.useUtils();
 
@@ -66,6 +67,8 @@ const ChatView = ({
     onFinish: () => {
       setInput("");
       utils.chats.getMany.invalidate();
+      utils.chats.getOne.invalidate({ chatId });
+      router.refresh();
     },
     onError: (error) => {
       console.error(error.message);
