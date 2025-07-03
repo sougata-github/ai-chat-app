@@ -131,7 +131,7 @@ export const TOOL_REGISTRY = {
   "web-search": {
     name: "webSearchTool",
     tool: webSearchTool,
-    defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct" as const,
+    defaultModel: "deepseek-r1-distill-llama-70b" as const,
     icon: "globe",
   },
 } as const;

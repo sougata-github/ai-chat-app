@@ -2,6 +2,12 @@ import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
 export const MODEL_REGISTRY = {
+  "deepseek-r1-distill-llama-70b": {
+    provider: groq,
+    id: "deepseek-r1-distill-llama-70b",
+    name: "DeepSeek R1 distill",
+    description: "Best for reasoning",
+  },
   "meta-llama/llama-4-scout-17b-16e-instruct": {
     provider: groq,
     id: "meta-llama/llama-4-scout-17b-16e-instruct",
@@ -14,23 +20,11 @@ export const MODEL_REGISTRY = {
     name: "Llama 3 70B",
     description: "Faster and more capable model",
   },
-  "llama3-8b-8192": {
-    provider: groq,
-    id: "llama3-8b-8192",
-    name: "Llama 3 8B",
-    description: "Fast and efficient model",
-  },
   "gemma2-9b-it": {
     provider: groq,
     id: "gemma2-9b-it",
     name: "Gemma 2",
     description: "All rounder model by Google",
-  },
-  "gemini-2.0-flash": {
-    provider: google,
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash",
-    description: "Google's latest fast model",
   },
   "gemini-2.5-flash": {
     provider: google,
@@ -42,7 +36,7 @@ export const MODEL_REGISTRY = {
 
 export type ModelId = keyof typeof MODEL_REGISTRY;
 
-export const DEFAULT_MODEL_ID: ModelId = "llama3-8b-8192";
+export const DEFAULT_MODEL_ID: ModelId = "llama3-70b-8192";
 
 export function getModelConfig(modelId: ModelId) {
   const config = MODEL_REGISTRY[modelId];

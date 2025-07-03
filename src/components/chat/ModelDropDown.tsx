@@ -52,7 +52,7 @@ const ModelDropDown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg px-2"
+        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg px-2 pt-2.5"
         side="top"
         align="start"
         sideOffset={4}
