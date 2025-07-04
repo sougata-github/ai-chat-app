@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MemoizedMarkdown } from "./MemoizedMarkdown";
 
 interface WebSearchResult {
   title: string;
@@ -25,23 +24,23 @@ interface WebSearchCardProps {
 
 const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
   return (
-    <Card className="w-full bg-transparent shadow-none">
-      <CardHeader>
-        <CardTitle className="flex items-center text-lg">
+    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
+      <CardHeader className="px-0 border-b outline-muted-foreground/15">
+        <CardTitle className="flex items-center text-base font-medium">
           Web Search Results
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm">
           Found {results.length} results for {query}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-0">
         {results.map((result, index) => (
           <div
             key={index}
-            className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-nonw shadow outline outline-muted-foreground/15 rounded-lg p-4 space-y-2"
+            className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg p-4 space-y-4"
           >
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium text-sm line-clamp-2 flex-1">
+              <h4 className="font-medium text-sm line-clamp-5 flex-1">
                 {result.title}
               </h4>
               <Button
@@ -54,15 +53,15 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
               </Button>
             </div>
 
-            <div className="text-sm text-muted-foreground line-clamp-5">
-              <MemoizedMarkdown id={result.url} content={result.content} />
+            <div className="text-muted-foreground text-sm py-0.5 line-clamp-8">
+              {result.content}
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span className="truncate">{new URL(result.url).hostname}</span>
               {result.publishedDate && (
                 <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
+                  <Calendar className="size-3" />
                   <span>
                     {new Date(result.publishedDate).toLocaleDateString()}
                   </span>

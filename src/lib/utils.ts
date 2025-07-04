@@ -43,3 +43,11 @@ export function convertToAISDKMessages(messages: Array<DBMessage>): Message[] {
 export function sanitizeText(text: string) {
   return text.replace("<has_function_call>", "");
 }
+
+export function cleanText(text: string = ""): string {
+  return text
+    .replace(/\n+/g, " ") // Remove excessive newlines
+    .replace(/\s+/g, " ") // Collapse spaces
+    .replace(/https?:\/\/\S+/g, "") // Strip URLs
+    .trim();
+}

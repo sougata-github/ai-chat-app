@@ -2,17 +2,17 @@ import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
 export const MODEL_REGISTRY = {
-  "deepseek-r1-distill-llama-70b": {
+  "llama-3.3-70b-versatile": {
     provider: groq,
-    id: "deepseek-r1-distill-llama-70b",
-    name: "DeepSeek R1 distill",
-    description: "Best for reasoning",
+    id: "llama-3.3-70b-versatile",
+    name: "Llama 3.3 70b",
+    description: "Model optimised for tool calling",
   },
   "meta-llama/llama-4-scout-17b-16e-instruct": {
     provider: groq,
     id: "meta-llama/llama-4-scout-17b-16e-instruct",
     name: "Llama 4",
-    description: "Best for tool calling",
+    description: "Best multimodel model",
   },
   "llama3-70b-8192": {
     provider: groq,
@@ -26,10 +26,10 @@ export const MODEL_REGISTRY = {
     name: "Gemma 2",
     description: "All rounder model by Google",
   },
-  "gemini-2.5-flash": {
+  "gemini-2.5-pro": {
     provider: google,
-    id: "gemini-2.5-flash-preview-04-17",
-    name: "Gemini 2.5 Flash",
+    id: "gemini-2.5-pro",
+    name: "Gemini 2.5 Pro",
     description: "Google's preview model",
   },
 } as const;

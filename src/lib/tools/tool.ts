@@ -69,7 +69,7 @@ export const generateImageTool = tool({
 });
 
 export const webSearchTool = tool({
-  description: "Search the web for up-to-date information",
+  description: "Search the live web and return up-to-date information.",
   parameters: z.object({
     query: z.string().min(1).max(400).describe("The search query"),
   }),
@@ -83,6 +83,7 @@ export const webSearchTool = tool({
       const { results } = await exa.searchAndContents(query, {
         livecrawl: "always",
         numResults: 2,
+        summary: true,
       });
 
       if (!results || results.length === 0) {
@@ -100,8 +101,7 @@ export const webSearchTool = tool({
       return results.map((result) => ({
         title: result.title || "Untitled",
         url: result.url || "",
-        content:
-          result.text?.slice(0, 500) || "No content available for this result.",
+        content: result.summary.slice(0, 500) || "No content available.",
         publishedDate: result.publishedDate || null,
       }));
     } catch (err) {
@@ -131,7 +131,7 @@ export const TOOL_REGISTRY = {
   "web-search": {
     name: "webSearchTool",
     tool: webSearchTool,
-    defaultModel: "deepseek-r1-distill-llama-70b" as const,
+    defaultModel: "llama-3.3-70b-versatile" as const,
     icon: "globe",
   },
 } as const;

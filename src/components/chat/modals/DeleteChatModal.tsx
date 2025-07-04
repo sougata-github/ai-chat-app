@@ -51,16 +51,14 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
             Cancel
           </Button>
           <Button
-            className="transition-all"
+            className="transition-all w-20"
             variant="destructive"
             onClick={() => deleteChat.mutate({ chatId })}
             disabled={deleteChat.isPending}
           >
             {deleteChat.isPending ? (
               <>
-                {" "}
-                <IconLoader2 className="size-4 animate-spin transition" />{" "}
-                Deleting{" "}
+                <IconLoader2 className="size-4 animate-spin transition" />
               </>
             ) : (
               <>Delete</>

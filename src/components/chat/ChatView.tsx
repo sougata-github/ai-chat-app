@@ -52,7 +52,7 @@ const ChatView = ({
       model: selectedModel,
       mode: selectedMode,
     },
-    maxSteps: 5,
+    maxSteps: 4,
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,

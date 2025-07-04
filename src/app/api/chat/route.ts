@@ -207,23 +207,10 @@ export async function POST(req: Request) {
           generateImageTool,
           webSearchTool,
         },
-        toolCallStreaming: true,
-        maxSteps: 5,
+        maxSteps: 4,
         experimental_transform: smoothStream({ chunking: "word" }),
-        onStepFinish: async ({ toolCalls, stepType, finishReason }) => {
+        onStepFinish: () => {
           if (toolMode === "text") return;
-
-          console.log("On step finish called...");
-          console.log("Step Type: ", stepType);
-          console.log("Finish Reason: ", finishReason);
-
-          if (toolCalls.length > 0) {
-            console.log(`${toolCalls[0].toolName} called`);
-          }
-
-          if (finishReason === "error") {
-            console.error("Step finished with error");
-          }
         },
         async onFinish({ response, finishReason }) {
           try {
@@ -272,38 +259,38 @@ export async function POST(req: Request) {
               }
             }
 
-            console.log("Image Url: ", imageUrl);
-
-            console.log("Saving message to DB...");
-
-            after(async () => {
-              try {
-                console.log("Saving message to DB...");
-
-                await db.message.create({
-                  data: {
-                    id: uuidv4(),
-                    role: "AI",
-                    chatId,
-                    userId: user.id,
-                    content: extractText(lastAssistantMessage.content),
-                    parts: JSON.parse(
-                      JSON.stringify(lastAssistantMessage.parts ?? [])
-                    ),
-                    imageUrl,
-                    imageKey,
-                    promptId: userMessage.id,
-                    createdAt: new Date(),
-                  },
-                });
-
-                console.log("Message saved to DB");
-              } catch (error) {
-                console.error("Error saving message to DB:", error);
-              }
+            const existingMessage = await db.message.findFirst({
+              where: { promptId: userMessage.id },
             });
 
-            console.log("Message saved to DB");
+            if (!existingMessage) {
+              after(async () => {
+                try {
+                  console.log("Saving message to DB...");
+
+                  await db.message.create({
+                    data: {
+                      id: uuidv4(),
+                      role: "AI",
+                      chatId,
+                      userId: user.id,
+                      content: extractText(lastAssistantMessage.content),
+                      parts: JSON.parse(
+                        JSON.stringify(lastAssistantMessage.parts ?? [])
+                      ),
+                      imageUrl,
+                      imageKey,
+                      promptId: userMessage.id,
+                      createdAt: new Date(),
+                    },
+                  });
+
+                  console.log("Message saved to DB");
+                } catch (error) {
+                  console.error("Error saving message to DB:", error);
+                }
+              });
+            }
           } catch (error) {
             console.error("Error in onFinish:", error);
           }

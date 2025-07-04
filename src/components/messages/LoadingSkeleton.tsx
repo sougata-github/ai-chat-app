@@ -1,4 +1,13 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { IconLoader2 } from "@tabler/icons-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 
 interface LoadingSkeletonProps {
   type: "image" | "web-search";
@@ -11,20 +20,39 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
 
   if (type === "web-search") {
     return (
-      <div className="w-full flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-7 w-48 rounded-lg" />
-          <Skeleton className="h-5 w-32 rounded-lg" />
-        </div>
-        <div className="space-y-4">
-          {[1, 2].map((i) => (
-            <Skeleton
-              key={i}
-              className="h-20 max-w-md rounded-lg p-4 space-y-2"
-            />
+      <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
+        <CardHeader className="px-0 border-b outline-muted-foreground/15">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <IconLoader2 className="w-4 h-4 animate-spin transition" />
+            Searching the web
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Please wait while we fetch relevant results.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 px-0">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div
+              key={index}
+              className="dark:bg-muted-foreground/10 outline outline-muted-foreground/15 rounded-lg p-4 space-y-3 dark:outline-none shadow dark:shadow-none"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <Skeleton className="h-4 w-full" />
+              </div>
+
+              <div className="space-y-1">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-[90%]" />
+                <Skeleton className="h-3 w-[85%]" />
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+            </div>
           ))}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
