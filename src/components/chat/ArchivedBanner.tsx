@@ -53,7 +53,7 @@ const ArchivedBanner = ({ chatId }: Props) => {
       </button>
 
       <div className="w-full text-background text-center text-sm dark:text-foreground flex items-center justify-center gap-5 z-20">
-        This chat is currently archived. Restore or Delete.
+        This chat is currently archived
         <div className="flex flex-row items-centers gap-2">
           <button
             onClick={() => restoreChat.mutate({ chatId })}

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MemoizedMarkdown } from "./MemoizedMarkdown";
 
 interface WebSearchResult {
   title: string;
@@ -40,7 +41,7 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
             className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg p-4 space-y-4"
           >
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium text-sm line-clamp-5 flex-1">
+              <h4 className="font-medium text-sm sm:text-base line-clamp-5 flex-1">
                 {result.title}
               </h4>
               <Button
@@ -53,8 +54,12 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
               </Button>
             </div>
 
-            <div className="text-muted-foreground text-sm py-0.5 line-clamp-8">
-              {result.content}
+            <div className="py-0.5 line-clamp-8">
+              <MemoizedMarkdown
+                id={index.toString()}
+                content={result.content}
+                className="not-prose text-xs sm:text-sm"
+              />
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">

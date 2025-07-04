@@ -9,6 +9,7 @@ import Link, { LinkProps } from "next/link";
 import React, { memo, useMemo } from "react";
 import { marked } from "marked";
 import CodeBlock from "./CodeBlock";
+import { cn } from "@/lib/utils";
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
@@ -63,11 +64,22 @@ const MemoizedMarkdownBlock = memo(
 MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock";
 
 export const MemoizedMarkdown = memo(
-  ({ content, id }: { content: string; id: string }) => {
+  ({
+    content,
+    id,
+    className,
+  }: {
+    content: string;
+    id: string;
+    className?: string;
+  }) => {
     const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
 
     return blocks.map((block, index) => (
-      <div className="content-styles" key={`${id}-block_${index}`}>
+      <div
+        className={cn("content-styles", className)}
+        key={`${id}-block_${index}`}
+      >
         <MemoizedMarkdownBlock content={block} />
       </div>
     ));

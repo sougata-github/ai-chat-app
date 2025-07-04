@@ -17,11 +17,9 @@ Todo:
 - TypeScript
 - TailwindCSS
 - Better Auth
+- AI SDK
 - tRPC
-- Shadcn-ui
-- Framer Motion
+- Shadcn UI
 - Upstash
 - Uploadthing
-- Vercel AI SDK
-- Gemini API
 - Vercel

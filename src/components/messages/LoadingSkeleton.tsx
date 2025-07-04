@@ -15,7 +15,15 @@ interface LoadingSkeletonProps {
 
 const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
   if (type === "image") {
-    return <Skeleton className="max-w-sm aspect-square rounded-lg" />;
+    return (
+      <div className="space-y-3 max-w-sm max-md:max-w-full">
+        <div className="text-sm flex items-center gap-2">
+          <IconLoader2 className="w-4 h-4 animate-spin transition" />
+          Generating the Image
+        </div>
+        <Skeleton className="max-w-sm aspect-square rounded-lg" />
+      </div>
+    );
   }
 
   if (type === "web-search") {
@@ -27,7 +35,7 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
             Searching the web
           </CardTitle>
           <CardDescription className="text-sm">
-            Please wait while we fetch relevant results.
+            Please wait while I fetch relevant results.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 px-0">
