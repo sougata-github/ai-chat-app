@@ -13,11 +13,7 @@ const AuthGate = ({ children }: { children: React.ReactNode }) => {
       const session = await authClient.getSession();
 
       if (!cancelled) {
-        const userId = session.data?.user?.id;
-        console.log("Auth Gate hit — User ID:", userId ?? "None");
-
         if (!session.data?.user) {
-          console.log("No session found in Auth Gate — signing in anonymously");
           await authClient.signIn.anonymous();
         }
 

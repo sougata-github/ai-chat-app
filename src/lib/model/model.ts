@@ -30,7 +30,7 @@ export const MODEL_REGISTRY = {
     provider: google,
     id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro",
-    description: "Google's preview model",
+    description: "Google's smartest model",
   },
 } as const;
 

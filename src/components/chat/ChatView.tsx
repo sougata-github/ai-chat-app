@@ -103,7 +103,7 @@ const ChatView = ({
     <div className="flex-1 flex flex-col" key={pathname}>
       <div className="px-4 pb-5 md:pb-12 h-full">
         {messages.length === 0 && pathname === "/" ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full">
             <ChatSuggestions setSuggestions={setInput} />
           </div>
         ) : (

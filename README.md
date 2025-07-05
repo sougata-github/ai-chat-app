@@ -9,6 +9,7 @@ Todo:
 - Share page
 - Refinements (Animations, UX improvement)
 - Future updates (tool calling, edit message)
+- Migrate to Convex
 
 ## Tech Stack
 
