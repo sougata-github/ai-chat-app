@@ -12,20 +12,20 @@ import Messages from "../messages/Messages";
 import { toast } from "sonner";
 import { ModelId } from "@/lib/model/model";
 import { useAutoResume } from "@/hooks/use-auto-resume";
-import { ToolMode } from "@/lib/tools/tool";
+import { Tool } from "@/lib/tools/tool";
 
 interface Props {
   initialMessages: Message[];
   chatId: string;
   selectedModel: ModelId;
-  selectedMode: ToolMode;
+  selectedTool: Tool;
 }
 
 const ChatView = ({
   initialMessages,
   chatId: fallbackChatId,
   selectedModel,
-  selectedMode,
+  selectedTool,
 }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -51,9 +51,9 @@ const ChatView = ({
     id: chatId,
     body: {
       model: selectedModel,
-      mode: selectedMode,
+      tool: selectedTool,
     },
-    maxSteps: 4,
+    maxSteps: 5,
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
@@ -114,7 +114,7 @@ const ChatView = ({
       </div>
 
       <ChatInput
-        initialMode={selectedMode}
+        initialTool={selectedTool}
         initialModel={selectedModel}
         input={input}
         setInput={setInput}

@@ -1,8 +1,9 @@
 import {
   generateImageTool,
-  getModelForMode,
-  isValidToolMode,
-  ToolMode,
+  getModelForTool,
+  getWeatherTool,
+  isValidTool,
+  Tool,
   webSearchTool,
 } from "@/lib/tools/tool";
 import {
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
     messages,
     id: chatId,
     model: requestedModel,
-    mode: requestedMode,
+    tool: requestedTool,
   } = await req.json();
 
   const session = await auth.api.getSession({
@@ -132,10 +133,10 @@ export async function POST(req: Request) {
   }
 
   // handle tool mode
-  let toolMode: ToolMode = "text";
+  let tool: Tool = "none";
 
-  if (requestedMode && isValidToolMode(requestedMode)) {
-    toolMode = requestedMode;
+  if (requestedTool && isValidTool(requestedTool)) {
+    tool = requestedTool;
   }
 
   // get appropriate model
@@ -145,7 +146,7 @@ export async function POST(req: Request) {
   }
 
   // override model if tool mode requires specific model
-  const finalModel = getModelForMode(toolMode, selectedModel);
+  const finalModel = getModelForTool(tool, selectedModel);
   const modelInstance = createModelInstance(finalModel);
 
   if (
@@ -198,19 +199,22 @@ export async function POST(req: Request) {
         system: SYSTEM_PROMPT,
         messages: coreMessages,
         experimental_activeTools:
-          toolMode === "image-gen"
+          tool === "image-gen"
             ? ["generateImageTool"]
-            : toolMode === "web-search"
+            : tool === "web-search"
             ? ["webSearchTool"]
+            : tool === "get-weather"
+            ? ["getWeatherTool"]
             : [],
         tools: {
           generateImageTool,
+          getWeatherTool,
           webSearchTool,
         },
-        maxSteps: 4,
+        maxSteps: 5,
         experimental_transform: smoothStream({ chunking: "word" }),
         onStepFinish: () => {
-          if (toolMode === "text") return;
+          if (tool === "none") return;
         },
         async onFinish({ response, finishReason }) {
           try {

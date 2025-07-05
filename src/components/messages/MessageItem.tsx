@@ -7,6 +7,7 @@ import type { Message } from "ai";
 import LoadingSkeleton from "./LoadingSkeleton";
 import ImageDisplay from "./ImageDisplay";
 import WebSearchCard from "./WebSearch";
+import WeatherCard from "./WeatherCard";
 
 interface Props {
   message: Message;
@@ -41,6 +42,10 @@ const MessageItem = ({ message }: Props) => {
                     <p className="text-sm sm:text-[15px]">Generating Image</p>
                   ) : toolName === "webSearchTool" ? (
                     <p className="text-sm sm:text-[15px]">Searching the web</p>
+                  ) : toolName === "getWeatherTool" ? (
+                    <p className="text-sm sm:text-[15px]">
+                      Getting weather data
+                    </p>
                   ) : null}
                 </div>
               );
@@ -53,6 +58,8 @@ const MessageItem = ({ message }: Props) => {
                     <LoadingSkeleton type="image" />
                   ) : toolName === "webSearchTool" ? (
                     <LoadingSkeleton type="web-search" />
+                  ) : toolName === "getWeatherTool" ? (
+                    <LoadingSkeleton type="weather" />
                   ) : null}
                 </div>
               );
@@ -60,7 +67,6 @@ const MessageItem = ({ message }: Props) => {
 
             if (state === "result") {
               const { result } = toolInvocation;
-
               return (
                 <div key={toolCallId} className="mt-3">
                   {toolName === "generateImageTool" ? (
@@ -73,6 +79,8 @@ const MessageItem = ({ message }: Props) => {
                       results={result}
                       query={toolInvocation.args.query}
                     />
+                  ) : toolName === "getWeatherTool" ? (
+                    <WeatherCard data={result} />
                   ) : null}
                 </div>
               );

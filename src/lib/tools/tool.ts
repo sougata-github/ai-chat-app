@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { GlobeIcon, Image, Sun } from "lucide-react";
 import { UTApi, UTFile } from "uploadthing/server";
 import { google } from "@ai-sdk/google";
 import { generateText, tool } from "ai";
@@ -132,42 +134,132 @@ export const webSearchTool = tool({
   },
 });
 
-export type ToolMode = "text" | "image-gen" | "web-search";
+export const getWeatherTool = tool({
+  description: "Get current weather and 5-day forecast for a location",
+  parameters: z.object({
+    location: z
+      .string()
+      .min(1)
+      .max(100)
+      .describe("The location to get weather for"),
+  }),
+  execute: async ({ location }) => {
+    console.log("Fetching weather data...");
+
+    const API_KEY = process.env.WEATHER_API_KEY;
+
+    if (!API_KEY) {
+      throw new Error("OpenWeather API key not configured");
+    }
+
+    try {
+      // Get current weather and 5-day forecast
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(
+          location
+        )}&appid=${API_KEY}&units=metric`
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            error: true,
+            message: `Location "${location}" not found. Please check the spelling and try again.`,
+            location,
+          };
+        }
+        throw new Error(`Weather API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const current = data.list[0];
+
+      const dailyForecast = data.list
+        .filter((_: any, index: number) => index % 8 === 0)
+        .slice(0, 5)
+        .map((day: any) => {
+          const date = new Date(day.dt * 1000);
+          const dayName = date.toLocaleDateString("en-US", {
+            weekday: "short",
+          });
+          return {
+            name: dayName,
+            temp: Math.round(day.main.temp),
+            condition: day.weather[0].main,
+            dayIndex: date.getDay(),
+          };
+        });
+
+      return {
+        location: data.city.name,
+        country: data.city.country,
+        current: {
+          temp: Math.round(current.main.temp),
+          condition: current.weather[0].main,
+          description: current.weather[0].description,
+          humidity: current.main.humidity,
+          windSpeed: current.wind.speed,
+        },
+        forecast: dailyForecast,
+        error: false,
+      };
+    } catch (error) {
+      console.error("Weather fetch error:", error);
+      return {
+        error: true,
+        message: "Unable to fetch weather data. Please try again later.",
+        location,
+      };
+    }
+  },
+});
+
+export type Tool = "none" | "image-gen" | "web-search" | "get-weather";
 
 export const TOOL_REGISTRY = {
   "image-gen": {
-    name: "generateImageTool",
+    name: "Create image",
     tool: generateImageTool,
     defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct" as const,
-    icon: "image",
+    icon: Image,
   },
-  "web-search": {
-    name: "webSearchTool",
+  "get-weather": {
+    name: "Get weather",
     tool: webSearchTool,
     defaultModel: "llama-3.3-70b-versatile" as const,
-    icon: "globe",
+    icon: Sun,
+  },
+
+  "web-search": {
+    name: "Search web",
+    tool: webSearchTool,
+    defaultModel: "llama-3.3-70b-versatile" as const,
+    icon: GlobeIcon,
   },
 } as const;
 
-export function isValidToolMode(mode: string): mode is ToolMode {
-  return mode === "text" || mode === "image-gen" || mode === "web-search";
+export function isValidTool(tool: string): tool is Tool {
+  return (
+    tool === "none" ||
+    tool === "image-gen" ||
+    tool === "web-search" ||
+    tool === "get-weather"
+  );
 }
 
-export function getToolsForMode(mode: ToolMode) {
-  if (mode === "text") return {};
+export function getTool(tool: Tool) {
+  if (tool === "none") return {};
 
-  const toolConfig = TOOL_REGISTRY[mode];
+  const toolConfig = TOOL_REGISTRY[tool];
   if (!toolConfig) return {};
 
   return { [toolConfig.name]: toolConfig.tool };
 }
 
-export function getModelForMode(
-  mode: ToolMode,
-  fallbackModel: ModelId
-): ModelId {
-  if (mode === "text") return fallbackModel;
+export function getModelForTool(tool: Tool, fallbackModel: ModelId): ModelId {
+  if (tool === "none") return fallbackModel;
 
-  const toolConfig = TOOL_REGISTRY[mode];
+  const toolConfig = TOOL_REGISTRY[tool];
   return toolConfig?.defaultModel || fallbackModel;
 }

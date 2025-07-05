@@ -1,33 +1,33 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { type ToolMode, isValidToolMode } from "./tool";
+import { type Tool, isValidTool } from "./tool";
 
-export async function saveToolModeAsCookie(mode: ToolMode) {
+export async function saveToolAsCookie(tool: Tool) {
   try {
     const cookieStore = await cookies();
-    cookieStore.set("chat-tool-mode", mode, {
+    cookieStore.set("chat-tool", tool, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
     });
   } catch (error) {
-    console.error("Failed to save tool mode to cookie:", error);
+    console.error("Failed to save tool to cookie:", error);
   }
 }
 
-export async function getToolModeFromCookies(): Promise<ToolMode> {
+export async function getToolFromCookies(): Promise<Tool> {
   try {
     const cookieStore = await cookies();
-    const mode = cookieStore.get("chat-tool-mode")?.value;
+    const tool = cookieStore.get("chat-tool")?.value;
 
-    if (mode && isValidToolMode(mode)) {
-      return mode;
+    if (tool && isValidTool(tool)) {
+      return tool;
     }
   } catch (error) {
-    console.error("Failed to get tool mode from cookie:", error);
+    console.error("Failed to get tool from cookie:", error);
   }
 
-  return "text";
+  return "none";
 }

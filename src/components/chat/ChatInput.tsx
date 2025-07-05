@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { chatInputSchema } from "@/schemas";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { ArrowUp, GlobeIcon, Image as ImageIcon } from "lucide-react";
+import { ArrowUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
 import React, {
@@ -17,10 +17,11 @@ import React, {
   useOptimistic,
 } from "react";
 import { ChatRequestOptions } from "ai";
-import { ModelId } from "@/lib/model/model";
-import { getModelForMode, ToolMode } from "@/lib/tools/tool";
-import { saveToolModeAsCookie } from "@/lib/tools";
+import { DEFAULT_MODEL_ID, ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
+import ToolDropDown from "./ToolDropDown";
+import { Tool, TOOL_REGISTRY } from "@/lib/tools/tool";
+import { saveToolAsCookie } from "@/lib/tools";
 
 interface Props {
   suggestion?: string;
@@ -38,7 +39,7 @@ interface Props {
   ) => void;
   onSubmitPrompt?: (prompt: string) => void;
   initialModel: ModelId;
-  initialMode: ToolMode;
+  initialTool: Tool;
 }
 
 const ChatInput = ({
@@ -49,10 +50,11 @@ const ChatInput = ({
   handleInputChange,
   onSubmitPrompt,
   initialModel,
-  initialMode,
+  initialTool,
 }: Props) => {
-  const [optimisticMode, setOptimisticMode] =
-    useOptimistic<ToolMode>(initialMode);
+  const [optimisticTool, setOptimisticTool] = useOptimistic<Tool>(
+    initialTool || "none"
+  );
 
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
@@ -92,20 +94,17 @@ const ChatInput = ({
     handleInputChange(e);
   };
 
-  const handleToolModeChange = (mode: ToolMode) => {
+  const handleRemoveCurrentTool = () => {
     startTransition(async () => {
-      setOptimisticMode(mode);
-      await saveToolModeAsCookie(mode);
-
-      // set appropriate model for the tool
-      if (mode !== "text") {
-        const toolModel = getModelForMode(mode, initialModel);
-        await saveChatModelAsCookie(toolModel as ModelId);
-      }
+      setOptimisticTool("none");
+      await saveToolAsCookie("none");
+      await saveChatModelAsCookie(DEFAULT_MODEL_ID);
     });
   };
 
-  const isToolMode = optimisticMode !== "text";
+  const isTool = optimisticTool !== "none";
+  const currentTool =
+    optimisticTool === "none" ? null : TOOL_REGISTRY[optimisticTool];
 
   return (
     <div className={cn("sticky h-[auto] bottom-0 inset-x-0 z-20 w-full px-4")}>
@@ -141,42 +140,36 @@ const ChatInput = ({
                 <div className="flex items-center gap-1">
                   <ModelDropDown
                     initialModel={initialModel}
-                    disabled={isToolMode}
+                    disabled={
+                      isTool || status === "streaming" || status === "submitted"
+                    }
                   />
-                  <Button
-                    variant={
-                      optimisticMode === "image-gen" ? "default" : "ghost"
+                  <ToolDropDown
+                    initialModel={initialModel}
+                    optimisticTool={optimisticTool}
+                    setOptimisticTool={setOptimisticTool}
+                    disabledAll={
+                      status === "streaming" || status === "submitted"
                     }
-                    type="button"
-                    size="icon"
-                    className="rounded-full"
-                    onClick={() =>
-                      handleToolModeChange(
-                        optimisticMode === "image-gen" ? "text" : "image-gen"
-                      )
-                    }
-                    //todo: disable when limit is hit
-                    disabled={status === "streaming"}
-                  >
-                    <ImageIcon />
-                  </Button>
-                  <Button
-                    variant={
-                      optimisticMode === "web-search" ? "default" : "ghost"
-                    }
-                    type="button"
-                    size="icon"
-                    className="rounded-full"
-                    onClick={() =>
-                      handleToolModeChange(
-                        optimisticMode === "web-search" ? "text" : "web-search"
-                      )
-                    }
-                    //todo: disable when limit is hit
-                    disabled={status === "streaming"}
-                  >
-                    <GlobeIcon />
-                  </Button>
+                  />
+
+                  {optimisticTool &&
+                    optimisticTool !== "none" &&
+                    currentTool !== null && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        type="button"
+                        className="rounded-full max-md:text-xs"
+                        disabled={
+                          status === "streaming" || status === "submitted"
+                        }
+                        onClick={handleRemoveCurrentTool}
+                      >
+                        {<currentTool.icon />}
+                        <X className="size-3" />
+                      </Button>
+                    )}
                 </div>
 
                 <Button
