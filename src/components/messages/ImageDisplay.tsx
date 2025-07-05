@@ -42,7 +42,7 @@ const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
         className="relative group cursor-pointer"
         onClick={() => setIsOpen(true)}
       >
-        <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted shadow dark:shadow-none">
+        <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted shadow-xs dark:shadow-none">
           <Image
             src={imageUrl}
             alt={prompt}

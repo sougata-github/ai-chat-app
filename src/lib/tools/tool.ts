@@ -1,6 +1,6 @@
-import { experimental_generateImage, tool } from "ai";
 import { UTApi, UTFile } from "uploadthing/server";
-import { fireworks } from "@ai-sdk/fireworks";
+import { google } from "@ai-sdk/google";
+import { generateText, tool } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -14,24 +14,41 @@ export const generateImageTool = tool({
   }),
   execute: async ({ prompt }) => {
     try {
-      const { image } = await experimental_generateImage({
-        model: fireworks.image("accounts/fireworks/models/flux-1-dev-fp8"),
-        prompt,
-        aspectRatio: "1:1",
-        n: 1,
+      // const { image } = await experimental_generateImage({
+      //   model: fireworks.image("accounts/fireworks/models/flux-1-dev-fp8"),
+      //   prompt,
+      //   aspectRatio: "1:1",
+      //   n: 1,
+      // });
+
+      // if (!image.base64) {
+      //   throw new Error("Generated image is empty or invalid.");
+      //       }
+
+      // const base64Data = image.base64.replace(/^data:image\/\w+;base64,/, "");
+
+      const result = await generateText({
+        model: google("gemini-2.0-flash-preview-image-generation"),
+        providerOptions: {
+          google: { responseModalities: ["TEXT", "IMAGE"] },
+        },
+        prompt: prompt,
       });
 
-      if (!image.base64) {
+      let base64Image = "";
+
+      for (const file of result.files) {
+        if (file.mimeType.startsWith("image/")) {
+          base64Image = file.base64;
+        }
+      }
+
+      if (!base64Image) {
         throw new Error("Generated image is empty or invalid.");
       }
 
-      // console.log("Image successfully generated");
-
-      // Convert base64 to buffer
-      const base64Data = image.base64.replace(/^data:image\/\w+;base64,/, "");
+      const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
-
-      // console.log("Uploadthing to uploadthing...");
 
       const uniqueId = uuidv4();
 
@@ -39,8 +56,6 @@ export const generateImageTool = tool({
         customId: `ai-generated-image-${uniqueId}`,
         type: "image/png",
       });
-
-      // console.log("Uploading to UploadThing...");
 
       const utapi = new UTApi();
       const uploadedImage = await utapi.uploadFiles([file]);
@@ -53,8 +68,6 @@ export const generateImageTool = tool({
 
       const imageKey = uploadedImage[0].data?.key;
       const imageUrl = uploadedImage[0].data?.ufsUrl;
-
-      // console.log(imageUrl);
 
       return {
         imageUrl,

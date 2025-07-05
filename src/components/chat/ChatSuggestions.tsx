@@ -9,7 +9,7 @@ interface Props {
 
 const ChatSuggestions = ({ setSuggestions }: Props) => {
   return (
-    <div className="mt-5 overflow-x-hidden">
+    <div className="mt-5">
       <h1 className="text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold">
         Start a conversation
       </h1>

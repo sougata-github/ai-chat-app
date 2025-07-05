@@ -66,3 +66,5 @@ export function isValidModelId(modelId: string): modelId is ModelId {
 //   name: "DeepSeek R1 Distill Llama",
 //   description: "More robust and better reasoning model",
 // },
+
+// @cf/black-forest-labs/flux-1-schnell
