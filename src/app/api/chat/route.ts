@@ -198,19 +198,21 @@ export async function POST(req: Request) {
         model: modelInstance,
         system: SYSTEM_PROMPT,
         messages: coreMessages,
-        experimental_activeTools:
-          tool === "image-gen"
-            ? ["generateImageTool"]
-            : tool === "web-search"
-            ? ["webSearchTool"]
-            : tool === "get-weather"
-            ? ["getWeatherTool"]
-            : [],
-        tools: {
-          generateImageTool,
-          getWeatherTool,
-          webSearchTool,
-        },
+        ...(tool !== "none" && {
+          experimental_activeTools:
+            tool === "image-gen"
+              ? ["generateImageTool"]
+              : tool === "web-search"
+              ? ["webSearchTool"]
+              : tool === "get-weather"
+              ? ["getWeatherTool"]
+              : [],
+          tools: {
+            generateImageTool,
+            getWeatherTool,
+            webSearchTool,
+          },
+        }),
         maxSteps: 5,
         experimental_transform: smoothStream({ chunking: "word" }),
         onStepFinish: () => {
