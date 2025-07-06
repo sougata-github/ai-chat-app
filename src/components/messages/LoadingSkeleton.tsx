@@ -35,7 +35,7 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="space-y-2">
                   <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-24 hidden sm:block" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -45,9 +45,7 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
             </div>
           </div>
 
-          {/* 5-Day Forecast Skeleton */}
           <div className="dark:bg-muted-foreground/10 outline outline-muted-foreground/15 rounded-lg p-4 space-y-3 dark:outline-none shadow dark:shadow-none">
-            <Skeleton className="h-4 w-24" />
             <div className="grid grid-cols-5 gap-2">
               {Array.from({ length: 5 }).map((_, index) => (
                 <div key={index} className="text-center space-y-2">
