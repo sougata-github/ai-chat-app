@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GlobeIcon, Image, Sun } from "lucide-react";
+import { GlobeIcon, Image, Lightbulb, Zap } from "lucide-react";
 import { UTApi, UTFile } from "uploadthing/server";
 import { google } from "@ai-sdk/google";
 import { generateText, tool } from "ai";
@@ -215,20 +215,19 @@ export const getWeatherTool = tool({
   },
 });
 
-export type Tool = "none" | "image-gen" | "web-search" | "get-weather";
+export type Tool =
+  | "none"
+  | "image-gen"
+  | "web-search"
+  | "get-weather"
+  | "reasoning";
 
 export const TOOL_REGISTRY = {
-  "image-gen": {
-    name: "Create image",
-    tool: generateImageTool,
-    defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct" as const,
-    icon: Image,
-  },
   "get-weather": {
     name: "Get weather",
     tool: webSearchTool,
     defaultModel: "llama-3.3-70b-versatile" as const,
-    icon: Sun,
+    icon: Zap,
   },
 
   "web-search": {
@@ -237,6 +236,18 @@ export const TOOL_REGISTRY = {
     defaultModel: "llama-3.3-70b-versatile" as const,
     icon: GlobeIcon,
   },
+  reasoning: {
+    name: "Think longer",
+    tool: {},
+    defaultModel: "deepseek-r1-distill-llama-70b" as const,
+    icon: Lightbulb,
+  },
+  "image-gen": {
+    name: "Create image",
+    tool: generateImageTool,
+    defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct" as const,
+    icon: Image,
+  },
 } as const;
 
 export function isValidTool(tool: string): tool is Tool {
@@ -244,12 +255,13 @@ export function isValidTool(tool: string): tool is Tool {
     tool === "none" ||
     tool === "image-gen" ||
     tool === "web-search" ||
-    tool === "get-weather"
+    tool === "get-weather" ||
+    tool === "reasoning"
   );
 }
 
 export function getTool(tool: Tool) {
-  if (tool === "none") return {};
+  if (tool === "none" || tool === "reasoning") return {};
 
   const toolConfig = TOOL_REGISTRY[tool];
   if (!toolConfig) return {};

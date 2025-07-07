@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronUpIcon, Settings2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,14 +45,11 @@ const ToolDropDown = ({
       <DropdownMenuTrigger asChild className="text-sm">
         <Button
           variant="ghost"
-          size="sm"
-          className={`rounded-lg max-md:text-xs`}
+          size="icon"
+          className={`rounded-full max-md:text-xs`}
           disabled={disabledAll}
         >
           <Settings2 />
-          <span className="sm:block hidden">tools</span>
-
-          <ChevronUpIcon className="h-4 w-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

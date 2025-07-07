@@ -227,8 +227,8 @@ button {
   }
 
   .content-styles ul,
-  .content-styles ol {
-    @apply text-foreground ml-5 my-3;
+  ol {
+    @apply text-foreground my-3 pl-5;
   }
 
   .content-styles ul {
@@ -236,7 +236,7 @@ button {
   }
 
   .content-styles li {
-    @apply p-0 m-0;
+    @apply p-0 m-0 leading-tight;
   }
 
   .content-styles ul > li::marker,

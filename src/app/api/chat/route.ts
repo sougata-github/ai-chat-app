@@ -1,4 +1,12 @@
 import {
+  streamText,
+  Message,
+  smoothStream,
+  appendResponseMessages,
+  wrapLanguageModel,
+  extractReasoningMiddleware,
+} from "ai";
+import {
   generateImageTool,
   getModelForTool,
   getWeatherTool,
@@ -22,9 +30,8 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from "resumable-stream";
-import { streamText, Message, smoothStream, appendResponseMessages } from "ai";
+import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
 import { getMessagesByChatId } from "@/lib/chat";
-import { SYSTEM_PROMPT } from "@/constants";
 import { extractText } from "@/lib/utils";
 import { auth } from "@/lib/auth/auth";
 import { createDataStream } from "ai";
@@ -147,7 +154,14 @@ export async function POST(req: Request) {
 
   // override model if tool mode requires specific model
   const finalModel = getModelForTool(tool, selectedModel);
-  const modelInstance = createModelInstance(finalModel);
+  let modelInstance = createModelInstance(finalModel);
+
+  if (tool === "reasoning") {
+    modelInstance = wrapLanguageModel({
+      model: modelInstance,
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    });
+  }
 
   if (
     !lastMessage ||
@@ -196,24 +210,25 @@ export async function POST(req: Request) {
     execute: (dataStream) => {
       const result = streamText({
         model: modelInstance,
-        system: SYSTEM_PROMPT,
+        system: tool === "reasoning" ? REASONING_SYSTEM_PROMPT : SYSTEM_PROMPT,
         messages: coreMessages,
-        ...(tool !== "none" && {
-          experimental_activeTools:
-            tool === "image-gen"
-              ? ["generateImageTool"]
-              : tool === "web-search"
-              ? ["webSearchTool"]
-              : tool === "get-weather"
-              ? ["getWeatherTool"]
-              : [],
-          tools: {
-            generateImageTool,
-            getWeatherTool,
-            webSearchTool,
-          },
-        }),
-        maxSteps: 5,
+        ...(tool !== "none" &&
+          tool !== "reasoning" && {
+            experimental_activeTools:
+              tool === "image-gen"
+                ? ["generateImageTool"]
+                : tool === "web-search"
+                ? ["webSearchTool"]
+                : tool === "get-weather"
+                ? ["getWeatherTool"]
+                : [],
+            tools: {
+              generateImageTool,
+              getWeatherTool,
+              webSearchTool,
+            },
+          }),
+        maxSteps: tool === "reasoning" ? 10 : 5,
         experimental_transform: smoothStream({ chunking: "word" }),
         onStepFinish: () => {
           if (tool === "none") return;
@@ -308,7 +323,14 @@ export async function POST(req: Request) {
       });
 
       result.consumeStream();
-      result.mergeIntoDataStream(dataStream);
+
+      if (tool === "reasoning") {
+        result.mergeIntoDataStream(dataStream, {
+          sendReasoning: true,
+        });
+      } else {
+        result.mergeIntoDataStream(dataStream);
+      }
     },
   });
 

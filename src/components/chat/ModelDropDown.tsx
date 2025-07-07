@@ -11,15 +11,18 @@ import { Button } from "../ui/button";
 import { startTransition, useOptimistic } from "react";
 import { MODEL_REGISTRY, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
+import { Tool } from "@/lib/tools/tool";
 
 interface ModelDropDownProps {
   initialModel: ModelId;
+  currentTool: Tool;
   disabled?: boolean;
 }
 
 const ModelDropDown = ({
   initialModel,
   disabled = false,
+  currentTool,
 }: ModelDropDownProps) => {
   const [optimisticModel, setOptimisticModel] = useOptimistic(
     initialModel || "llama3-8b-8192"
@@ -64,10 +67,14 @@ const ModelDropDown = ({
               modelId === optimisticModel ? "bg-muted font-semibold" : ""
             } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={() => !disabled && handleModelChange(modelId as ModelId)}
-            disabled={disabled}
+            disabled={
+              disabled ||
+              (modelId === "deepseek-r1-distill-llama-70b" &&
+                currentTool !== "reasoning")
+            }
           >
             <div className="flex flex-col">
-              <span>{config.name}</span>
+              <span className="max-sm:text-xs">{config.name}</span>
               <span className="text-xs text-muted-foreground">
                 {config.description}
               </span>

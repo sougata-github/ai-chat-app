@@ -53,7 +53,6 @@ const ChatView = ({
       model: selectedModel,
       tool: selectedTool,
     },
-    maxSteps: 5,
     initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,

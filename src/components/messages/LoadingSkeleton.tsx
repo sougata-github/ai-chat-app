@@ -1,6 +1,6 @@
+import { Clock, Lightbulb, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IconLoader2 } from "@tabler/icons-react";
-import { Loader2 } from "lucide-react";
 
 import {
   Card,
@@ -11,10 +11,51 @@ import {
 } from "../ui/card";
 
 interface LoadingSkeletonProps {
-  type: "image" | "web-search" | "weather";
+  type: "image" | "web-search" | "weather" | "reasoning";
 }
 
 const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
+  if (type === "reasoning") {
+    return (
+      <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
+        <CardHeader className="px-0 border-b outline-muted-foreground/15">
+          <div className="flex items-center text-base font-medium">
+            <Lightbulb className="w-4 h-4 animate-pulse" />
+            <span className="text-sm font-medium">Thinking deeply...</span>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              <span>Processing complex reasoning</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-0">
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="p-3 dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg"
+              >
+                <div className="flex items-start gap-2">
+                  <Skeleton className="w-5 h-5 rounded-full flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-4/5" />
+                    {index === 1 && <Skeleton className="h-3 w-3/4" />}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (type === "weather") {
     return (
       <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">

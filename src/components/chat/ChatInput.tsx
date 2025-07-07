@@ -140,6 +140,7 @@ const ChatInput = ({
                 <div className="flex items-center gap-1">
                   <ModelDropDown
                     initialModel={initialModel}
+                    currentTool={optimisticTool}
                     disabled={
                       isTool || status === "streaming" || status === "submitted"
                     }

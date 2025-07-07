@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -8,6 +7,7 @@ import LoadingSkeleton from "./LoadingSkeleton";
 import ImageDisplay from "./ImageDisplay";
 import WebSearchCard from "./WebSearch";
 import WeatherCard from "./WeatherCard";
+import ReasoningBlock from "./ReasoningBlock";
 
 interface Props {
   message: Message;
@@ -26,11 +26,34 @@ const MessageItem = ({ message }: Props) => {
             : "bg-transparent w-full"
         )}
       >
-        {/* display tool invocations */}
         {message.parts?.map((part, index) => {
           const { type } = part;
           const key = `message-${message.id}-part-${index}`;
 
+          {
+            /* display reasoning parts */
+          }
+          if (part.type === "reasoning") {
+            const isStreaming =
+              part.type === "reasoning" && part.reasoning === "";
+
+            if (isStreaming) {
+              return <LoadingSkeleton key={key} type="reasoning" />;
+            }
+
+            return (
+              <div key={key} className="mb-4">
+                <ReasoningBlock
+                  reasoning={part.reasoning as string}
+                  isStreaming={false}
+                />
+              </div>
+            );
+          }
+
+          {
+            /* display tool invocations */
+          }
           if (type === "tool-invocation") {
             const { toolInvocation } = part;
             const { toolName, toolCallId, state } = toolInvocation;

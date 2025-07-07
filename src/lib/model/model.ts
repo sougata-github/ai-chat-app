@@ -2,6 +2,12 @@ import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
 export const MODEL_REGISTRY = {
+  "deepseek-r1-distill-llama-70b": {
+    provider: groq,
+    id: "deepseek-r1-distill-llama-70b",
+    name: "R1 Distill Llama",
+    description: "Robust reasoning model",
+  },
   "llama-3.3-70b-versatile": {
     provider: groq,
     id: "llama-3.3-70b-versatile",
@@ -12,7 +18,7 @@ export const MODEL_REGISTRY = {
     provider: groq,
     id: "meta-llama/llama-4-scout-17b-16e-instruct",
     name: "Llama 4",
-    description: "Best multimodel model",
+    description: "Best multimodal model",
   },
   "gemma2-9b-it": {
     provider: groq,
@@ -50,16 +56,3 @@ export function createModelInstance(modelId: ModelId) {
 export function isValidModelId(modelId: string): modelId is ModelId {
   return modelId in MODEL_REGISTRY;
 }
-
-// export const reasoningModel = groq("meta-llama/llama-4-scout-17b-16e-instruct") ->  for tool calling
-
-// for tool-calling:
-// for reasoning:
-// "deepseek-r1-distill-llama-70b": {
-//   provider: groq,
-//   id: "deepseek-r1-distill-llama-70b",
-//   name: "DeepSeek R1 Distill Llama",
-//   description: "More robust and better reasoning model",
-// },
-
-// @cf/black-forest-labs/flux-1-schnell
