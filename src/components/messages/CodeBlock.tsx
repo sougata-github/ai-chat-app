@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
 import type React from "react";
 import { useState } from "react";
 import { useTheme } from "next-themes";
-
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   materialLight,
   materialDark,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
-
 import { Check, Copy } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -24,10 +21,8 @@ interface CodeBlockProps {
 const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
   const { theme } = useTheme();
   const isLight = theme === "light";
-
   const match = /language-(\w+)/.exec(className);
   const lang = match?.[1] ?? "text";
-
   const [copied, setCopied] = useState(false);
 
   const onCopy = () => {
@@ -38,9 +33,9 @@ const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
 
   if (inline) {
     return (
-      <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">
+      <pre className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-sm font-mono w-fit inline text-foreground">
         {children}
-      </code>
+      </pre>
     );
   }
 
@@ -49,10 +44,9 @@ const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
       <div className="flex items-center justify-between bg-muted px-4 py-1 text-xs text-muted-foreground border-b border-muted-foreground/10 rounded-t-md">
         <span className="font-medium text-sm">{lang}</span>
         <Button variant="ghost" size="icon" onClick={onCopy}>
-          {copied ? <Check /> : <Copy />}
+          {copied ? <Check /> : <Copy />}{" "}
         </Button>
       </div>
-
       <div className="text-xs md:text-sm overflow-x-auto font-[--font-geist-mono]">
         <SyntaxHighlighter
           language={lang}

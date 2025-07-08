@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 
 "use client";
 
@@ -13,6 +12,21 @@ import React, { memo, useMemo } from "react";
 import { marked } from "marked";
 import CodeBlock from "./CodeBlock";
 import { cn } from "@/lib/utils";
+import { visit } from "unist-util-visit";
+import type { Root } from "hast";
+
+export default function rehypeInlineCodeProperty() {
+  return function (tree: Root) {
+    visit(tree, "element", function (node, index, parent) {
+      if (node.tagName === "code") {
+        const parentElement = parent as Element | undefined;
+
+        node.properties ||= {};
+        node.properties.inline = parentElement?.tagName !== "pre";
+      }
+    });
+  };
+}
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
   const tokens = marked.lexer(markdown);
@@ -22,8 +36,17 @@ function parseMarkdownIntoBlocks(markdown: string): string[] {
 }
 
 const components: Partial<Components> = {
-  // @ts-expect-error
-  code: CodeBlock,
+  code: ({ node, className, children, ...rest }) => {
+    const isInline = node?.properties?.inline === true;
+
+    console.log(isInline);
+
+    return (
+      <CodeBlock className={className || ""} inline={isInline} {...rest}>
+        {children}
+      </CodeBlock>
+    );
+  },
   pre: ({ children }) => <>{children}</>,
   p: ({ children }) => {
     const isOnlyText = React.Children.toArray(children).every(
@@ -50,16 +73,12 @@ const components: Partial<Components> = {
   },
 };
 
-function sanitizeMath(content: string): string {
-  return content.replace(/\\boxed\{/g, "\\fbox{");
-}
-
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[rehypeKatex, rehypeInlineCodeProperty]}
         components={components}
       >
         {content}
