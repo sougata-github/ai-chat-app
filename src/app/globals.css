@@ -244,14 +244,17 @@ button {
     margin-block: 0 !important;
   }
 
-  .content-styles ol > li {
+  .content-styles ol > li,
+  .content-styles ul > li {
     white-space: normal !important;
     @apply m-0 leading-normal;
   }
 
-  .content-styles ul > li {
-    white-space: normal !important;
-    @apply m-0 leading-normal;
+  .content-styles ol > li > ol > li,
+  .content-styles ol > li > ul > li,
+  .content-styles ul > li > ol > li,
+  .content-styles ul > li > ul > li {
+    @apply mt-2;
   }
 
   .content-styles ul > li::marker,
