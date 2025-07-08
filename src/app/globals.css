@@ -223,29 +223,35 @@ button {
   .content-styles h4,
   .content-styles h5,
   .content-styles h6 {
-    @apply text-foreground my-4 font-semibold;
+    @apply text-foreground font-semibold;
   }
 
   .content-styles p {
-    @apply text-foreground my-3;
+    @apply text-foreground leading-normal;
   }
 
   .content-styles ul {
-    @apply text-foreground my-3 pl-5;
+    @apply text-foreground m-0;
   }
 
   .content-styles ul {
     @apply list-disc;
   }
 
+  .content-styles ul,
+  ol {
+    @apply leading-normal;
+    margin-block: 0 !important;
+  }
+
   .content-styles ol > li {
     white-space: normal !important;
-    @apply m-0;
+    @apply m-0 leading-normal;
   }
 
   .content-styles ul > li {
     white-space: normal !important;
-    @apply m-0;
+    @apply m-0 leading-normal;
   }
 
   .content-styles ul > li::marker,
