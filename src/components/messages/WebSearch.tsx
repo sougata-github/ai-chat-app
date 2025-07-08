@@ -58,7 +58,7 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
               <MemoizedMarkdown
                 id={index.toString()}
                 content={result.content}
-                className="not-prose text-xs sm:text-sm"
+                className="text-xs sm:text-sm"
               />
             </div>
 

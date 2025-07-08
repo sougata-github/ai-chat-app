@@ -5,6 +5,9 @@
 
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import Link, { LinkProps } from "next/link";
 import React, { memo, useMemo } from "react";
 import { marked } from "marked";
@@ -47,10 +50,18 @@ const components: Partial<Components> = {
   },
 };
 
+function sanitizeMath(content: string): string {
+  return content.replace(/\\boxed\{/g, "\\fbox{");
+}
+
 const MemoizedMarkdownBlock = memo(
   ({ content }: { content: string }) => {
     return (
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={components}
+      >
         {content}
       </ReactMarkdown>
     );

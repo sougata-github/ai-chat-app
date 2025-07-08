@@ -239,7 +239,7 @@ export const TOOL_REGISTRY = {
   reasoning: {
     name: "Think longer",
     tool: {},
-    defaultModel: "deepseek-r1-distill-llama-70b" as const,
+    defaultModel: "qwen/qwen3-32b" as const,
     icon: Lightbulb,
   },
   "image-gen": {

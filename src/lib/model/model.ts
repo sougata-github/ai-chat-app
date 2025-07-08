@@ -2,10 +2,10 @@ import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
 export const MODEL_REGISTRY = {
-  "deepseek-r1-distill-llama-70b": {
+  "qwen/qwen3-32b": {
     provider: groq,
-    id: "deepseek-r1-distill-llama-70b",
-    name: "R1 Distill Llama",
+    id: "qwen/qwen3-32b",
+    name: "Qwen 3 32b",
     description: "Robust reasoning model",
   },
   "llama-3.3-70b-versatile": {

@@ -37,15 +37,11 @@ const MessageItem = ({ message }: Props) => {
             const isStreaming =
               part.type === "reasoning" && part.reasoning === "";
 
-            if (isStreaming) {
-              return <LoadingSkeleton key={key} type="reasoning" />;
-            }
-
             return (
               <div key={key} className="mb-4">
                 <ReasoningBlock
                   reasoning={part.reasoning as string}
-                  isStreaming={false}
+                  isStreaming={isStreaming}
                 />
               </div>
             );

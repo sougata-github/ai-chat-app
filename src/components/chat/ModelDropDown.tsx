@@ -69,8 +69,7 @@ const ModelDropDown = ({
             onClick={() => !disabled && handleModelChange(modelId as ModelId)}
             disabled={
               disabled ||
-              (modelId === "deepseek-r1-distill-llama-70b" &&
-                currentTool !== "reasoning")
+              (modelId === "qwen/qwen3-32b" && currentTool !== "reasoning")
             }
           >
             <div className="flex flex-col">

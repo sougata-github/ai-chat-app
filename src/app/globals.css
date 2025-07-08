@@ -208,6 +208,10 @@ button {
   }
 }
 
+.katex-display > .katex {
+  @apply text-sm sm:text-base overflow-x-auto overflow-y-hidden outline outline-muted-foreground/15 rounded-lg px-4 py-5 bg-muted-foreground/5 shadow-xs dark:shadow-none max-w-lg;
+}
+
 @layer components {
   .content-styles {
     @apply prose dark:prose-invert prose-sm sm:prose-base max-w-none;
@@ -226,8 +230,7 @@ button {
     @apply text-foreground my-3;
   }
 
-  .content-styles ul,
-  ol {
+  .content-styles ul {
     @apply text-foreground my-3 pl-5;
   }
 
@@ -235,8 +238,14 @@ button {
     @apply list-disc;
   }
 
-  .content-styles li {
-    @apply p-0 m-0 leading-tight;
+  .content-styles ol > li {
+    white-space: normal !important;
+    @apply m-0;
+  }
+
+  .content-styles ul > li {
+    white-space: normal !important;
+    @apply m-0;
   }
 
   .content-styles ul > li::marker,
@@ -265,11 +274,11 @@ button {
   }
 
   .content-styles th {
-    @apply text-foreground text-left border-b border-muted-foreground/15 px-4 pt-2 pb-4 font-semibold text-xs sm:text-sm;
+    @apply text-foreground text-left border-b border-muted-foreground/15 px-4 pt-2 pb-4 font-semibold text-sm;
   }
 
   .content-styles td {
-    @apply px-4 py-2 text-xs sm:text-sm text-foreground;
+    @apply px-4 py-2 text-sm text-foreground;
   }
 
   .content-styles tr {

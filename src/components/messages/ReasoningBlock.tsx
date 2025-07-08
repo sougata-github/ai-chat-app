@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "../ui/card";
 import { ChevronDown, ChevronRight, Lightbulb } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
+import { MemoizedMarkdown } from "./MemoizedMarkdown";
 
 interface Props {
   reasoning: string;
@@ -31,7 +32,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
             "Thinking"
           ) : (
             <div className="flex items-center gap-2 text-sm">
-              <span>Thought for a few seconds</span>
+              <span>Thought for some time</span>
             </div>
           )}
         </div>
@@ -63,16 +64,14 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
               <div
                 key={index}
                 className={cn(
-                  "p-3 dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg",
-                  "text-sm leading-relaxed"
+                  "px-4 py-1 dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg"
                 )}
               >
-                <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium flex-shrink-0 mt-0.5">
-                    {index + 1}.
-                  </span>
-                  <div className="whitespace-pre-wrap">{step.trim()}</div>
-                </div>
+                <MemoizedMarkdown
+                  id={`reasoning-step-${index}`}
+                  content={step.trim()}
+                  className="text-sm leading-relaxed"
+                />
               </div>
             ))}
           </div>
