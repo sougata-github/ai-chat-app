@@ -11,9 +11,10 @@ import ReasoningBlock from "./ReasoningBlock";
 
 interface Props {
   message: Message;
+  status: "streaming" | "submitted" | "ready" | "error";
 }
 
-const MessageItem = ({ message }: Props) => {
+const MessageItem = ({ message, status }: Props) => {
   const isUser = message.role === "user";
 
   return (
@@ -34,14 +35,14 @@ const MessageItem = ({ message }: Props) => {
             /* display reasoning parts */
           }
           if (part.type === "reasoning") {
-            const isStreaming =
-              part.type === "reasoning" && part.reasoning === "";
-
             return (
               <div key={key} className="mb-4">
                 <ReasoningBlock
                   reasoning={part.reasoning as string}
-                  isStreaming={isStreaming}
+                  isStreaming={
+                    // @ts-expect-error export ReasoningUIPart
+                    status === "streaming" && index === message.parts.length - 1
+                  }
                 />
               </div>
             );

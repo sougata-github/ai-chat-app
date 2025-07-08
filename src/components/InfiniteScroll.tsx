@@ -3,7 +3,7 @@
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useEffect } from "react";
 import { Button } from "./ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 
 interface Props {
   isManual?: boolean;
@@ -45,7 +45,7 @@ const InfiniteScroll = ({
           onClick={() => fetchNextPage()}
         >
           {isFetchingNextPage ? (
-            <Loader2 className="size-4 text-muted-foreground animate-spin transition-all" />
+            <Loader className="size-4 text-muted-foreground animate-spin transition-all" />
           ) : (
             "Load More"
           )}

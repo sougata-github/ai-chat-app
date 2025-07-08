@@ -18,7 +18,7 @@ const Messages = ({ messages, status }: Props) => {
   return (
     <div className="flex flex-col gap-5 md:gap-8 max-w-2xl w-full mx-auto pt-10">
       {messages.map((message) => (
-        <MessageItem message={message} key={message.id} />
+        <MessageItem message={message} key={message.id} status={status} />
       ))}
       {status === "submitted" &&
         messages.length > 0 &&

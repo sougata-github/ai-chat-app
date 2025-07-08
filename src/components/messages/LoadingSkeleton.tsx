@@ -1,6 +1,4 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { IconLoader2 } from "@tabler/icons-react";
-import { Loader2 } from "lucide-react";
 
 import {
   Card,
@@ -9,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { SpinnerIcon } from "./SpinnerIcon";
 
 interface LoadingSkeletonProps {
   type: "image" | "web-search" | "weather";
@@ -20,7 +19,9 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
       <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
         <CardHeader className="px-0 border-b outline-muted-foreground/15">
           <CardTitle className="flex items-center gap-2 text-base font-medium">
-            <Loader2 className="w-4 h-4 animate-spin transition" />
+            <div className="animate-spin transition">
+              <SpinnerIcon />
+            </div>
             Getting weather data
           </CardTitle>
           <CardDescription className="text-sm">
@@ -65,7 +66,9 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
     return (
       <div className="space-y-3 max-w-sm max-md:max-w-full">
         <div className="text-sm flex items-center gap-2">
-          <IconLoader2 className="w-4 h-4 animate-spin transition" />
+          <div className="animate-spin transition">
+            <SpinnerIcon />
+          </div>
           Generating the Image
         </div>
         <Skeleton className="max-w-sm aspect-square rounded-lg" />
@@ -78,7 +81,9 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
       <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
         <CardHeader className="px-0 border-b outline-muted-foreground/15">
           <CardTitle className="flex items-center gap-2 text-base font-medium">
-            <IconLoader2 className="w-4 h-4 animate-spin transition" />
+            <div className="animate-spin transition">
+              <SpinnerIcon />
+            </div>
             Searching the web
           </CardTitle>
           <CardDescription className="text-sm">

@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, Lightbulb } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { MemoizedMarkdown } from "./MemoizedMarkdown";
+import { SpinnerIcon } from "./SpinnerIcon";
 
 interface Props {
   reasoning: string;
@@ -29,7 +30,13 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
         <div className="flex items-center text-base font-medium gap-2">
           <Lightbulb className="size-4" />
           {isStreaming ? (
-            "Thinking"
+            <div className="flex items-center gap-2 text-sm">
+              <div className="transition animate-spin">
+                <SpinnerIcon />
+              </div>
+
+              <span>Thinking</span>
+            </div>
           ) : (
             <div className="flex items-center gap-2 text-sm">
               <span>Thought for some time</span>
@@ -41,7 +48,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
           variant="ghost"
           size="icon"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-fit py-1 pl-0 h-auto text-xs text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent"
+          className="w-fit py-1 pl-0 h-auto text-sm text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent"
         >
           {isExpanded ? (
             <>
