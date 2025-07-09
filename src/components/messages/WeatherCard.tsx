@@ -45,23 +45,23 @@ interface Props {
 }
 
 const weatherIcons: { [key: string]: JSX.Element } = {
-  Clear: <Sun className="text-yellow-500 size-6 sm:size-12" />,
-  Clouds: <Cloud className="text-gray-500 size-6 sm:size-12" />,
-  Rain: <CloudRain className="text-blue-500 size-6 sm:size-12" />,
-  Drizzle: <CloudDrizzle className="text-blue-400 size-6 sm:size-12" />,
+  Clear: <Sun className="text-yellow-500 size-6 sm:size-10" />,
+  Clouds: <Cloud className="text-gray-500 size-6 sm:size-10" />,
+  Rain: <CloudRain className="text-blue-500 size-6 sm:size-10" />,
+  Drizzle: <CloudDrizzle className="text-blue-400 size-6 sm:size-10" />,
   Thunderstorm: (
-    <CloudLightning className="text-purple-500 size68 sm:size-12" />
+    <CloudLightning className="text-purple-500 size68 sm:size-10" />
   ),
-  Snow: <CloudSnow className="text-blue-200 size-6 sm:size-12" />,
-  Mist: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Smoke: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Haze: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Dust: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Fog: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Sand: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Ash: <CloudFog className="text-gray-400 size-6 sm:size-12" />,
-  Squall: <CloudHail className="text-gray-600 size-6 sm:size-12" />,
-  Tornado: <Zap className="text-yellow-500 size-6 sm:size-12" />,
+  Snow: <CloudSnow className="text-blue-200 size-6 sm:size-10" />,
+  Mist: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Smoke: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Haze: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Dust: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Fog: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Sand: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Ash: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
+  Squall: <CloudHail className="text-gray-600 size-6 sm:size-10" />,
+  Tornado: <Zap className="text-yellow-500 size-6 sm:size-10" />,
 };
 
 const WeatherCard = ({ data }: Props) => {
@@ -79,7 +79,7 @@ const WeatherCard = ({ data }: Props) => {
   }
 
   return (
-    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
+    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow mb-4">
       <CardHeader className="px-0 border-b outline-muted-foreground/15">
         <CardTitle className="flex items-center text-base font-medium">
           Weather for {data.location}

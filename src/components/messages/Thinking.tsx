@@ -1,11 +1,22 @@
 "use client";
-import { Loader } from "lucide-react";
+import { motion } from "framer-motion";
+import { SpinnerIcon } from "./SpinnerIcon";
 
 const Thinking = () => {
   return (
-    <div className="flex w-fit space-x-2 mt-2">
-      <Loader className="animate-spin transition size-4" />
-    </div>
+    <motion.div
+      className="relative flex items-center space-x-2 mt-2 text-muted-foreground"
+      initial={{ y: 5, opacity: 0 }}
+      animate={{
+        y: 0,
+        opacity: 1,
+        transition: { ease: "easeOut", duration: 0.2 },
+      }}
+    >
+      <div className="animate-spin">
+        <SpinnerIcon size={16} />
+      </div>
+    </motion.div>
   );
 };
 

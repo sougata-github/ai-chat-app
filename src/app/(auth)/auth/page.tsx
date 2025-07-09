@@ -15,7 +15,7 @@ import {
 import { FaGoogle } from "react-icons/fa";
 import { createAuthClient } from "better-auth/react";
 import { trpc } from "@/trpc/client";
-import { Loader } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const authClient = createAuthClient();
 
@@ -66,7 +66,7 @@ export default function AuthPage() {
         <Button className="w-full" onClick={signIn} disabled={isSigningIn}>
           {isSigningIn ? (
             <>
-              <Loader className="animate-spin mr-2 size-4 transition" />
+              <Loader2 className="animate-spin mr-2 size-4 transition" />
               Signing in...
             </>
           ) : (

@@ -28,7 +28,6 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
     <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow transition">
       <CardHeader className="px-0 border-b outline-muted-foreground/15">
         <div className="flex items-center text-base font-medium gap-2">
-          <Lightbulb className="size-4" />
           {isStreaming ? (
             <div className="flex items-center gap-2 text-sm">
               <div className="transition animate-spin">
@@ -39,6 +38,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
             </div>
           ) : (
             <div className="flex items-center gap-2 text-sm">
+              <Lightbulb className="size-4" />
               <span>Thought for some time</span>
             </div>
           )}

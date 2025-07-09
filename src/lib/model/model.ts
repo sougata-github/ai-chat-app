@@ -8,36 +8,29 @@ export const MODEL_REGISTRY = {
     name: "Qwen 3 32b",
     description: "Robust reasoning model",
   },
-  "llama-3.3-70b-versatile": {
-    provider: groq,
-    id: "llama-3.3-70b-versatile",
-    name: "Llama 3.3 70b",
-    description: "Model optimised for tool calling",
-  },
-  "meta-llama/llama-4-scout-17b-16e-instruct": {
-    provider: groq,
-    id: "meta-llama/llama-4-scout-17b-16e-instruct",
-    name: "Llama 4",
-    description: "Best multimodal model",
-  },
-  "gemma2-9b-it": {
-    provider: groq,
-    id: "gemma2-9b-it",
-    name: "Gemma 2",
-    description: "All rounder model by Google",
-  },
-  "gemini-2.5-pro": {
+  // "llama-3.3-70b-versatile": {
+  //   provider: groq,
+  //   id: "llama-3.3-70b-versatile",
+  //   name: "Llama 3.3 70b",
+  //   description: "Model optimised for tool calling",
+  // },
+  "gemini-2.5-flash": {
     provider: google,
-    id: "gemini-2.5-pro",
-    name: "Gemini 2.5 Pro",
-    description: "Google's smartest model",
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
+    description: "Best Gemini model",
+  },
+  "gemini-2.5-flash-lite-preview-06-17": {
+    provider: google,
+    id: "gemini-2.5-flash-lite-preview-06-17",
+    name: "Gemini 2.5 Flash Lite",
+    description: "Balanced Gemini model",
   },
 } as const;
 
 export type ModelId = keyof typeof MODEL_REGISTRY;
 
-export const DEFAULT_MODEL_ID: ModelId =
-  "meta-llama/llama-4-scout-17b-16e-instruct";
+export const DEFAULT_MODEL_ID: ModelId = "gemini-2.5-flash-lite-preview-06-17";
 
 export function getModelConfig(modelId: ModelId) {
   const config = MODEL_REGISTRY[modelId];
@@ -56,3 +49,5 @@ export function createModelInstance(modelId: ModelId) {
 export function isValidModelId(modelId: string): modelId is ModelId {
   return modelId in MODEL_REGISTRY;
 }
+
+// use meta-llama/llama-guard-4-12b for future multimodel-input

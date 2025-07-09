@@ -6,7 +6,7 @@ import { ChatGetOneOutput } from "@/types";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Loader } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -58,7 +58,7 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
           >
             {deleteChat.isPending ? (
               <>
-                <Loader className="size-4 animate-spin transition" />
+                <Loader2 className="size-4 animate-spin transition" />
               </>
             ) : (
               <>Delete</>

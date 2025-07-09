@@ -226,14 +226,14 @@ export const TOOL_REGISTRY = {
   "get-weather": {
     name: "Get weather",
     tool: webSearchTool,
-    defaultModel: "llama-3.3-70b-versatile" as const,
+    defaultModel: "gemini-2.5-flash" as const,
     icon: Zap,
   },
 
   "web-search": {
     name: "Search web",
     tool: webSearchTool,
-    defaultModel: "llama-3.3-70b-versatile" as const,
+    defaultModel: "gemini-2.5-flash" as const,
     icon: GlobeIcon,
   },
   reasoning: {
@@ -245,7 +245,7 @@ export const TOOL_REGISTRY = {
   "image-gen": {
     name: "Create image",
     tool: generateImageTool,
-    defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct" as const,
+    defaultModel: "gemini-2.5-flash" as const,
     icon: Image,
   },
 } as const;

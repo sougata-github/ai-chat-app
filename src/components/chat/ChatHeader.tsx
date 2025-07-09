@@ -6,7 +6,7 @@ import ShareButton from "./ShareButton";
 
 import { useParams } from "next/navigation";
 import { trpc } from "@/trpc/client";
-import { Loader } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import ArchivedBanner from "./ArchivedBanner";
 
 const ChatHeader = () => {
@@ -29,7 +29,7 @@ const ChatHeader = () => {
           <SidebarTrigger className="-ml-1" />
 
           {isLoading ? (
-            <Loader className="animate-spin size-5 transition" />
+            <Loader2 className="animate-spin size-4 transition" />
           ) : data?.title ? (
             <h1 className="font-medium">{data.title}</h1>
           ) : (
