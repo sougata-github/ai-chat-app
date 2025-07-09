@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
@@ -23,17 +22,13 @@ interface Props {
 
 const ChatView = ({
   initialMessages,
-  chatId: fallbackChatId,
+  chatId,
   selectedModel,
   selectedTool,
 }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
   const utils = trpc.useUtils();
-
-  const chatId = pathname.startsWith("/chat/")
-    ? pathname.replace("/chat/", "")
-    : fallbackChatId;
 
   const {
     input,
@@ -53,22 +48,21 @@ const ChatView = ({
       model: selectedModel,
       tool: selectedTool,
     },
-    initialMessages: pathname === `/chat/${chatId}` ? initialMessages : [],
+    initialMessages,
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
     experimental_throttle: 50,
     onResponse: (response) => {
-      utils.chats.getMany.invalidate();
-      utils.chats.getOne.invalidate({ chatId });
       if (!response.ok) {
         toast.error("Failed to get response from AI");
       }
+      utils.chats.getMany.invalidate();
+      utils.chats.getOne.invalidate({ chatId });
     },
     onFinish: () => {
       setInput("");
       utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId });
-
       router.refresh();
     },
     onError: (error) => {
@@ -85,18 +79,14 @@ const ChatView = ({
     setMessages,
   });
 
-  useEffect(() => {
-    if (pathname === "/") {
-      setMessages([]);
-    }
-  }, [pathname, setMessages]);
-
   const handleChatSubmit = () => {
     handleSubmit();
     if (messages.length === 0 && pathname === "/") {
       window.history.replaceState({}, "", `/chat/${chatId}`);
     }
   };
+
+  console.log(initialMessages.length);
 
   return (
     <div className="flex-1 flex flex-col" key={pathname}>

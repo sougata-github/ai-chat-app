@@ -17,6 +17,7 @@ const ChatHeader = () => {
     { chatId: chatIdString as string },
     {
       enabled: !!chatIdString,
+      staleTime: 0,
     }
   );
 
