@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { chatInputSchema } from "@/schemas";
@@ -10,17 +10,18 @@ import { Button } from "../ui/button";
 import { ArrowUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
-import React, {
-  ChangeEvent,
+import type React from "react";
+import {
+  type ChangeEvent,
   startTransition,
   useEffect,
   useOptimistic,
 } from "react";
-import { ChatRequestOptions } from "ai";
-import { DEFAULT_MODEL_ID, ModelId } from "@/lib/model/model";
+import type { ChatRequestOptions } from "ai";
+import { DEFAULT_MODEL_ID, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
 import ToolDropDown from "./ToolDropDown";
-import { Tool, TOOL_REGISTRY } from "@/lib/tools/tool";
+import { type Tool, TOOL_REGISTRY } from "@/lib/tools/tool";
 import { saveToolAsCookie } from "@/lib/tools";
 
 interface Props {
@@ -65,7 +66,6 @@ const ChatInput = ({
 
   const onSubmit = (values: z.infer<typeof chatInputSchema>) => {
     if (!values.prompt.trim()) return;
-
     if (onSubmitPrompt) {
       onSubmitPrompt(values.prompt);
     } else {
@@ -73,7 +73,6 @@ const ChatInput = ({
         preventDefault: () => {},
         target: { value: values.prompt },
       };
-
       setInput(values.prompt);
       handleSubmit(syntheticEvent);
     }
@@ -107,11 +106,18 @@ const ChatInput = ({
     optimisticTool === "none" ? null : TOOL_REGISTRY[optimisticTool];
 
   return (
-    <div className={cn("sticky h-[auto] bottom-0 inset-x-0 z-20 w-full px-4")}>
-      <div className="max-w-3xl mx-auto backdrop-blur-md relative">
+    <div
+      className={cn(
+        "sticky bottom-0 inset-x-0 w-full px-4 z-20 bg-background pt-0"
+      )}
+    >
+      <div className="max-w-3xl mx-auto relative">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="relative">
-            <div className="rounded-t-xl dark:border dark:border-muted-foreground/10 border-b-0 dark:border-b-0 p-3 pb-0 dark:shadow-none shadow outline outline-muted-foreground/10">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="relative pb-4"
+          >
+            <div className="rounded-xl outline-2 outline-muted-foreground/10 shadow-xs dark:shadow-none bg-background/80">
               <FormField
                 control={form.control}
                 name="prompt"
@@ -119,8 +125,7 @@ const ChatInput = ({
                   <FormItem className="gap-0">
                     <FormControl>
                       <Textarea
-                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 
-                        dark:border-1 dark:border-b-0 dark:border-muted-foreground/10 px-4 pt-4 pb-8 placeholder:text-muted-foreground rounded-b-none shadow-none max-md:placeholder:text-sm max-md:text-sm"
+                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pt-4 pb-8 placeholder:text-muted-foreground shadow-none max-md:placeholder:text-sm max-md:text-sm rounded-t-xl"
                         {...field}
                         placeholder="Type your message here..."
                         onChange={handleTextareaChange}
@@ -136,7 +141,7 @@ const ChatInput = ({
                   </FormItem>
                 )}
               />
-              <div className="flex items-center justify-between py-2.5 px-3 dark:bg-muted-foreground/7.5 dark:border dark:border-muted-foreground/10 dark:border-y-0">
+              <div className="flex items-center justify-between py-2.5 px-3 rounded-b-xl dark:bg-muted-foreground/7.5">
                 <div className="flex items-center gap-1">
                   <ModelDropDown
                     initialModel={initialModel}
@@ -153,7 +158,6 @@ const ChatInput = ({
                       status === "streaming" || status === "submitted"
                     }
                   />
-
                   {optimisticTool &&
                     optimisticTool !== "none" &&
                     currentTool !== null && (
@@ -172,7 +176,6 @@ const ChatInput = ({
                       </Button>
                     )}
                 </div>
-
                 <Button
                   variant="outline"
                   type="submit"
@@ -181,7 +184,7 @@ const ChatInput = ({
                     !form.watch("prompt")?.trim().length ||
                     (status && status === "streaming")
                   }
-                  className="rounded-full"
+                  className="rounded-full bg-transparent"
                 >
                   <ArrowUp />
                   <span className="sr-only">Send message</span>

@@ -57,6 +57,7 @@ const ChatItem = ({ chat }: Props) => {
   });
 
   const handleChatClick = () => {
+    router.refresh();
     if (isMobile) {
       setOpenMobile(false);
     }

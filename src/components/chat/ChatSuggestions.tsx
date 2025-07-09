@@ -46,10 +46,8 @@ const Block = ({
 const ChatSuggestions = ({ setSuggestions }: Props) => {
   return (
     <div className="mt-5 sm:mt-8 max-w-xl">
-      <h1 className="text-2xl sm:text-4xl md:text-5xl font-semibold">
-        Hi there
-      </h1>
-      <p className="text-lg sm:text-xl font-medium">
+      <h1 className="text-2xl lg:text-4xl font-semibold">Hi there</h1>
+      <p className="text-lg lg:text-xl font-medium">
         How can I help you today?
       </p>
       <ul className="grid grid-cols-2 gap-4 mt-8 sm:mt-10">

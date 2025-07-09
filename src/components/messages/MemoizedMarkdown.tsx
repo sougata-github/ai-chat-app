@@ -39,8 +39,6 @@ const components: Partial<Components> = {
   code: ({ node, className, children, ...rest }) => {
     const isInline = node?.properties?.inline === true;
 
-    console.log(isInline);
-
     return (
       <CodeBlock className={className || ""} inline={isInline} {...rest}>
         {children}
