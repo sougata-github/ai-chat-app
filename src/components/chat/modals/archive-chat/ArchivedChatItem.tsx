@@ -51,15 +51,19 @@ const ArchivedChatItem = ({ chat, onOpenChange }: Props) => {
       <Link
         className="text-sm font-medium line-clamp-1"
         onClick={() => onOpenChange(false)}
-        href={`/chat/${chat.id}`}
+        href={`/chat/${chat?.id}`}
       >
-        {chat.title}
+        {chat?.title}
       </Link>
       <div className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => restoreChat.mutate({ chatId: chat.id })}
+          onClick={() => {
+            if (chat) {
+              restoreChat.mutate({ chatId: chat?.id });
+            }
+          }}
           disabled={restoreChat.isPending}
         >
           <IconRestore />
@@ -67,7 +71,11 @@ const ArchivedChatItem = ({ chat, onOpenChange }: Props) => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => deleteChat.mutate({ chatId: chat.id })}
+          onClick={() => {
+            if (chat) {
+              deleteChat.mutate({ chatId: chat.id });
+            }
+          }}
           disabled={deleteChat.isPending}
         >
           <IconTrash />
