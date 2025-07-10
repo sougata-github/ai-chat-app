@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { ModelId } from "@/lib/model/model";
 import { useAutoResume } from "@/hooks/use-auto-resume";
 import { Tool } from "@/lib/tools/tool";
+import ScrollToBottom from "./ScrollToBottom";
+import { useScrollMessages } from "@/hooks/use-scroll-messages";
 
 interface Props {
   initialMessages: Message[];
@@ -44,11 +46,15 @@ const ChatView = ({
     key: chatId,
     api: "/api/chat",
     id: chatId,
-    body: {
-      model: selectedModel,
-      tool: selectedTool,
-    },
     initialMessages,
+    experimental_prepareRequestBody({ messages, id }) {
+      return {
+        message: messages[messages.length - 1],
+        id,
+        model: selectedModel,
+        tool: selectedTool,
+      };
+    },
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
     experimental_throttle: 50,
@@ -57,13 +63,9 @@ const ChatView = ({
         toast.error("Failed to get response from AI");
       }
       utils.chats.getMany.invalidate();
-      utils.chats.getOne.invalidate({ chatId });
     },
     onFinish: () => {
-      setInput("");
-      utils.chats.getMany.invalidate();
       utils.chats.getOne.invalidate({ chatId });
-      router.refresh();
     },
     onError: (error) => {
       console.error(error.message);
@@ -79,26 +81,53 @@ const ChatView = ({
     setMessages,
   });
 
+  const isInitialLoad = pathname === `/chat/${chatId}`;
+  const isFirstTimeChat =
+    initialMessages.length === 0 && messages.length <= 2 && pathname === "/";
+
+  const {
+    messagesContainerRef,
+    lastMessageRef,
+    showScrollButton,
+    scrollToBottom,
+    handleScroll,
+  } = useScrollMessages({
+    messages,
+    status,
+    isInitialLoad,
+    isFirstTimeChat,
+  });
+
   const handleChatSubmit = () => {
-    handleSubmit();
     if (messages.length === 0 && pathname === "/") {
       window.history.replaceState({}, "", `/chat/${chatId}`);
+      router.push(`/chat/${chatId}`);
     }
+    handleSubmit();
   };
 
-  console.log(initialMessages.length);
-
   return (
-    <div className="flex-1 flex flex-col" key={pathname}>
-      <div className="px-4 pb-5 md:pb-12 h-full">
+    <div className="flex-1 flex flex-col">
+      <div className="flex-1 overflow-hidden relative">
         {messages.length === 0 && pathname === "/" ? (
           <div className="flex flex-col items-center justify-center h-full">
             <ChatSuggestions setSuggestions={setInput} />
           </div>
         ) : (
-          <div className="px-4 pb-5 md:pb-8 overflow-y-auto h-full">
-            <Messages messages={messages} status={status} />
-          </div>
+          <>
+            <div
+              ref={messagesContainerRef}
+              onScroll={handleScroll}
+              className="absolute inset-0 overflow-y-auto scroll-smooth px-4 pb-20 hide-scrollbar"
+            >
+              <Messages
+                messages={messages}
+                status={status}
+                lastMessageRef={lastMessageRef}
+              />
+            </div>
+            <ScrollToBottom show={showScrollButton} onClick={scrollToBottom} />
+          </>
         )}
       </div>
 

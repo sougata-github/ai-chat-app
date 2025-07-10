@@ -16,13 +16,25 @@ export function useScrollMessages({
   isInitialLoad = false,
   isFirstTimeChat = false,
 }: UseScrollMessagesProps) {
+  // Ref to scrollable container (div with overflow)
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const lastMessageCountRef = useRef(0);
-  const scrollPositionRef = useRef(0);
 
+  // Ref to the last message DOM node
+  const lastMessageRef = useRef<HTMLDivElement>(null);
+
+  // Whether to show the "scroll to bottom" button
+  const [showScrollButton, setShowScrollButton] = useState(false);
+
+  // Whether the user has manually scrolled up
+  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
+
+  // Whether we should auto-scroll
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  // Tracks the previous message count
+  const lastMessageCountRef = useRef(0);
+
+  // Returns true if user is close to the bottom
   const isAtBottom = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return true;
@@ -30,17 +42,15 @@ export function useScrollMessages({
     const scrollTop = container.scrollTop;
     const clientHeight = container.clientHeight;
     const scrollHeight = container.scrollHeight;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 
-    return distanceFromBottom < 50; // More lenient threshold
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    return distanceFromBottom < 50;
   }, []);
 
+  // Scroll to bottom with optional smooth animation
   const scrollToBottom = useCallback((smooth = true) => {
     const container = messagesContainerRef.current;
     if (!container) return;
-
-    // Store scroll position before scrolling
-    scrollPositionRef.current = container.scrollHeight;
 
     container.scrollTo({
       top: container.scrollHeight,
@@ -49,8 +59,10 @@ export function useScrollMessages({
 
     setUserHasScrolledUp(false);
     setShouldAutoScroll(true);
+    setShowScrollButton(false); // Hide button after scroll
   }, []);
 
+  // Track scroll position to detect manual scroll up/down
   const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -59,85 +71,83 @@ export function useScrollMessages({
     const clientHeight = container.clientHeight;
     const scrollHeight = container.scrollHeight;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
     const isNearBottom = distanceFromBottom < 100;
-    const hasOverflow = scrollHeight > clientHeight;
 
-    // Only update user scroll state if they actively scrolled up
-    if (!isNearBottom && status !== "streaming") {
-      setUserHasScrolledUp(true);
-      setShouldAutoScroll(false);
-    } else if (isNearBottom) {
-      setUserHasScrolledUp(false);
-      setShouldAutoScroll(true);
+    setUserHasScrolledUp(!isNearBottom);
+    setShouldAutoScroll(isNearBottom);
+
+    // Fallback: hide button if at exact bottom
+    if (isAtBottom()) {
+      setShowScrollButton(false);
+    } else if (!isNearBottom) {
+      setShowScrollButton(true);
     }
+  }, [isAtBottom]);
 
-    // Show scroll button when there's overflow and user is not at bottom
-    // Also show when streaming is finished and user is not at bottom
-    const shouldShowButton =
-      hasOverflow &&
-      !isNearBottom &&
-      (status === "ready" || status === "error" || userHasScrolledUp);
-
-    setShowScrollButton(shouldShowButton);
-  }, [status, userHasScrolledUp]);
-
-  // Handle initial load
-  useEffect(() => {
-    if (isInitialLoad && messages.length > 0) {
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        scrollToBottom(false);
-      }, 50);
-    }
-  }, [isInitialLoad, messages.length, scrollToBottom]);
-
-  // Handle first time chat
-  useEffect(() => {
-    if (isFirstTimeChat && messages.length > 0) {
-      setTimeout(() => {
-        scrollToBottom(false);
-      }, 50);
-    }
-  }, [isFirstTimeChat, messages.length, scrollToBottom]);
-
-  // Handle streaming messages with smooth scrolling
+  // Attach scroll listener
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
 
-    // Only auto-scroll during streaming if user hasn't scrolled up
-    if (status === "streaming" && shouldAutoScroll && !userHasScrolledUp) {
-      // Use requestAnimationFrame for smoother scrolling
-      const smoothScroll = () => {
-        const currentScrollHeight = container.scrollHeight;
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
-        const clientHeight = container.clientHeight;
-        const targetScrollTop = currentScrollHeight - clientHeight;
+  // Track visibility of the last message using IntersectionObserver
+  useEffect(() => {
+    const target = lastMessageRef.current;
+    const container = messagesContainerRef.current;
+    if (!target || !container) return;
 
-        // Only scroll if there's new content
-        if (currentScrollHeight > scrollPositionRef.current) {
-          container.scrollTop = targetScrollTop;
-          scrollPositionRef.current = currentScrollHeight;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const isVisible = entry.isIntersecting;
+        setShowScrollButton(!isVisible);
+        if (isVisible) {
+          setUserHasScrolledUp(false);
         }
-      };
+      },
+      {
+        root: container,
+        threshold: 0.98,
+      }
+    );
 
-      requestAnimationFrame(smoothScroll);
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [messages]);
+
+  // Scroll to bottom when visiting a chat (first load)
+  useEffect(() => {
+    if (isInitialLoad && messages.length > 0) {
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100);
     }
-  }, [messages, status, shouldAutoScroll, userHasScrolledUp]);
+  }, [isInitialLoad, messages.length, scrollToBottom]);
 
-  // Handle message count changes for non-streaming scenarios
+  // Scroll after submitting first prompt (on home)
+  useEffect(() => {
+    if (isFirstTimeChat && messages.length > 0) {
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100);
+    }
+  }, [isFirstTimeChat, messages.length, scrollToBottom]);
+
+  // Scroll after response finishes, if allowed
   useEffect(() => {
     if (
-      messages.length > lastMessageCountRef.current &&
-      status !== "streaming"
+      status === "ready" &&
+      shouldAutoScroll &&
+      !userHasScrolledUp &&
+      messages.length > lastMessageCountRef.current
     ) {
-      if (shouldAutoScroll && !userHasScrolledUp) {
-        setTimeout(() => {
-          scrollToBottom(true);
-        }, 100);
-      }
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100);
     }
-    lastMessageCountRef.current = messages.length;
   }, [
     messages.length,
     status,
@@ -146,45 +156,17 @@ export function useScrollMessages({
     scrollToBottom,
   ]);
 
-  // Preserve scroll position during refresh
-  const preserveScrollPosition = useCallback(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    // If user is at bottom, we want to stay at bottom after refresh
-    if (isAtBottom()) {
-      sessionStorage.setItem("chat-scroll-position", "bottom");
-    } else {
-      sessionStorage.setItem(
-        "chat-scroll-position",
-        container.scrollTop.toString()
-      );
-    }
-  }, [isAtBottom]);
-
-  // Restore scroll position after refresh
-  const restoreScrollPosition = useCallback(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    const savedPosition = sessionStorage.getItem("chat-scroll-position");
-    if (savedPosition === "bottom") {
-      setTimeout(() => {
-        scrollToBottom(false);
-      }, 100);
-    } else if (savedPosition) {
-      container.scrollTop = Number.parseInt(savedPosition);
-    }
-
-    sessionStorage.removeItem("chat-scroll-position");
-  }, [scrollToBottom]);
+  // Keep track of previous message count
+  useEffect(() => {
+    lastMessageCountRef.current = messages.length;
+  }, [messages.length]);
 
   return {
     messagesContainerRef,
+    lastMessageRef,
     showScrollButton,
     scrollToBottom,
     handleScroll,
-    preserveScrollPosition,
-    restoreScrollPosition,
+    isAtBottom,
   };
 }

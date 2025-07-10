@@ -1,9 +1,8 @@
-import { getChatById, getMessagesByChatId } from "@/lib/chat";
 import { getChatModelFromCookies } from "@/lib/model";
 import { convertToAISDKMessages } from "@/lib/utils";
 import ChatView from "@/components/chat/ChatView";
 import { getToolFromCookies } from "@/lib/tools";
-import { redirect } from "next/navigation";
+import { getMessagesByChatId } from "@/lib/chat";
 
 interface Props {
   params: Promise<{ chatId: string }>;
@@ -11,11 +10,8 @@ interface Props {
 
 export default async function MessagesPage({ params }: Props) {
   const { chatId } = await params;
-  const existingChat = await getChatById(chatId);
   const selectedTool = await getToolFromCookies();
   const selectedModel = await getChatModelFromCookies();
-
-  if (!existingChat) redirect("/");
 
   const messages = await getMessagesByChatId(chatId);
   const initialMessages = convertToAISDKMessages(messages);

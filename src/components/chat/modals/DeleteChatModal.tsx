@@ -2,21 +2,21 @@
 
 import { Button } from "@/components/ui/button";
 import ResponsiveModal from "./ResponsiveModal";
-import { ChatGetOneOutput } from "@/types";
 import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  chatId: ChatGetOneOutput["id"];
+  chatId: string;
 }
 
 const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   const router = useRouter();
+  const pathname = usePathname();
   const utils = trpc.useUtils();
 
   const deleteChat = trpc.chats.deleteOne.useMutation({
@@ -24,7 +24,9 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
       onCancel();
       toast.success("Chat Deleted");
       utils.chats.getMany.invalidate();
-      router.push("/");
+      if (pathname === `/chat/${chatId}`) {
+        router.push("/");
+      }
     },
     onError: (error) => {
       toast.error("Failed to delete chat", {

@@ -21,6 +21,14 @@ export async function getChatById(chatId: string) {
 
 export async function getMessagesByChatId(chatId: string) {
   try {
+    const existingChat = await db.chat.findUnique({
+      where: {
+        id: chatId,
+      },
+    });
+
+    if (!existingChat) return [];
+
     const messages = await db.message.findMany({
       where: {
         chatId,

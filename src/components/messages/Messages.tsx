@@ -3,21 +3,29 @@
 import { Message } from "ai";
 import MessageItem from "./MessageItem";
 import Thinking from "./Thinking";
+import { RefObject } from "react";
 
 interface Props {
   messages: Message[];
   status: "streaming" | "submitted" | "ready" | "error";
+  lastMessageRef: RefObject<HTMLDivElement | null>;
 }
 
-const Messages = ({ messages, status }: Props) => {
+const Messages = ({ messages, status, lastMessageRef }: Props) => {
   if (messages.length === 0)
     return <p className="text-center p-20">No messages in this chat.</p>;
 
   return (
     <div className="flex flex-col gap-5 md:gap-8 max-w-2xl w-full mx-auto pt-10">
-      {messages.map((message) => (
-        <MessageItem message={message} key={message.id} status={status} />
-      ))}
+      {messages.map((message, index) => {
+        const isLast = index === messages.length - 1;
+        return (
+          <div key={message.id} ref={isLast ? lastMessageRef : undefined}>
+            <MessageItem message={message} status={status} />
+          </div>
+        );
+      })}
+
       {status === "submitted" &&
         messages.length > 0 &&
         messages[messages.length - 1].role === "user" && (

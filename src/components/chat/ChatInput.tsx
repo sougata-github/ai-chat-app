@@ -135,7 +135,9 @@ const ChatInput = ({
                             form.handleSubmit(onSubmit)();
                           }
                         }}
-                        disabled={status && status === "streaming"}
+                        disabled={
+                          status === "streaming" || status === "submitted"
+                        }
                       />
                     </FormControl>
                   </FormItem>

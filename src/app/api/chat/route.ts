@@ -1,10 +1,10 @@
 import {
   streamText,
-  Message,
   smoothStream,
   appendResponseMessages,
   wrapLanguageModel,
   extractReasoningMiddleware,
+  appendClientMessage,
 } from "ai";
 import {
   generateImageTool,
@@ -26,13 +26,10 @@ import {
   isValidModelId,
   ModelId,
 } from "@/lib/model/model";
-import {
-  createResumableStreamContext,
-  type ResumableStreamContext,
-} from "resumable-stream";
 import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
+import { convertToAISDKMessages, extractText } from "@/lib/utils";
+import { createResumableStreamContext } from "resumable-stream";
 import { getMessagesByChatId } from "@/lib/chat";
-import { extractText } from "@/lib/utils";
 import { auth } from "@/lib/auth/auth";
 import { createDataStream } from "ai";
 import { v4 as uuidv4 } from "uuid";
@@ -41,17 +38,13 @@ import { db } from "@/db";
 
 export const maxDuration = 60;
 
-let globalStreamContext: ResumableStreamContext | null = null;
-
 function getStreamContext() {
-  if (!globalStreamContext) {
-    try {
-      globalStreamContext = createResumableStreamContext({ waitUntil: after });
-    } catch (err) {
-      console.warn("Resumable stream disabled", err);
-    }
+  try {
+    return createResumableStreamContext({ waitUntil: after });
+  } catch (err) {
+    console.warn("Resumable stream disabled", err);
+    return null;
   }
-  return globalStreamContext;
 }
 
 export async function GET(req: Request) {
@@ -113,7 +106,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const {
-    messages,
+    message,
     id: chatId,
     model: requestedModel,
     tool: requestedTool,
@@ -129,11 +122,16 @@ export async function POST(req: Request) {
 
   const { user } = session;
 
-  if (!messages || messages.length === 0) {
+  if (!message) {
     return new Response("No messages found", { status: 400 });
   }
 
-  const lastMessage = messages[messages.length - 1];
+  const previousMessages = await getMessagesByChatId(chatId);
+
+  const messages = appendClientMessage({
+    messages: convertToAISDKMessages(previousMessages),
+    message,
+  });
 
   if (!chatId) {
     return new Response("Chat ID is required", { status: 400 });
@@ -164,9 +162,9 @@ export async function POST(req: Request) {
   }
 
   if (
-    !lastMessage ||
-    typeof lastMessage.content !== "string" ||
-    !lastMessage.content.trim()
+    !message ||
+    typeof message.content !== "string" ||
+    !message.content.trim()
   ) {
     return new Response("Invalid last message", { status: 400 });
   }
@@ -174,7 +172,7 @@ export async function POST(req: Request) {
   const existingChat = await getChatById(chatId);
 
   if (!existingChat) {
-    const chatTitle = await generateTitleFromUserMessage(lastMessage.content);
+    const chatTitle = await generateTitleFromUserMessage(message.content);
 
     await db.chat.create({
       data: {
@@ -187,20 +185,15 @@ export async function POST(req: Request) {
 
   const userMessage = await db.message.create({
     data: {
-      id: lastMessage.id,
+      id: message.id,
       role: "USER",
       chatId,
       userId: user.id,
-      content: lastMessage.content,
-      parts: lastMessage.parts,
-      createdAt: lastMessage.createdAt || new Date(),
+      content: message.content,
+      parts: message.parts,
+      createdAt: message.createdAt || new Date(),
     },
   });
-
-  const coreMessages = messages.map((msg: Message) => ({
-    role: msg.role === "user" ? "user" : "assistant",
-    content: msg.content,
-  }));
 
   //resumable stream setup
   const streamId = uuidv4();
@@ -211,7 +204,7 @@ export async function POST(req: Request) {
       const result = streamText({
         model: modelInstance,
         system: tool === "reasoning" ? REASONING_SYSTEM_PROMPT : SYSTEM_PROMPT,
-        messages: coreMessages,
+        messages,
         ...(tool !== "none" &&
           tool !== "reasoning" && {
             experimental_activeTools:
@@ -233,10 +226,8 @@ export async function POST(req: Request) {
         onStepFinish: () => {
           if (tool === "none") return;
         },
-        async onFinish({ response, finishReason }) {
+        async onFinish({ response }) {
           try {
-            console.log("onFinish hit with reason:", finishReason);
-
             const assistantMessages = appendResponseMessages({
               messages,
               responseMessages: response.messages,
@@ -322,14 +313,16 @@ export async function POST(req: Request) {
         },
       });
 
-      result.consumeStream();
-
-      if (tool === "reasoning") {
-        result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
-        });
-      } else {
-        result.mergeIntoDataStream(dataStream);
+      try {
+        if (tool === "reasoning") {
+          result.mergeIntoDataStream(dataStream, {
+            sendReasoning: true,
+          });
+        } else {
+          result.mergeIntoDataStream(dataStream);
+        }
+      } catch (err) {
+        console.error("Failed to merge into data stream:", err);
       }
     },
   });

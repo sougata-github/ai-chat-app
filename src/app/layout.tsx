@@ -38,7 +38,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Toaster richColors expand={false} />
+            <Toaster richColors expand={false} duration={2000} />
             {children}
           </ThemeProvider>
         </TRPCProvider>
