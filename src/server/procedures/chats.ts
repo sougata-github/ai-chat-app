@@ -261,7 +261,7 @@ export const chatsRouter = createTRPCRouter({
         },
       });
 
-      // if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
 
       return existingChat;
     }),
