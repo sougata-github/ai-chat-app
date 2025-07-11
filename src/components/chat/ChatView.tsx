@@ -5,15 +5,16 @@ import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
 import { v4 as uuidv4 } from "uuid";
 import { useChat } from "@ai-sdk/react";
-import { Message } from "ai";
+import type { Message } from "ai";
 import { trpc } from "@/trpc/client";
 import Messages from "../messages/Messages";
 import { toast } from "sonner";
-import { ModelId } from "@/lib/model/model";
+import type { ModelId } from "@/lib/model/model";
 import { useAutoResume } from "@/hooks/use-auto-resume";
-import { Tool } from "@/lib/tools/tool";
+import type { Tool } from "@/lib/tools/tool";
 import ScrollToBottom from "./ScrollToBottom";
 import { useScrollMessages } from "@/hooks/use-scroll-messages";
+
 interface Props {
   initialMessages: Message[];
   chatId: string;
@@ -105,15 +106,58 @@ const ChatView = ({
     }
   };
 
+  const isHomepageWithNoMessages = messages.length === 0 && pathname === "/";
+
   return (
     <div className="flex-1 flex flex-col">
-      <div className="flex-1 overflow-hidden relative">
-        {messages.length === 0 && pathname === "/" ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <ChatSuggestions setSuggestions={setInput} />
+      {isHomepageWithNoMessages ? (
+        <>
+          <div className="hidden sm:flex flex-1 flex-col items-center justify-center px-4">
+            <div className="w-full max-w-3xl">
+              <div className="mb-8 text-center">
+                <h1 className="text-4xl font-semibold">
+                  How can I help you today?
+                </h1>
+              </div>
+
+              <ChatInput
+                initialTool={selectedTool}
+                initialModel={selectedModel}
+                input={input}
+                setInput={setInput}
+                handleSubmit={handleChatSubmit}
+                status={status}
+                handleInputChange={handleInputChange}
+                isHomepageCentered={true}
+              />
+              <ChatSuggestions setSuggestions={setInput} />
+            </div>
           </div>
-        ) : (
-          <>
+
+          <div className="sm:hidden flex flex-col h-full">
+            <div className="flex-1 flex flex-col items-center justify-center px-4">
+              <div className="text-center mb-4">
+                <h1 className="text-2xl font-semibold">
+                  How can I help you today?
+                </h1>
+              </div>
+              <ChatSuggestions setSuggestions={setInput} />
+            </div>
+            <ChatInput
+              initialTool={selectedTool}
+              initialModel={selectedModel}
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleChatSubmit}
+              status={status}
+              handleInputChange={handleInputChange}
+              isHomepageCentered={false}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex-1 overflow-hidden relative">
             <div
               ref={messagesContainerRef}
               onScroll={handleScroll}
@@ -126,19 +170,19 @@ const ChatView = ({
               />
             </div>
             <ScrollToBottom show={showScrollButton} onClick={scrollToBottom} />
-          </>
-        )}
-      </div>
-
-      <ChatInput
-        initialTool={selectedTool}
-        initialModel={selectedModel}
-        input={input}
-        setInput={setInput}
-        handleSubmit={handleChatSubmit}
-        status={status}
-        handleInputChange={handleInputChange}
-      />
+          </div>
+          <ChatInput
+            initialTool={selectedTool}
+            initialModel={selectedModel}
+            input={input}
+            setInput={setInput}
+            handleSubmit={handleChatSubmit}
+            status={status}
+            handleInputChange={handleInputChange}
+            isHomepageCentered={false}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -41,6 +41,7 @@ interface Props {
   onSubmitPrompt?: (prompt: string) => void;
   initialModel: ModelId;
   initialTool: Tool;
+  isHomepageCentered?: boolean;
 }
 
 const ChatInput = ({
@@ -52,6 +53,7 @@ const ChatInput = ({
   onSubmitPrompt,
   initialModel,
   initialTool,
+  isHomepageCentered = false,
 }: Props) => {
   const [optimisticTool, setOptimisticTool] = useOptimistic<Tool>(
     initialTool || "none"
@@ -108,7 +110,10 @@ const ChatInput = ({
   return (
     <div
       className={cn(
-        "sticky bottom-0 inset-x-0 w-full px-4 z-20 bg-background pt-0 rounded-b-xl"
+        "w-full px-4 z-20 bg-background rounded-b-xl",
+        isHomepageCentered
+          ? "relative" // Centered layout - no sticky positioning
+          : "sticky bottom-0 inset-x-0 pt-0" // Bottom layout - sticky positioning
       )}
     >
       <div className="max-w-3xl mx-auto relative">
@@ -125,7 +130,7 @@ const ChatInput = ({
                   <FormItem className="gap-0">
                     <FormControl>
                       <Textarea
-                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pt-4 pb-8 placeholder:text-muted-foreground shadow-none max-md:placeholder:text-sm rounded-t-xl text-xl"
+                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pt-4 pb-8 placeholder:text-muted-foreground shadow-none max-md:placeholder:text-sm rounded-t-xl text-sm sm:text-base"
                         {...field}
                         placeholder="Type your message here..."
                         onChange={handleTextareaChange}

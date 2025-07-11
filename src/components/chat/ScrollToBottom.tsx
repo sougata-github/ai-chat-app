@@ -15,8 +15,8 @@ const ScrollToBottom = ({ onClick, show }: ScrollToBottomButtonProps) => {
       className={cn(
         "absolute bottom-5 left-1/2 -translate-x-1/2 z-20 transition-all duration-300 ease-in-out",
         show
-          ? "opacity-100 translate-y-0 pointer-events-auto scale-100"
-          : "opacity-0 translate-y-4 pointer-events-none scale-95"
+          ? "opacity-100 translate-y-0 pointer-events-auto"
+          : "opacity-0 translate-y-4 pointer-events-none"
       )}
     >
       <Button
@@ -25,7 +25,7 @@ const ScrollToBottom = ({ onClick, show }: ScrollToBottomButtonProps) => {
         variant="secondary"
         className="rounded-full shadow-lg border bg-background/95 backdrop-blur-sm hover:bg-background/100 transition-all duration-200 hover:scale-105"
       >
-        <ArrowDown className="h-4 w-4" />
+        <ArrowDown className="size-4" />
         <span className="sr-only">Scroll to bottom</span>
       </Button>
     </div>

@@ -227,7 +227,7 @@ button {
   }
 
   .content-styles p {
-    @apply text-foreground leading-normal m-0;
+    @apply text-foreground leading-normal my-3;
   }
 
   .content-styles ul {
