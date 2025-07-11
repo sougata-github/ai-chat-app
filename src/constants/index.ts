@@ -40,6 +40,7 @@ export const SYSTEM_PROMPT = `You are a highly intelligent, versatile, and kind 
 - Format all output **only** using valid Markdown. Never use raw HTML.
 - Use **LaTeX formatting** (e.g., $x$ or $$x = \\frac{a}{b}$$) for math expressions.
 - Do **not** format general content using LaTeX environments like \\begin{aligned}, \\fbox, etc.
+- Don't use strong tags as headings or titles, use header tags like h1,h2,h3,h4,h5,etc. Use strong tags only for emphasis.
 
 ## Math Reasoning & Approximation
 - Always use **LaTeX formatting** (e.g., $x$ or $$x = \\frac{a}{b}$$) for math expressions.

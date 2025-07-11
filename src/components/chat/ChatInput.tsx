@@ -108,7 +108,7 @@ const ChatInput = ({
   return (
     <div
       className={cn(
-        "sticky bottom-0 inset-x-0 w-full px-4 z-20 bg-background pt-0"
+        "sticky bottom-0 inset-x-0 w-full px-4 z-20 bg-background pt-0 rounded-b-xl"
       )}
     >
       <div className="max-w-3xl mx-auto relative">
@@ -125,7 +125,7 @@ const ChatInput = ({
                   <FormItem className="gap-0">
                     <FormControl>
                       <Textarea
-                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pt-4 pb-8 placeholder:text-muted-foreground shadow-none max-md:placeholder:text-sm max-md:text-sm rounded-t-xl"
+                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pt-4 pb-8 placeholder:text-muted-foreground shadow-none max-md:placeholder:text-sm rounded-t-xl text-xl"
                         {...field}
                         placeholder="Type your message here..."
                         onChange={handleTextareaChange}

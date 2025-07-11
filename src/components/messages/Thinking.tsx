@@ -10,7 +10,9 @@ const Thinking = () => {
       animate={{
         y: 0,
         opacity: 1,
-        transition: { ease: "easeOut", duration: 0.2 },
+        transition: {
+          ease: "easeOut",
+        },
       }}
     >
       <div className="animate-spin">

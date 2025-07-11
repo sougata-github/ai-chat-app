@@ -43,10 +43,9 @@ const ChatItem = ({ chat }: Props) => {
 
   const utils = trpc.useUtils();
   const archiveChat = trpc.chats.archive.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Chat Archived");
       utils.chats.getMany.invalidate();
-      utils.chats.getOne.invalidate({ chatId: data.id });
       router.push("/");
     },
     onError: (error) => {

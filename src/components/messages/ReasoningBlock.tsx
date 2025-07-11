@@ -71,7 +71,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
               <div
                 key={index}
                 className={cn(
-                  "px-4 py-1 dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg"
+                  "px-4 py-3 dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg"
                 )}
               >
                 <MemoizedMarkdown

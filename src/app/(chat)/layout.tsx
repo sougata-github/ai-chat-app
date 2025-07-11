@@ -19,7 +19,7 @@ export default function ChatLayout({
             } as React.CSSProperties
           }
         >
-          <ChatSidebar variant="sidebar" />
+          <ChatSidebar variant="inset" />
           <SidebarInset className="flex-1 flex flex-col relative min-w-0">
             <ChatHeader />
             <section className="flex-1 flex flex-col">{children}</section>

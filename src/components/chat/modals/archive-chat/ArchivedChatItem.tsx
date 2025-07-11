@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { trpc } from "@/trpc/client";
 import { ChatGetOneOutput } from "@/types";
 import { IconRestore, IconTrash } from "@tabler/icons-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -47,14 +46,8 @@ const ArchivedChatItem = ({ chat, onOpenChange }: Props) => {
   });
 
   return (
-    <div className="p-1 pl-3 rounded-lg w-full flex items-center justify-between md:hover:bg-muted-foreground/5">
-      <Link
-        className="text-sm font-medium line-clamp-1"
-        onClick={() => onOpenChange(false)}
-        href={`/chat/${chat?.id}`}
-      >
-        {chat?.title}
-      </Link>
+    <div className="p-1 sm:pl-3 rounded-lg w-full flex items-center justify-between md:hover:bg-muted-foreground/5">
+      <span>{chat?.title}</span>
       <div className="flex items-center gap-1">
         <Button
           variant="ghost"

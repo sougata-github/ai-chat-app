@@ -4,7 +4,7 @@ import { Message } from "ai";
 import MessageItem from "./MessageItem";
 import Thinking from "./Thinking";
 import { RefObject } from "react";
-
+import { usePathname } from "next/navigation";
 interface Props {
   messages: Message[];
   status: "streaming" | "submitted" | "ready" | "error";
@@ -12,11 +12,17 @@ interface Props {
 }
 
 const Messages = ({ messages, status, lastMessageRef }: Props) => {
+  const pathname = usePathname();
+
   if (messages.length === 0)
-    return <p className="text-center p-20">No messages in this chat.</p>;
+    return (
+      <div className="sticky top-[50%] flex items-center justify-center overflow-hidden max-w-xl mx-auto">
+        Start a new conversation
+      </div>
+    );
 
   return (
-    <div className="flex flex-col gap-5 md:gap-8 max-w-2xl w-full mx-auto pt-10">
+    <div className="flex flex-col gap-5 md:gap-8 max-w-3xl w-full mx-auto pt-10">
       {messages.map((message, index) => {
         const isLast = index === messages.length - 1;
         return (
@@ -27,6 +33,7 @@ const Messages = ({ messages, status, lastMessageRef }: Props) => {
       })}
 
       {status === "submitted" &&
+        pathname !== "/" &&
         messages.length > 0 &&
         messages[messages.length - 1].role === "user" && (
           <div className="flex w-full justify-start">

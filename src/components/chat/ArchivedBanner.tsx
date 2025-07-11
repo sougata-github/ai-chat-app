@@ -43,7 +43,7 @@ const ArchivedBanner = ({ chatId }: Props) => {
   });
 
   return (
-    <div className="flex justify-between p-4 items-center w-full bg-destructive">
+    <div className="rounded-t-xl flex justify-between p-4 items-center w-full bg-destructive">
       <button
         onClick={toggleSidebar}
         disabled={deleteChat.isPending}

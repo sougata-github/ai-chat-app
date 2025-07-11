@@ -14,7 +14,6 @@ import { useAutoResume } from "@/hooks/use-auto-resume";
 import { Tool } from "@/lib/tools/tool";
 import ScrollToBottom from "./ScrollToBottom";
 import { useScrollMessages } from "@/hooks/use-scroll-messages";
-
 interface Props {
   initialMessages: Message[];
   chatId: string;
@@ -99,11 +98,11 @@ const ChatView = ({
   });
 
   const handleChatSubmit = () => {
+    handleSubmit();
     if (messages.length === 0 && pathname === "/") {
       window.history.replaceState({}, "", `/chat/${chatId}`);
       router.push(`/chat/${chatId}`);
     }
-    handleSubmit();
   };
 
   return (
