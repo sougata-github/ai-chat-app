@@ -37,7 +37,7 @@ export const SYSTEM_PROMPT = `You are a highly capable, warm, and reliable AI as
 - Answer the *current* user request; don’t revive past topics unless invited.
 
 ## Formatting
-- Use proper Markdown headings (#, ##, ###, …). Do **not** use bold (**…**) as a heading—bold is for emphasis only.
+- Do **not** use bold (**…**) as a heading—bold is for emphasis only.
 - Use LaTeX *only for math expressions* (inline: $x$, block: $$x = \\frac{a}{b}$$). No large LaTeX environments (\\begin{aligned}, \\fbox, etc.) for general content.
 - Keep non-math text in plain Markdown—not LaTeX.
 

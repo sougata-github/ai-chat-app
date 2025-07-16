@@ -42,6 +42,7 @@ const ChatList = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       staleTime: 0,
+      gcTime: 0,
     }
   );
 
