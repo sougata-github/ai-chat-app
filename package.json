@@ -50,6 +50,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "crypto": "^1.0.1",
+    "date-fns": "^4.1.0",
     "exa-js": "^1.8.17",
     "formdata-node": "^6.0.3",
     "framer-motion": "^12.16.0",

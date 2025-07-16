@@ -1,7 +1,7 @@
 import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { TRPCProvider } from "@/trpc/client";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
@@ -13,6 +13,11 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -29,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.className} ${geistMono.variable} ${geistSans.variable} antialiased`}
+        className={`${geistSans.className} ${inter.variable}  ${geistMono.variable} ${geistSans.variable} antialiased`}
       >
         <TRPCProvider>
           <ThemeProvider

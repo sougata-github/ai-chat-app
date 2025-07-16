@@ -57,7 +57,7 @@ const ChatView = ({
     },
     generateId: () => uuidv4(),
     sendExtraMessageFields: true,
-    experimental_throttle: 50,
+    experimental_throttle: 25,
     onResponse: (response) => {
       if (!response.ok) {
         toast.error("Failed to get response from AI");

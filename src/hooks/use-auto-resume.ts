@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Message } from "ai";
 import type { UseChatHelpers } from "@ai-sdk/react";
 
@@ -21,24 +21,65 @@ export function useAutoResume({
   data,
   setMessages,
 }: Props) {
+  const hasResumed = useRef(false);
+  const processedDataIds = useRef(new Set<string>());
+
   useEffect(() => {
-    if (!autoResume) return;
+    if (!autoResume || hasResumed.current) return;
 
     const mostRecentMessage = initialMessages.at(-1);
     if (mostRecentMessage?.role === "user") {
-      experimental_resume();
-    }
+      hasResumed.current = true;
 
+      const timer = setTimeout(() => {
+        try {
+          experimental_resume();
+        } catch (error) {
+          console.error("Error resuming stream:", error);
+          hasResumed.current = false;
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [autoResume, experimental_resume]);
 
   useEffect(() => {
     if (!data || data.length === 0) return;
 
-    const dataPart = data[0] as DataPart;
-    if (dataPart.type === "append-message") {
-      const message = JSON.parse(dataPart.message) as Message;
-      setMessages([...initialMessages, message]);
+    try {
+      data.forEach((item, index) => {
+        const dataId = `${index}-${JSON.stringify(item)}`;
+
+        if (processedDataIds.current.has(dataId)) {
+          return;
+        }
+
+        const dataPart = item as DataPart;
+        if (dataPart.type === "append-message") {
+          const message = JSON.parse(dataPart.message) as Message;
+
+          const messageExists = initialMessages.some(
+            (m) => m.id === message.id
+          );
+          if (!messageExists) {
+            setMessages([...initialMessages, message]);
+          }
+
+          processedDataIds.current.add(dataId);
+        }
+      });
+    } catch (error) {
+      console.error("Error processing resume data:", error);
     }
   }, [data, initialMessages, setMessages]);
+
+  useEffect(() => {
+    return () => {
+      hasResumed.current = false;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      processedDataIds.current.clear();
+    };
+  }, []);
 }

@@ -30,6 +30,7 @@ import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
 import { convertToAISDKMessages, extractText } from "@/lib/utils";
 import { createResumableStreamContext } from "resumable-stream";
 import { getMessagesByChatId } from "@/lib/chat";
+import { differenceInSeconds } from "date-fns";
 import { auth } from "@/lib/auth/auth";
 import { createDataStream } from "ai";
 import { v4 as uuidv4 } from "uuid";
@@ -49,6 +50,7 @@ function getStreamContext() {
 
 export async function GET(req: Request) {
   const streamContext = getStreamContext();
+  const resumeRequestedAt = new Date();
 
   if (!streamContext) {
     return new Response(null, { status: 204 });
@@ -75,20 +77,36 @@ export async function GET(req: Request) {
     execute: () => {},
   });
 
-  const resumable = await streamContext.resumableStream(
-    latestStreamId,
-    () => emptyStream
-  );
+  let resumable;
+  try {
+    resumable = await streamContext.resumableStream(
+      latestStreamId,
+      () => emptyStream
+    );
+  } catch (error) {
+    console.error("Error resuming stream:", error);
+    return new Response(emptyStream, { status: 200 });
+  }
 
   if (resumable) {
     return new Response(resumable, { status: 200 });
   }
 
   // If stream already finished, try sending the assistant's last message
-  const messages = await getMessagesByChatId(chatId);
+  const dbMessages = await getMessagesByChatId(chatId);
+  const messages = convertToAISDKMessages(dbMessages);
+
   const mostRecent = messages.at(-1);
 
-  if (!mostRecent || mostRecent.role !== "AI") {
+  if (!mostRecent || mostRecent.role !== "assistant") {
+    return new Response(emptyStream, { status: 200 });
+  }
+
+  const mostRecentDBMessage = dbMessages.at(-1);
+
+  const messageCreatedAt = new Date(mostRecentDBMessage!.createdAt);
+
+  if (differenceInSeconds(resumeRequestedAt, messageCreatedAt) > 15) {
     return new Response(emptyStream, { status: 200 });
   }
 
@@ -205,27 +223,21 @@ export async function POST(req: Request) {
         model: modelInstance,
         system: tool === "reasoning" ? REASONING_SYSTEM_PROMPT : SYSTEM_PROMPT,
         messages,
-        ...(tool !== "none" &&
-          tool !== "reasoning" && {
-            experimental_activeTools:
-              tool === "image-gen"
-                ? ["generateImageTool"]
-                : tool === "web-search"
-                ? ["webSearchTool"]
-                : tool === "get-weather"
-                ? ["getWeatherTool"]
-                : [],
-            tools: {
-              generateImageTool,
-              getWeatherTool,
-              webSearchTool,
-            },
-          }),
-        maxSteps: tool === "reasoning" ? 10 : 5,
-        experimental_transform: smoothStream({ chunking: "word" }),
-        onStepFinish: () => {
-          if (tool === "none") return;
+        experimental_activeTools:
+          tool === "image-gen"
+            ? ["generateImageTool"]
+            : tool === "web-search"
+            ? ["webSearchTool"]
+            : tool === "get-weather"
+            ? ["getWeatherTool"]
+            : [],
+        tools: {
+          generateImageTool,
+          getWeatherTool,
+          webSearchTool,
         },
+        maxSteps: tool === "reasoning" ? 10 : 2,
+        experimental_transform: smoothStream({ chunking: "word" }),
         async onFinish({ response }) {
           try {
             const assistantMessages = appendResponseMessages({
@@ -328,11 +340,17 @@ export async function POST(req: Request) {
   });
 
   const streamContext = getStreamContext();
-
   if (streamContext) {
-    return new Response(
-      await streamContext.resumableStream(streamId, () => stream)
-    );
+    try {
+      const resumableStream = await streamContext.resumableStream(
+        streamId,
+        () => stream
+      );
+      return new Response(resumableStream);
+    } catch (error) {
+      console.error("Error creating resumable stream:", error);
+      return new Response(stream);
+    }
   } else {
     return new Response(stream);
   }

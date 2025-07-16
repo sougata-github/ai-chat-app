@@ -25,7 +25,7 @@ interface WebSearchCardProps {
 
 const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
   return (
-    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
+    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow mb-4">
       <CardHeader className="px-0 border-b outline-muted-foreground/15">
         <CardTitle className="flex items-center text-base font-medium">
           Web Search Results
