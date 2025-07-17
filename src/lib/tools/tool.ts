@@ -225,7 +225,7 @@ export type Tool =
 export const TOOL_REGISTRY = {
   "get-weather": {
     name: "Get weather",
-    tool: webSearchTool,
+    tool: getWeatherTool,
     defaultModel: "gemini-2.5-flash" as const,
     icon: Zap,
   },

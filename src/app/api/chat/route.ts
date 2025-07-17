@@ -236,8 +236,13 @@ export async function POST(req: Request) {
           getWeatherTool,
           webSearchTool,
         },
-        maxSteps: tool === "reasoning" ? 10 : 2,
+        maxSteps: tool === "reasoning" ? 10 : 5,
         experimental_transform: smoothStream({ chunking: "word" }),
+        onStepFinish({ stepType, toolResults, finishReason }) {
+          console.log("Step:", stepType);
+          console.log("Results:", toolResults);
+          console.log("Finish:", finishReason);
+        },
         async onFinish({ response }) {
           try {
             const assistantMessages = appendResponseMessages({
