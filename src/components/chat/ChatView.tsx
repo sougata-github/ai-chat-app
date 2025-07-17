@@ -83,7 +83,9 @@ const ChatView = ({
 
   const isInitialLoad = pathname === `/chat/${chatId}`;
   const isFirstTimeChat =
-    initialMessages.length === 0 && messages.length <= 2 && pathname === "/";
+    initialMessages.length === 0 &&
+    messages.length <= 2 &&
+    pathname.startsWith("/chat");
 
   const {
     messagesContainerRef,
