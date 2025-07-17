@@ -101,7 +101,6 @@ const ChatView = ({
   const handleChatSubmit = () => {
     handleSubmit();
     if (messages.length === 0 && pathname === "/") {
-      utils.chats.getMany.invalidate();
       window.history.replaceState({}, "", `/chat/${chatId}`);
       router.push(`/chat/${chatId}`);
     }

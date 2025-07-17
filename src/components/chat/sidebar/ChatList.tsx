@@ -14,7 +14,7 @@ import ChatItem, { ChatItemSkeleton } from "./ChatItem";
 
 const ChatListSkeleton = () => {
   return (
-    <div className="flex flex-col gap-3 px-2">
+    <div className="hidden sm:flex flex-col gap-3 px-2">
       {[...new Array(25)].fill(0).map((_, index) => (
         <ChatItemSkeleton key={index} />
       ))}

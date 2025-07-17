@@ -355,4 +355,30 @@ export const chatsRouter = createTRPCRouter({
         nextCursor,
       };
     }),
+  createOne: baseProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const existingChat = await db.chat.findUnique({
+        where: { id: input.id },
+      });
+
+      if (existingChat) {
+        return existingChat;
+      }
+
+      const chat = await db.chat.create({
+        data: {
+          id: input.id,
+          title: "New Chat",
+          userId: ctx.user.id,
+          archived: false,
+        },
+      });
+
+      return chat;
+    }),
 });

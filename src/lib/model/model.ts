@@ -8,11 +8,11 @@ export const MODEL_REGISTRY = {
     name: "Qwen 3 32b",
     description: "Robust reasoning model",
   },
-  // "llama-3.3-70b-versatile": {
+  // "llama-3.1-8b-instant": {
   //   provider: groq,
-  //   id: "llama-3.3-70b-versatile",
-  //   name: "Llama 3.3 70b",
-  //   description: "Model optimised for tool calling",
+  //   id: "llama-3.1-8b-instant",
+  //   name: "Llama 3.1 8b",
+  //   description: "Fast Meta model",
   // },
   "gemini-2.5-flash": {
     provider: google,
@@ -49,5 +49,3 @@ export function createModelInstance(modelId: ModelId) {
 export function isValidModelId(modelId: string): modelId is ModelId {
   return modelId in MODEL_REGISTRY;
 }
-
-// use meta-llama/llama-guard-4-12b for future multimodel-input
