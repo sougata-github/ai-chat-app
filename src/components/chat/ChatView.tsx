@@ -32,6 +32,8 @@ const ChatView = ({
   const pathname = usePathname();
   const utils = trpc.useUtils();
 
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const {
     input,
     handleInputChange,
@@ -53,6 +55,7 @@ const ChatView = ({
         id,
         model: selectedModel,
         tool: selectedTool,
+        timezone: userTimeZone,
       };
     },
     generateId: () => uuidv4(),

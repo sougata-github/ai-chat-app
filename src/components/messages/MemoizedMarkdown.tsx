@@ -14,6 +14,7 @@ import CodeBlock from "./CodeBlock";
 import { cn } from "@/lib/utils";
 import { visit } from "unist-util-visit";
 import type { Root } from "hast";
+import rehypeMermaid from "rehype-mermaid";
 
 export default function rehypeInlineCodeProperty() {
   return function (tree: Root) {
@@ -76,7 +77,7 @@ const MemoizedMarkdownBlock = memo(
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, rehypeInlineCodeProperty]}
+        rehypePlugins={[rehypeKatex, rehypeInlineCodeProperty, rehypeMermaid]}
         components={components}
       >
         {content}

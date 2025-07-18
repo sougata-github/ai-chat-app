@@ -25,7 +25,7 @@ const ModelDropDown = ({
   currentTool,
 }: ModelDropDownProps) => {
   const [optimisticModel, setOptimisticModel] = useOptimistic(
-    initialModel || "llama3-8b-8192"
+    initialModel || "gemini-2.5-flash-lite-preview-06-17"
   );
 
   const handleModelChange = (modelId: ModelId) => {

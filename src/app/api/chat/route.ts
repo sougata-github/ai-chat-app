@@ -26,8 +26,12 @@ import {
   isValidModelId,
   ModelId,
 } from "@/lib/model/model";
+import {
+  convertToAISDKMessages,
+  extractText,
+  injectCurrentDate,
+} from "@/lib/utils";
 import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
-import { convertToAISDKMessages, extractText } from "@/lib/utils";
 import { createResumableStreamContext } from "resumable-stream";
 import { getMessagesByChatId } from "@/lib/chat";
 import { differenceInSeconds } from "date-fns";
@@ -128,6 +132,7 @@ export async function POST(req: Request) {
     id: chatId,
     model: requestedModel,
     tool: requestedTool,
+    timezone = "Asia/Kolkata",
   } = await req.json();
 
   const session = await auth.api.getSession({
@@ -217,25 +222,33 @@ export async function POST(req: Request) {
   const streamId = uuidv4();
   await appendStreamId({ chatId, streamId });
 
+  const finalSystemPrompt =
+    tool === "reasoning"
+      ? REASONING_SYSTEM_PROMPT
+      : injectCurrentDate(SYSTEM_PROMPT, timezone);
+
   const stream = createDataStream({
     execute: (dataStream) => {
       const result = streamText({
         model: modelInstance,
-        system: tool === "reasoning" ? REASONING_SYSTEM_PROMPT : SYSTEM_PROMPT,
+        system: finalSystemPrompt,
         messages,
-        experimental_activeTools:
-          tool === "image-gen"
-            ? ["generateImageTool"]
-            : tool === "web-search"
-            ? ["webSearchTool"]
-            : tool === "get-weather"
-            ? ["getWeatherTool"]
-            : [],
-        tools: {
-          generateImageTool,
-          getWeatherTool,
-          webSearchTool,
-        },
+        ...(tool !== "none" &&
+          tool !== "reasoning" && {
+            experimental_activeTools:
+              tool === "image-gen"
+                ? ["generateImageTool"]
+                : tool === "web-search"
+                ? ["webSearchTool"]
+                : tool === "get-weather"
+                ? ["getWeatherTool"]
+                : [],
+            tools: {
+              generateImageTool,
+              getWeatherTool,
+              webSearchTool,
+            },
+          }),
         maxSteps: tool === "reasoning" ? 10 : 5,
         experimental_transform: smoothStream({ chunking: "word" }),
         onStepFinish({ stepType, toolResults, finishReason }) {
