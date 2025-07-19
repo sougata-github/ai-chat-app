@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GlobeIcon, Image, Lightbulb, Zap } from "lucide-react";
 import { UTApi, UTFile } from "uploadthing/server";
+import { v4 as uuid } from "@lukeed/uuid";
 import { google } from "@ai-sdk/google";
 import { generateText, tool } from "ai";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { ModelId } from "../model/model";
@@ -52,7 +52,7 @@ export const generateImageTool = tool({
       const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
 
-      const uniqueId = uuidv4();
+      const uniqueId = uuid();
 
       const file = new UTFile([buffer], "generated-image.png", {
         customId: `ai-generated-image-${uniqueId}`,

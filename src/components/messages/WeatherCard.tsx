@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Sun,
   Cloud,
   CloudRain,
@@ -66,14 +60,14 @@ const weatherIcons: { [key: string]: JSX.Element } = {
 const WeatherCard = ({ data }: Props) => {
   if (data.error) {
     return (
-      <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow">
-        <CardHeader className="px-0 border-b outline-muted-foreground/15">
-          <CardTitle className="flex items-center text-base font-medium text-red-500">
+      <div className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-xl px-4 shadow-xs">
+        <div>
+          <div className="flex items-center text-base font-medium text-red-500">
             Weather Error
-          </CardTitle>
-          <CardDescription className="text-sm">{data.message}</CardDescription>
-        </CardHeader>
-      </Card>
+          </div>
+          <div className="text-sm">{data.message}</div>
+        </div>
+      </div>
     );
   }
 
@@ -84,8 +78,8 @@ const WeatherCard = ({ data }: Props) => {
           {data.location} • {data.country}
         </div>
       </div>
-      <div className="space-y-4 px-0 mt-4">
-        <div className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow-xs outline outline-muted-foreground/15 rounded-xl p-4">
+      <div className="py-2 px-0 mt-4 outline outline-muted-foreground/15 rounded-xl dark:shadow-none shadow-xs">
+        <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {weatherIcons[data.current.condition] || weatherIcons.Clear}
@@ -111,7 +105,7 @@ const WeatherCard = ({ data }: Props) => {
           </div>
         </div>
 
-        <div className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow-xs outline outline-muted-foreground/15 rounded-xl p-4">
+        <div className="p-4">
           <div className="grid grid-cols-5 gap-2 sm:gap-4">
             {data.forecast.map((day, index) => (
               <div key={index} className="text-center space-y-2">

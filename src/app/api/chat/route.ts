@@ -35,9 +35,9 @@ import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
 import { createResumableStreamContext } from "resumable-stream";
 import { getMessagesByChatId } from "@/lib/chat";
 import { differenceInSeconds } from "date-fns";
+import { v4 as uuid } from "@lukeed/uuid";
 import { auth } from "@/lib/auth/auth";
 import { createDataStream } from "ai";
-import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
 import { db } from "@/db";
 
@@ -145,8 +145,22 @@ export async function POST(req: Request) {
 
   const { user } = session;
 
-  if (!message) {
-    return new Response("No messages found", { status: 400 });
+  if (!chatId) {
+    return new Response("Chat ID is required", { status: 400 });
+  }
+
+  const existingChat = await getChatById(chatId);
+
+  if (!existingChat) {
+    const chatTitle = await generateTitleFromUserMessage(message.content);
+
+    await db.chat.create({
+      data: {
+        id: chatId,
+        userId: user.id,
+        title: chatTitle,
+      },
+    });
   }
 
   const previousMessages = await getMessagesByChatId(chatId);
@@ -155,10 +169,6 @@ export async function POST(req: Request) {
     messages: convertToAISDKMessages(previousMessages),
     message,
   });
-
-  if (!chatId) {
-    return new Response("Chat ID is required", { status: 400 });
-  }
 
   // handle tool mode
   let tool: Tool = "none";
@@ -192,34 +202,8 @@ export async function POST(req: Request) {
     return new Response("Invalid last message", { status: 400 });
   }
 
-  const existingChat = await getChatById(chatId);
-
-  if (!existingChat) {
-    const chatTitle = await generateTitleFromUserMessage(message.content);
-
-    await db.chat.create({
-      data: {
-        id: chatId,
-        userId: user.id,
-        title: chatTitle,
-      },
-    });
-  }
-
-  const userMessage = await db.message.create({
-    data: {
-      id: message.id,
-      role: "USER",
-      chatId,
-      userId: user.id,
-      content: message.content,
-      parts: message.parts,
-      createdAt: message.createdAt || new Date(),
-    },
-  });
-
   //resumable stream setup
-  const streamId = uuidv4();
+  const streamId = uuid();
   await appendStreamId({ chatId, streamId });
 
   const finalSystemPrompt =
@@ -229,6 +213,28 @@ export async function POST(req: Request) {
 
   const stream = createDataStream({
     execute: (dataStream) => {
+      const handleDatabaseOperations = async () => {
+        try {
+          const userMessage = await db.message.create({
+            data: {
+              id: message.id,
+              role: "USER",
+              chatId,
+              userId: user.id,
+              content: message.content,
+              parts: message.parts,
+              createdAt: message.createdAt || new Date(),
+            },
+          });
+
+          return userMessage;
+        } catch (error) {
+          console.log("DB operations failed:", error);
+        }
+      };
+
+      const dbOperationsPromise = handleDatabaseOperations();
+
       const result = streamText({
         model: modelInstance,
         system: finalSystemPrompt,
@@ -250,6 +256,9 @@ export async function POST(req: Request) {
           console.log("Finish:", finishReason);
         },
         async onFinish({ response }) {
+          const userMessage = await dbOperationsPromise;
+          if (!userMessage) return;
+
           try {
             const assistantMessages = appendResponseMessages({
               messages,
@@ -305,7 +314,6 @@ export async function POST(req: Request) {
 
                   await db.message.create({
                     data: {
-                      id: uuidv4(),
                       role: "AI",
                       chatId,
                       userId: user.id,
