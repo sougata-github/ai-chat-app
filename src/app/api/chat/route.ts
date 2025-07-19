@@ -234,7 +234,7 @@ export async function POST(req: Request) {
         system: finalSystemPrompt,
         messages,
         experimental_activeTools:
-          tool === "reasoning"
+          tool === "reasoning" || tool === "none"
             ? []
             : ["webSearchTool", "generateImageTool", "getWeatherTool"],
         tools: {

@@ -1,15 +1,11 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ExternalLink, Calendar } from "lucide-react";
+import { ArrowUpRightIcon, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MemoizedMarkdown } from "./MemoizedMarkdown";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface WebSearchResult {
   title: string;
@@ -24,59 +20,88 @@ interface WebSearchCardProps {
 }
 
 const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow mb-4">
-      <CardHeader className="px-0 border-b outline-muted-foreground/15">
-        <CardTitle className="flex items-center text-base font-medium">
+    <motion.div className="w-full pl-0 bg-transparent rounded-none transition min-h-[20px] mb-10">
+      <div className="px-0">
+        <div className="flex items-center text-base font-medium">
           Web Search Results
-        </CardTitle>
-        <CardDescription className="text-sm">
-          Found {results.length} results for {query}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 px-0">
-        {results.map((result, index) => (
-          <div
-            key={index}
-            className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg p-4 space-y-4"
+        </div>
+        <div className="text-sm">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-fit py-1 pl-0 h-auto text-sm text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent"
           >
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium text-sm sm:text-base line-clamp-5 flex-1">
-                {result.title}
-              </h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="shrink-0"
-                onClick={() => window.open(result.url, "_blank")}
-              >
-                <ExternalLink className="size-4" />
-              </Button>
-            </div>
-
-            <div className="py-0.5 line-clamp-8">
-              <MemoizedMarkdown
-                id={index.toString()}
-                content={result.content}
-                className="text-xs sm:text-sm"
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="truncate">{new URL(result.url).hostname}</span>
-              {result.publishedDate && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="size-3" />
-                  <span>
-                    {new Date(result.publishedDate).toLocaleDateString()}
-                  </span>
-                </div>
+            <ChevronRight
+              className={cn(
+                "size-4 transition-transform duration-200 ease-in-out",
+                isExpanded && "rotate-90"
               )}
-            </div>
+            />
+            <span className="text-xs sm:text-sm max-w-xs">
+              Results for {query}
+            </span>
+          </Button>
+        </div>
+      </div>
+      {isExpanded && (
+        <motion.div
+          initial={{
+            height: 0,
+            opacity: 0,
+            filter: "blur(4px)",
+          }}
+          animate={{
+            height: "auto",
+            opacity: 1,
+            filter: "blur(0px)",
+          }}
+          transition={{
+            height: {
+              duration: 0.2,
+              ease: [0.04, 0.62, 0.23, 0.98],
+            },
+            opacity: {
+              duration: 0.25,
+              ease: "easeInOut",
+            },
+            filter: {
+              duration: 0.2,
+              ease: "easeInOut",
+            },
+          }}
+          style={{ overflow: "hidden" }}
+        >
+          <div className="flex flex-col gap-4 px-2 mt-4">
+            {results.map((result, index) => (
+              <Link key={index} href={`${result.url}`} target="_blank">
+                <div className="flex items-start justify-between">
+                  <h4 className="font-medium text-sm line-clamp-1 flex-1">
+                    {result.title}
+                  </h4>
+                  <ArrowUpRightIcon className="size-4 text-muted-foreground" />
+                </div>
+
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <span className="truncate">
+                    {new URL(result.url).hostname}
+                  </span>{" "}
+                  <span className="mx-1">|</span>{" "}
+                  {result.publishedDate && (
+                    <span>
+                      {new Date(result.publishedDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
           </div>
-        ))}
-      </CardContent>
-    </Card>
+        </motion.div>
+      )}
+    </motion.div>
   );
 };
 

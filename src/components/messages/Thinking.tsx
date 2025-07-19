@@ -5,7 +5,7 @@ import { SpinnerIcon } from "./SpinnerIcon";
 const Thinking = () => {
   return (
     <motion.div
-      className="relative flex items-center space-x-2 mt-2 text-muted-foreground"
+      className="relative flex items-center space-x-2 text-muted-foreground"
       initial={{ y: 5, opacity: 0 }}
       animate={{
         y: 0,

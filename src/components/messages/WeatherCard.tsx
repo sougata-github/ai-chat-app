@@ -2,7 +2,6 @@
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -45,23 +44,23 @@ interface Props {
 }
 
 const weatherIcons: { [key: string]: JSX.Element } = {
-  Clear: <Sun className="text-yellow-500 size-6 sm:size-10" />,
-  Clouds: <Cloud className="text-gray-500 size-6 sm:size-10" />,
-  Rain: <CloudRain className="text-blue-500 size-6 sm:size-10" />,
-  Drizzle: <CloudDrizzle className="text-blue-400 size-6 sm:size-10" />,
+  Clear: <Sun className="size-6 sm:size-10 text-muted-foreground" />,
+  Clouds: <Cloud className="size-6 sm:size-10 text-muted-foreground" />,
+  Rain: <CloudRain className="size-6 sm:size-10 text-muted-foreground" />,
+  Drizzle: <CloudDrizzle className="size-6 sm:size-10 text-muted-foreground" />,
   Thunderstorm: (
-    <CloudLightning className="text-purple-500 size68 sm:size-10" />
+    <CloudLightning className="size68 sm:size-10 text-muted-foreground" />
   ),
-  Snow: <CloudSnow className="text-blue-200 size-6 sm:size-10" />,
-  Mist: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Smoke: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Haze: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Dust: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Fog: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Sand: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Ash: <CloudFog className="text-gray-400 size-6 sm:size-10" />,
-  Squall: <CloudHail className="text-gray-600 size-6 sm:size-10" />,
-  Tornado: <Zap className="text-yellow-500 size-6 sm:size-10" />,
+  Snow: <CloudSnow className="size-6 sm:size-10 text-muted-foreground" />,
+  Mist: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
+  Smoke: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
+  Haze: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
+  Dust: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
+  Fog: <CloudFog className="size-6 sm:size- text-muted-foreground" />,
+  Sand: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
+  Ash: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
+  Squall: <CloudHail className="size-6 sm:size-10 text-muted-foreground" />,
+  Tornado: <Zap className="size-6 sm:size-10 text-muted-foreground" />,
 };
 
 const WeatherCard = ({ data }: Props) => {
@@ -79,18 +78,14 @@ const WeatherCard = ({ data }: Props) => {
   }
 
   return (
-    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow mb-4">
-      <CardHeader className="px-0 border-b outline-muted-foreground/15">
-        <CardTitle className="flex items-center text-base font-medium">
-          Weather for {data.location}
-        </CardTitle>
-        <CardDescription className="text-sm ">
-          {data.country} •{" "}
-          <span className="text-sm capitalize">{data.current.description}</span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 px-0">
-        <div className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg p-4">
+    <div className="mb-10">
+      <div>
+        <div className="flex items-center text-base font-medium">
+          {data.location} • {data.country}
+        </div>
+      </div>
+      <div className="space-y-4 px-0 mt-4">
+        <div className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow-xs outline outline-muted-foreground/15 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {weatherIcons[data.current.condition] || weatherIcons.Clear}
@@ -116,7 +111,7 @@ const WeatherCard = ({ data }: Props) => {
           </div>
         </div>
 
-        <div className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow outline outline-muted-foreground/15 rounded-lg p-4">
+        <div className="dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow-xs outline outline-muted-foreground/15 rounded-xl p-4">
           <div className="grid grid-cols-5 gap-2 sm:gap-4">
             {data.forecast.map((day, index) => (
               <div key={index} className="text-center space-y-2">
@@ -131,8 +126,8 @@ const WeatherCard = ({ data }: Props) => {
             ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

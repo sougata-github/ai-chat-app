@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader } from "../ui/card";
 import { ChevronRight, Lightbulb } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
@@ -26,8 +25,8 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
   const reasoningSteps = formatReasoningSteps(reasoning);
 
   return (
-    <Card className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-lg px-4 shadow transition min-h-[20px]">
-      <CardHeader className="px-0 outline-muted-foreground/15">
+    <div className="w-full pl-0 bg-transparent rounded-none transition min-h-[20px] mb-10">
+      <div className="px-0">
         <div className="flex items-center text-base font-medium gap-2">
           {isStreaming ? (
             <div className="flex items-center gap-2 text-sm">
@@ -47,7 +46,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
           variant="ghost"
           size="icon"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-fit py-1 pl-0 h-auto text-sm text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent"
+          className="w-fit py-1 pl-0 h-auto text-sm text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent mt-1"
         >
           <ChevronRight
             className={cn(
@@ -61,7 +60,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
             <>Show reasoning steps ({reasoningSteps.length} steps)</>
           )}
         </Button>
-      </CardHeader>
+      </div>
 
       {isExpanded && (
         <motion.div
@@ -91,17 +90,8 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
           }}
           style={{ overflow: "hidden" }}
         >
-          <CardContent className="p-2">
-            <motion.div
-              className="space-y-3"
-              initial={{ y: -10 }}
-              animate={{ y: 0 }}
-              exit={{ y: -10 }}
-              transition={{
-                duration: 0.2,
-                ease: "easeOut",
-              }}
-            >
+          <div className="mt-4 border-l border-muted-foreground/20 p-2">
+            <div>
               {reasoningSteps.map((step, index) => (
                 <motion.div
                   key={index}
@@ -118,22 +108,20 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
                     delay: index * 0.05,
                     ease: "easeOut",
                   }}
-                  className={cn(
-                    "px-4 py-3 dark:bg-muted-foreground/15 dark:outline-none dark:shadow-none shadow rounded-lg outline outline-muted-foreground/10"
-                  )}
+                  className={cn("px-4 py-2")}
                 >
                   <MemoizedMarkdown
                     id={`reasoning-step-${index}`}
                     content={step.trim()}
-                    className="text-sm leading-relaxed"
+                    className="text-sm leading-relaxed italic"
                   />
                 </motion.div>
               ))}
-            </motion.div>
-          </CardContent>
+            </div>
+          </div>
         </motion.div>
       )}
-    </Card>
+    </div>
   );
 };
 
