@@ -233,22 +233,15 @@ export async function POST(req: Request) {
         model: modelInstance,
         system: finalSystemPrompt,
         messages,
-        ...(tool !== "none" &&
-          tool !== "reasoning" && {
-            experimental_activeTools:
-              tool === "image-gen"
-                ? ["generateImageTool"]
-                : tool === "web-search"
-                ? ["webSearchTool"]
-                : tool === "get-weather"
-                ? ["getWeatherTool"]
-                : [],
-            tools: {
-              generateImageTool,
-              getWeatherTool,
-              webSearchTool,
-            },
-          }),
+        experimental_activeTools:
+          tool === "reasoning"
+            ? []
+            : ["webSearchTool", "generateImageTool", "getWeatherTool"],
+        tools: {
+          generateImageTool,
+          getWeatherTool,
+          webSearchTool,
+        },
         maxSteps: tool === "reasoning" ? 10 : 5,
         experimental_transform: smoothStream({ chunking: "word" }),
         onStepFinish({ stepType, toolResults, finishReason }) {

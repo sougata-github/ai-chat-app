@@ -6,25 +6,25 @@ export const MODEL_REGISTRY = {
     provider: groq,
     id: "qwen/qwen3-32b",
     name: "Qwen 3 32b",
-    description: "Robust reasoning model",
+    logo: "/qwen-logo.svg",
   },
   // "llama-3.1-8b-instant": {
   //   provider: groq,
   //   id: "llama-3.1-8b-instant",
   //   name: "Llama 3.1 8b",
-  //   description: "Fast Meta model",
+  //   logo: "/meta-logo.svg",
   // },
   "gemini-2.5-flash": {
     provider: google,
     id: "gemini-2.5-flash",
     name: "Gemini 2.5 Flash",
-    description: "Best Gemini model",
+    logo: "/google-logo.svg",
   },
   "gemini-2.5-flash-lite-preview-06-17": {
     provider: google,
     id: "gemini-2.5-flash-lite-preview-06-17",
     name: "Gemini 2.5 Flash Lite",
-    description: "Balanced Gemini model",
+    logo: "/google-logo.svg",
   },
 } as const;
 

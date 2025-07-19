@@ -12,6 +12,7 @@ import { startTransition, useOptimistic } from "react";
 import { MODEL_REGISTRY, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
 import { Tool } from "@/lib/tools/tool";
+import Image from "next/image";
 
 interface ModelDropDownProps {
   initialModel: ModelId;
@@ -72,11 +73,15 @@ const ModelDropDown = ({
               (modelId === "qwen/qwen3-32b" && currentTool !== "reasoning")
             }
           >
-            <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <Image
+                src={config.logo}
+                alt={`${config.name}`}
+                width={20}
+                height={20}
+                className="size-4"
+              />
               <span className="max-sm:text-xs">{config.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {config.description}
-              </span>
             </div>
           </DropdownMenuItem>
         ))}
