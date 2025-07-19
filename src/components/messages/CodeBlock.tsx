@@ -33,7 +33,7 @@ const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
 
   if (inline) {
     return (
-      <pre className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-sm font-mono w-fit inline text-foreground">
+      <pre className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono w-fit inline text-foreground">
         {children}
       </pre>
     );

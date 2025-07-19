@@ -23,8 +23,8 @@ const MessageItem = ({ message, status }: Props) => {
         className={cn(
           "px-4 py-2.5 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px]",
           isUser
-            ? "bg-muted-foreground/10 max-w-[300px] md:max-w-md lg:max-w-xl"
-            : "bg-transparent w-full"
+            ? "bg-muted-foreground/10 max-w-[300px] md:max-w-md lg:max-w-xl break-words"
+            : "bg-transparent w-full break-words"
         )}
       >
         {message.parts?.map((part, index) => {
