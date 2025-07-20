@@ -23,7 +23,7 @@ const ChatListSkeleton = () => {
 };
 
 const ChatList = () => {
-  const { isMobile, openMobile } = useSidebar();
+  const { openMobile } = useSidebar();
 
   const {
     data,
@@ -42,14 +42,15 @@ const ChatList = () => {
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       staleTime: 0,
+      placeholderData: (prev) => prev,
     }
   );
 
   useEffect(() => {
-    if (isMobile && openMobile) {
+    if (openMobile) {
       refetch();
     }
-  }, [isMobile, openMobile, refetch]);
+  }, [openMobile, refetch]);
 
   const merged = {
     today: data?.pages.flatMap((p) => p.chats.today) ?? [],
