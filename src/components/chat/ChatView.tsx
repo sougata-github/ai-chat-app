@@ -117,10 +117,10 @@ const ChatView = ({
     <div className="flex-1 flex flex-col">
       {isHomepageWithNoMessages ? (
         <>
-          <div className="hidden sm:flex flex-1 flex-col items-center justify-center px-4">
+          <div className="flex flex-1 flex-col items-center justify-center px-4">
             <div className="w-full max-w-3xl">
               <div className="mb-8 text-center">
-                <h1 className="text-4xl font-semibold">
+                <h1 className="text-2xl sm:text-4xl font-semibold">
                   How can I help you today?
                 </h1>
               </div>
@@ -137,27 +137,6 @@ const ChatView = ({
               />
               <ChatSuggestions setSuggestions={setInput} />
             </div>
-          </div>
-
-          <div className="sm:hidden flex flex-col h-full">
-            <div className="flex-1 flex flex-col items-center justify-center px-4">
-              <div className="text-center mb-4">
-                <h1 className="text-2xl font-semibold">
-                  How can I help you today?
-                </h1>
-              </div>
-              <ChatSuggestions setSuggestions={setInput} />
-            </div>
-            <ChatInput
-              initialTool={selectedTool}
-              initialModel={selectedModel}
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleChatSubmit}
-              status={status}
-              handleInputChange={handleInputChange}
-              isHomepageCentered={false}
-            />
           </div>
         </>
       ) : (

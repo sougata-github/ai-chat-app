@@ -1,4 +1,4 @@
-import { BookOpen, Code, Lightbulb, WandSparkles } from "lucide-react";
+import { BookOpen, Code, Layout, Lightbulb, WandSparkles } from "lucide-react";
 
 export const suggestions = [
   {
@@ -24,6 +24,12 @@ export const suggestions = [
     description: "Create engaging content",
     icon: WandSparkles,
     tag: "Create",
+  },
+  {
+    title: "Design a landing page using Next.js and shadcn-ui",
+    description: "Get layout and UI ideas",
+    icon: Layout,
+    tag: "Design",
   },
 ];
 
