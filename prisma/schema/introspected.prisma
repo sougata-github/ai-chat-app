@@ -1,0 +1,10 @@
+model DoctorToUser {
+  A       String
+  B       String
+  doctors Doctor @relation(fields: [A], references: [id], onDelete: Cascade)
+  User    User   @relation(fields: [B], references: [id], onDelete: Cascade)
+
+  @@id([A, B], map: "_DoctorToUser_AB_pkey")
+  @@index([B], map: "_DoctorToUser_B_index")
+  @@map("_DoctorToUser")
+}

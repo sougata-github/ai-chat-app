@@ -1,0 +1,363 @@
+model Patient {
+  id                      String                   @id @default(cuid()) @map("patient_id")
+  firstName               String                   @map("first_name")
+  lastName                String                   @map("last_name")
+  dateOfBirth             DateTime                 @map("date_of_birth")
+  gender                  Gender                   @default(MALE)
+  phone                   String                   @unique @map("patient_phone")
+  email                   String?                  @unique @map("patient_email")
+  parentGuardianName      String                   @map("parent_guardian_name")
+  parentGuardianPhone     String                   @map("parent_guardian_phone")
+  parentGuardianEmail     String?                  @map("parent_guardian_email")
+  relationToPatient       String                   @map("relation_to_patient")
+  address                 String
+  emergencyContactName    String                   @map("emergency_contact_name")
+  emergencyContactNumber  String                   @map("emergency_contact_number")
+  relationToEmergency     String                   @map("relation_to_emergency")
+  bloodGroup              String?                  @map("blood_group")
+  allergies               String?
+  medicalConditions       String?                  @map("medical_conditions")
+  medicalHistory          String?                  @map("medical_history")
+  insuranceProvider       String?                  @map("insurance_provider")
+  insuranceNumber         String?                  @map("insurance_number")
+  privacyConsent          Boolean                  @map("privacy_consent")
+  serviceConsent          Boolean                  @map("service_consent")
+  medicalConsent          Boolean                  @map("medical_consent")
+  img                     String?
+  colorCode               String?                  @map("color_code")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
+  appointments            Appointment[]
+  developmentalMilestones DevelopmentalMilestone[]
+  growthMeasurements      GrowthMeasurement[]
+  immunizations           Immunization[]
+  medicalRecords          MedicalRecord[]
+  payments                Payment[]
+  ratings                 Rating[]
+
+  @@index([firstName, lastName])
+  @@index([parentGuardianPhone])
+  @@map("patients")
+}
+
+model Doctor {
+  id                        String                   @id @default(cuid()) @map("doctor_id")
+  email                     String                   @unique
+  name                      String
+  specialization            String
+  licenseNumber             String                   @unique @map("license_number")
+  phone                     String                   @unique
+  address                   String
+  department                String?
+  img                       String?
+  colorCode                 String?                  @map("color_code")
+  availabilityStatus        String?                  @map("availability_status")
+  jobType                   JobType                  @default(FULL) @map("job_type")
+  createdAt                 DateTime                 @default(now()) @map("created_at")
+  updatedAt                 DateTime                 @updatedAt @map("updated_at")
+  DoctorToUser              DoctorToUser[]
+  appointments              Appointment[]
+  milestonesAssessed        DevelopmentalMilestone[] @relation("AssessedByDoctor")
+  diagnoses                 Diagnosis[]
+  immunizationsAdministered Immunization[]           @relation("AdministeredByDoctor")
+  workingDays               WorkingDay[]
+  ratings                   Rating[]                 @relation("DoctorToRating")
+
+  @@index([name])
+  @@map("doctors")
+}
+
+model WorkingDay {
+  id        Int      @id @default(autoincrement()) @map("working_day_id")
+  doctorId  String   @map("doctor_id")
+  day       String
+  startTime String   @map("start_time")
+  closeTime String   @map("close_time")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, day])
+  @@index([day, startTime])
+  @@map("working_days")
+}
+
+model Staff {
+  id            String   @id @default(cuid()) @map("staff_id")
+  email         String   @unique
+  name          String
+  phone         String   @unique
+  address       String
+  department    String?
+  img           String?
+  licenseNumber String?  @unique @map("license_number")
+  colorCode     String?  @map("color_code")
+  role          UserRole
+  status        Status   @default(ACTIVE)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  Rating        Rating[]
+
+  @@index([name])
+  @@map("staff")
+}
+
+model Appointment {
+  id              Int               @id @default(autoincrement()) @map("appointment_id")
+  patientId       String            @map("patient_id")
+  doctorId        String            @map("doctor_id")
+  appointmentDate DateTime          @map("appointment_date")
+  time            String
+  status          AppointmentStatus @default(PENDING)
+  type            String
+  note            String?
+  reason          String?
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  doctor          Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicalRecords  MedicalRecord?
+  payments        Payment?
+
+  @@index([patientId, doctorId, appointmentDate])
+  @@index([appointmentDate, status])
+  @@map("appointments")
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement()) @map("payment_id")
+  billId        Int?          @map("bill_id")
+  patientId     String        @map("patient_id")
+  appointmentId Int           @unique @map("appointment_id")
+  billDate      DateTime      @map("bill_date")
+  paymentDate   DateTime      @map("payment_date")
+  discount      Float
+  totalAmount   Float         @map("total_amount")
+  amountPaid    Float         @map("amount_paid")
+  paymentMethod PaymentMethod @default(CASH) @map("payment_method")
+  status        PaymentStatus @default(UNPAID)
+  receiptNumber Int           @unique @default(autoincrement()) @map("receipt_number")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  patientBills  PatientBill[]
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient       Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, paymentDate])
+  @@index([status, paymentDate])
+  @@map("payments")
+}
+
+model PatientBill {
+  id          Int      @id @default(autoincrement()) @map("patient_bill_id")
+  billId      Int      @map("bill_id")
+  serviceId   Int      @map("service_id")
+  serviceDate DateTime @map("service_date")
+  quantity    Int
+  unitCost    Float    @map("unit_cost")
+  totalCost   Float    @map("total_cost")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  payment     Payment  @relation(fields: [billId], references: [id], onDelete: Cascade)
+  service     Service  @relation(fields: [serviceId], references: [id])
+
+  @@index([billId, serviceId])
+  @@index([serviceId, serviceDate])
+  @@map("patient_bills")
+}
+
+model LabTest {
+  id              Int           @id @default(autoincrement()) @map("lab_test_id")
+  medicalRecordId Int           @map("medical_record_id")
+  testDate        DateTime      @map("test_date")
+  result          String
+  status          String
+  notes           String?
+  serviceId       Int           @unique @map("service_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  service         Service       @relation(fields: [serviceId], references: [id])
+
+  @@index([medicalRecordId, testDate])
+  @@index([testDate, status])
+  @@map("lab_tests")
+}
+
+model MedicalRecord {
+  id             Int         @id @default(autoincrement()) @map("medical_record_id")
+  patientId      String      @map("patient_id")
+  appointmentId  Int         @unique @map("appointment_id")
+  doctorId       String      @map("doctor_id")
+  treatmentPlan  String?     @map("treatment_plan")
+  prescriptions  String?
+  labRequest     String?     @map("lab_request")
+  notes          String?
+  chiefComplaint String?     @map("chief_complaint")
+  hpi            String?
+  ros            String?
+  physicalExam   String?     @map("physical_exam")
+  assessment     String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  diagnoses      Diagnosis[]
+  labTests       LabTest[]
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient        Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  vitalSigns     VitalSign[]
+
+  @@index([patientId, createdAt])
+  @@index([doctorId, createdAt])
+  @@map("medical_records")
+}
+
+model VitalSign {
+  id                 Int           @id @default(autoincrement()) @map("vital_sign_id")
+  patientId          String        @map("patient_id")
+  medicalRecordId    Int           @map("medical_record_id")
+  bodyTemperature    Float         @map("body_temperature")
+  systolic           Int?
+  diastolic          Int?
+  heartRate          Float?        @map("heart_rate")
+  respiratoryRate    Int?          @map("respiratory_rate")
+  oxygenSaturation   Int?          @map("oxygen_saturation")
+  weight             Float
+  height             Float?
+  headCircumference  Float?        @map("head_circumference")
+  bmi                Float?
+  nutritionalComment String?       @map("nutritional_comment")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  medicalRecord      MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+
+  @@index([medicalRecordId, createdAt])
+  @@index([patientId, createdAt])
+  @@map("vital_signs")
+}
+
+model Diagnosis {
+  id                    Int           @id @default(autoincrement()) @map("diagnosis_id")
+  patientId             String        @map("patient_id")
+  medicalRecordId       Int           @map("medical_record_id")
+  doctorId              String        @map("doctor_id")
+  symptoms              String
+  diagnosisName         String        @map("diagnosis_name")
+  notes                 String?
+  prescribedMedications String?       @map("prescribed_medications")
+  followUpPlan          String?       @map("follow_up_plan")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+  doctor                Doctor        @relation(fields: [doctorId], references: [id])
+  medicalRecord         MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+
+  @@index([medicalRecordId, createdAt])
+  @@index([patientId, diagnosisName, createdAt])
+  @@index([doctorId, createdAt])
+  @@map("diagnoses")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement()) @map("audit_log_id")
+  userId    String   @map("user_id")
+  recordId  String   @map("record_id")
+  action    String
+  details   String?
+  modelName String   @map("model_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, action, modelName, createdAt])
+  @@map("audit_logs")
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement()) @map("rating_id")
+  staffId   String   @map("staff_id")
+  patientId String   @map("patient_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  Doctor    Doctor[] @relation("DoctorToRating")
+
+  @@unique([patientId, staffId])
+  @@index([staffId, rating])
+  @@map("ratings")
+}
+
+model Service {
+  id           Int           @id @default(autoincrement()) @map("service_id")
+  serviceName  String        @unique @map("service_name")
+  description  String
+  price        Float
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  labTest      LabTest?
+  patientBills PatientBill[]
+
+  @@map("services")
+}
+
+model GrowthMeasurement {
+  id                      Int      @id @default(autoincrement()) @map("growth_measurement_id")
+  patientId               String
+  gender                  Gender?
+  ageInDays               Float?
+  measurementDate         DateTime
+  weightKg                Float
+  heightCm                Float?
+  headCircumferenceCm     Float?
+  bmi                     Float?
+  weightZScore            Float?
+  heightZScore            Float?
+  headCircumferenceZScore Float?
+  bmiZScore               Float?
+  notes                   String?
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  patient                 Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, measurementDate, gender])
+  @@map("growth_measurements")
+}
+
+model Immunization {
+  id                     Int           @id @default(autoincrement()) @map("immunization_id")
+  patientId              String        @map("patient_id")
+  vaccineName            String        @map("vaccine_name")
+  doseNumber             Int           @map("dose_number")
+  administrationDate     DateTime      @map("administration_date")
+  nextDoseDate           DateTime?     @map("next_dose_date")
+  status                 VaccineStatus
+  administeredByDoctorId String?       @map("administered_by_doctor_id")
+  batchNumber            String?       @map("batch_number")
+  notes                  String?
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+  administeredByDoctor   Doctor?       @relation("AdministeredByDoctor", fields: [administeredByDoctorId], references: [id])
+  patient                Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, vaccineName, administrationDate])
+  @@index([status, nextDoseDate])
+  @@map("immunizations")
+}
+
+model DevelopmentalMilestone {
+  id                   Int               @id @default(autoincrement()) @map("developmental_milestone_id")
+  patientId            String            @map("patient_id")
+  milestoneCategory    MilestoneCategory @map("milestone_category")
+  milestoneDescription String            @map("milestone_description")
+  achievedDate         DateTime          @map("achieved_date")
+  notes                String?
+  assessedByDoctorId   String?           @map("assessed_by_doctor_id")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  assessedByDoctor     Doctor?           @relation("AssessedByDoctor", fields: [assessedByDoctorId], references: [id])
+  patient              Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, milestoneCategory, achievedDate])
+  @@index([milestoneCategory, achievedDate])
+  @@map("developmental_milestones")
+}

@@ -1,0 +1,73 @@
+
+model User {
+  id            String         @id @default(uuid())
+  name          String?
+  email         String?        @unique
+  emailVerified Boolean        @default(false)
+  image         String?
+  isAnonymous   Boolean?       @default(false)
+  messageCount  Int            @default(0)
+  imageCount    Int            @default(0)
+  lastReset     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  accounts      Account[]
+  chats         Chat[]
+  messages      Message[]
+  sessions      Session[]
+  DoctorToUser  DoctorToUser[]
+  role          String?
+  banned        Boolean?
+  banReason     String?
+  banExpires    DateTime?
+  firstName     String?
+  lastName      String?
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id @default(uuid())
+  userId         String
+  token          String   @unique
+  expiresAt      DateTime
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}

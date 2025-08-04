@@ -1,0 +1,61 @@
+enum UserRole {
+  ADMIN
+  NURSE
+  DOCTOR
+  LAB_TECHNICIAN
+  PATIENT
+  CASHIER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  DORMANT
+}
+
+enum JobType {
+  FULL
+  PART
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AppointmentStatus {
+  PENDING
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  INSURANCE
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+  PARTIAL
+  REFUNDED
+}
+
+enum VaccineStatus {
+  DUE
+  GIVEN
+  OVERDUE
+  EXPIRED
+  CATCH_UP
+}
+
+enum MilestoneCategory {
+  GROSS_MOTOR
+  FINE_MOTOR
+  LANGUAGE
+  SOCIAL_EMOTIONAL
+  COGNITIVE
+}

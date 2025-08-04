@@ -1,0 +1,56 @@
+generator client {
+  provider               = "prisma-client-js"
+  output                 = "../../src/generated/client"
+  previewFeatures        = ["views"]
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+  moduleFormat           = "esm"
+  runtime                = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Chat {
+  id        String    @id @default(uuid())
+  title     String    @default("New Chat")
+  archived  Boolean   @default(false)
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  streams   Stream[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  role      Role
+  content   String?
+  parts     Json
+  imageKey  String?
+  imageUrl  String?
+  userId    String
+  chatId    String
+  promptId  String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  prompt    Message? @relation("ResponseMessage", fields: [promptId], references: [id])
+  response  Message? @relation("ResponseMessage")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Stream {
+  id        String   @id @default(uuid())
+  chatId    String
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  AI
+}
