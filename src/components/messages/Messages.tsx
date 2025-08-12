@@ -1,18 +1,28 @@
 "use client";
 
-import { Message } from "ai";
+import { UIMessage } from "ai";
 import MessageItem from "./MessageItem";
 import Thinking from "./Thinking";
 import { RefObject } from "react";
-import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+
 interface Props {
-  messages: Message[];
+  messages: UIMessage[];
   status: "streaming" | "submitted" | "ready" | "error";
   lastMessageRef: RefObject<HTMLDivElement | null>;
+  regenerate: ({ messageId }: { messageId: string }) => void;
 }
 
-const Messages = ({ messages, status, lastMessageRef }: Props) => {
-  const pathname = usePathname();
+const Messages = ({ messages, status, lastMessageRef, regenerate }: Props) => {
+  const lastMessage = messages.at(-1);
+
+  const showLoader =
+    (status === "submitted" &&
+      messages.length > 0 &&
+      messages[messages.length - 1].role === "user") ||
+    (status === "streaming" &&
+      lastMessage?.role === "assistant" &&
+      lastMessage?.parts?.length === 0);
 
   if (messages.length === 0)
     return (
@@ -22,29 +32,34 @@ const Messages = ({ messages, status, lastMessageRef }: Props) => {
     );
 
   return (
-    <div className="flex flex-col gap-5 md:gap-8 max-w-3xl w-full mx-auto pt-10">
+    <div className={cn("flex flex-col gap-0 max-w-3xl w-full mx-auto pt-10")}>
       {messages.map((message, index) => {
         const isLast = index === messages.length - 1;
         return (
-          <div key={message.id} ref={isLast ? lastMessageRef : undefined}>
-            <MessageItem message={message} status={status} />
+          <div
+            key={`${message.id}-${index}`}
+            ref={isLast ? lastMessageRef : undefined}
+          >
+            <MessageItem
+              message={message}
+              regenerate={regenerate}
+              status={status}
+            />
           </div>
         );
       })}
 
-      {status === "submitted" &&
-        pathname !== "/" &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === "user" && (
-          <div className="flex w-full justify-start">
-            <Thinking />
-          </div>
-        )}
+      {showLoader && (
+        <div className="flex w-full justify-start pt-6 md:pt-10">
+          <Thinking size="sm" />
+        </div>
+      )}
+
       {status === "error" &&
         messages.length > 0 &&
         messages[messages.length - 1].role === "user" && (
-          <div className="flex w-full justify-start">
-            <div className="px-4 py-2.5 whitespace-pre-wrap bg-destructive rounded-lg dark:text-foreground text-background">
+          <div className="flex w-full justify-start pt-6 md:pt-10">
+            <div className="px-4 py-2 whitespace-pre-wrap bg-destructive/80 rounded-lg dark:text-foreground text-background">
               There was an error generating the response.
             </div>
           </div>

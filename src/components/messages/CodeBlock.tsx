@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
-  materialLight,
   materialDark,
+  materialLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Check, Copy } from "lucide-react";
 import { Button } from "../ui/button";
@@ -33,21 +33,21 @@ const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
 
   if (inline) {
     return (
-      <pre className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono w-fit inline text-foreground">
+      <pre className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-xs sm:text-sm font-mono w-fit inline text-foreground whitespace-pre-wrap">
         {children}
       </pre>
     );
   }
 
   return (
-    <div className="my-4 w-full overflow-hidden rounded-lg border shadow-xs dark:shadow-none not-prose">
-      <div className="flex items-center justify-between bg-muted px-4 py-1 text-xs text-muted-foreground border-b border-muted-foreground/10 rounded-t-md">
+    <div className="my-4 w-full overflow-hidden rounded-xl border shadow-xs dark:shadow-none not-prose">
+      <div className="flex items-center justify-between bg-muted/15 px-4 py-1 text-xs text-muted-foreground border-muted-foreground/10 rounded-t-md">
         <span className="font-medium text-sm">{lang}</span>
         <Button variant="ghost" size="icon" onClick={onCopy}>
           {copied ? <Check /> : <Copy />}{" "}
         </Button>
       </div>
-      <div className="text-xs md:text-sm overflow-x-auto font-[--font-geist-mono]">
+      <div className="text-xs md:text-[13px] overflow-x-auto font-[--font-geist-mono] bg-muted/15">
         <SyntaxHighlighter
           language={lang}
           style={isLight ? materialLight : materialDark}
@@ -56,6 +56,7 @@ const CodeBlock = ({ className = "", children, inline }: CodeBlockProps) => {
             margin: 0,
             whiteSpace: "pre",
             fontFamily: "var(--font-geist-mono), monospace",
+            background: "transparent",
           }}
           codeTagProps={{
             style: {

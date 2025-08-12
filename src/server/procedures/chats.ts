@@ -123,35 +123,63 @@ export const chatsRouter = createTRPCRouter({
 
       if (!existingChat) throw new TRPCError({ code: "NOT_FOUND" });
 
-      // all the messages with images
-      const messages = await db.message.findMany({
-        where: {
-          chatId: existingChat.id,
-          AND: [
-            {
-              imageKey: {
-                not: null,
+      const [messagesWithImages, messagesWithAttachments] = await Promise.all([
+        db.message.findMany({
+          where: {
+            chatId: existingChat.id,
+            AND: [
+              {
+                imageKey: {
+                  not: null,
+                },
               },
-            },
-            {
-              imageUrl: {
-                not: null,
+              {
+                imageUrl: {
+                  not: null,
+                },
               },
+            ],
+          },
+        }),
+        db.message.findMany({
+          where: {
+            chatId: existingChat.id,
+            attachmentId: {
+              not: null,
             },
-          ],
-        },
-      });
+          },
+          include: {
+            attachment: true,
+          },
+        }),
+      ]);
 
-      if (messages.length > 0) {
-        console.log("Deleting from UploadThing...");
+      if (messagesWithImages.length > 0) {
+        console.log("Deleting images...");
 
-        const images = messages
+        const images = messagesWithImages
           .map((message) => message.imageKey)
           .filter((key): key is string => Boolean(key));
 
         try {
           const utiapi = new UTApi();
           await utiapi.deleteFiles(images);
+          console.log("Cleanup successful");
+        } catch (error) {
+          console.error("UploadThing cleanup failed:", error);
+        }
+      }
+
+      if (messagesWithAttachments.length > 0) {
+        console.log("Deleting attachments...");
+
+        const attachments = messagesWithAttachments
+          .map((message) => message.attachment?.key)
+          .filter((key): key is string => Boolean(key));
+
+        try {
+          const utiapi = new UTApi();
+          await utiapi.deleteFiles(attachments);
           console.log("Cleanup successful");
         } catch (error) {
           console.error("UploadThing cleanup failed:", error);

@@ -36,6 +36,7 @@ export default async function MessagesPage({ params }: Props) {
   return (
     <ChatView
       chatId={chatId}
+      autoResume={true}
       initialMessages={initialMessages}
       selectedTool={selectedTool}
       selectedModel={selectedModel}

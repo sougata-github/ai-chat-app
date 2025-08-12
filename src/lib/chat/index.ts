@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { groq } from "@ai-sdk/groq";
 import { generateText } from "ai";
+import { revalidatePath } from "next/cache";
 
 export async function getChatById(chatId: string) {
   try {
@@ -99,3 +100,12 @@ export const appendStreamId = async ({
     throw new Error(`Failed to append streamId: ${(error as Error).message}`);
   }
 };
+
+export async function invalidateRouterCache() {
+  /*
+   * note: this path does not exist, but it will
+   * trigger a client-side reload.
+   */
+  revalidatePath("/just-trigger-client-reload");
+  await Promise.resolve();
+}

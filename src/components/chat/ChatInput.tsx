@@ -1,62 +1,59 @@
 "use client";
 
+import { useEffect, startTransition, useOptimistic, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { ChatRequestOptions, CreateUIMessage, UIMessage } from "ai";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { chatInputSchema } from "@/schemas";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, FileIcon, ImageIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ModelDropDown from "./ModelDropDown";
-import type React from "react";
-import {
-  type ChangeEvent,
-  startTransition,
-  useEffect,
-  useOptimistic,
-} from "react";
-import type { ChatRequestOptions } from "ai";
+import ToolDropDown from "./ToolDropDown";
+import { chatInputSchema } from "@/schemas";
 import { DEFAULT_MODEL_ID, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
-import ToolDropDown from "./ToolDropDown";
 import { type Tool, TOOL_REGISTRY } from "@/lib/tools/tool";
 import { saveToolAsCookie } from "@/lib/tools";
+import { deletedAttachedFile, uploadTextFile } from "@/lib/upload";
+import { toast } from "sonner";
+import FileUpload from "./FileUpload";
+import { SpinnerIcon } from "../messages/SpinnerIcon";
 
 interface Props {
   suggestion?: string;
   status?: "streaming" | "submitted" | "ready" | "error";
   input: string;
   setInput: (value: string) => void;
-  handleSubmit: (
+  handleInitialSubmit: (
     event?: {
       preventDefault?: () => void;
     },
     chatRequestOptions?: ChatRequestOptions
   ) => void;
-  handleInputChange: (
-    e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
-  ) => void;
-  onSubmitPrompt?: (prompt: string) => void;
   initialModel: ModelId;
   initialTool: Tool;
   isHomepageCentered?: boolean;
+  sendMessage: (message: UIMessage | CreateUIMessage<UIMessage>) => void;
 }
 
 const ChatInput = ({
   status,
   input,
   setInput,
-  handleSubmit,
-  handleInputChange,
-  onSubmitPrompt,
+  handleInitialSubmit,
   initialModel,
   initialTool,
   isHomepageCentered = false,
+  sendMessage,
 }: Props) => {
   const [optimisticTool, setOptimisticTool] = useOptimistic<Tool>(
     initialTool || "none"
+  );
+  const [optimisticModel, setOptimisticModel] = useOptimistic<ModelId>(
+    initialModel || "gemini-2.5-flash"
   );
 
   const form = useForm<z.infer<typeof chatInputSchema>>({
@@ -66,33 +63,136 @@ const ChatInput = ({
     },
   });
 
-  const onSubmit = (values: z.infer<typeof chatInputSchema>) => {
-    if (!values.prompt.trim()) return;
-    if (onSubmitPrompt) {
-      onSubmitPrompt(values.prompt);
-    } else {
-      const syntheticEvent = {
-        preventDefault: () => {},
-        target: { value: values.prompt },
-      };
-      setInput(values.prompt);
-      handleSubmit(syntheticEvent);
-    }
-  };
+  //file states
+  const [isUploadingLongPrompt, setIsUploadingLongPrompt] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   useEffect(() => {
+    form.setValue("prompt", input, { shouldDirty: true, shouldTouch: true });
     if (input.length > 0) {
       form.setFocus("prompt");
     }
   }, [input, form]);
 
-  useEffect(() => {
-    form.setValue("prompt", input);
-  }, [input, form]);
+  const handleSubmit = async (message: CreateUIMessage<UIMessage>) => {
+    handleInitialSubmit();
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    form.setValue("prompt", e.target.value);
-    handleInputChange(e);
+    sendMessage(message);
+
+    form.reset();
+    setInput("");
+  };
+
+  const onSubmit = async (values: z.infer<typeof chatInputSchema>) => {
+    const trimmed = values.prompt?.trim() ?? "";
+    const hasFile = !!values.file?.url;
+
+    if (!trimmed && !hasFile) return;
+
+    if (!hasFile && trimmed.length < 2) {
+      toast.error("Prompt has to be at least 2 characters long");
+      return;
+    }
+
+    const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+
+    if (hasFile && wordCount >= 800) {
+      toast.error("Prompt cannot exceed 800 words");
+      return;
+    }
+
+    // file and prompt
+    if (hasFile) {
+      const message: CreateUIMessage<UIMessage> = {
+        role: "user" as const,
+        parts: [
+          {
+            type: "file",
+            url: values.file!.url!,
+            mediaType: values.file!.type!,
+            filename: values.file!.name!,
+          },
+          {
+            type: "text",
+            text: trimmed,
+          },
+        ],
+        metadata: {
+          fileKey: values.file?.key,
+        },
+      };
+      handleSubmit(message);
+      return;
+    }
+
+    // just prompt
+    const message: CreateUIMessage<UIMessage> = {
+      role: "user" as const,
+      parts: [{ type: "text", text: trimmed }],
+    };
+    handleSubmit(message);
+  };
+
+  const handleTextareaChange = async (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const value = e.target.value;
+    form.setValue("prompt", value, { shouldDirty: true });
+    setInput(value);
+
+    const trimmed = value.trim();
+    const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+    const hasFile = !!form.getValues("file")?.url;
+
+    const isLong = wordCount >= 800;
+
+    //upload long prompt as text file
+    if (!hasFile && isLong && !isUploadingLongPrompt) {
+      try {
+        form.setValue("prompt", "", { shouldDirty: true, shouldTouch: true });
+        setInput("");
+
+        setIsUploadingLongPrompt(true);
+        toast.success("Uploading your prompt as text file...");
+
+        const blob = new Blob([trimmed], { type: "text/plain" });
+        const textFile = new File([blob], "long-prompt.txt", {
+          type: "text/plain",
+        });
+
+        const uploadResult = await uploadTextFile(textFile);
+        const url = uploadResult?.[0]?.data?.ufsUrl;
+        const key = uploadResult?.[0]?.data?.key ?? "";
+
+        if (!url) {
+          toast.error("Could not upload the prompt file, please try again.");
+          return;
+        }
+
+        form.setValue(
+          "file",
+          {
+            name: "long-prompt.txt",
+            url,
+            key,
+            type: "text/plain",
+          },
+          { shouldDirty: true }
+        );
+
+        startTransition(async () => {
+          setOptimisticModel("gemini-2.5-flash");
+          await saveChatModelAsCookie("gemini-2.5-flash");
+        });
+
+        toast.success("Prompt uploaded as text file");
+      } catch (error) {
+        console.error("Error uploading long prompt:", error);
+        toast.error("Upload failed. Please try again.");
+      } finally {
+        setIsUploadingLongPrompt(false);
+      }
+    }
   };
 
   const handleRemoveCurrentTool = () => {
@@ -103,17 +203,48 @@ const ChatInput = ({
     });
   };
 
+  const handleDetachFile = async () => {
+    const fileKey = form.getValues("file.key");
+    form.setValue("file", {
+      name: "",
+      url: "",
+      key: "",
+      type: "",
+    });
+
+    setIsUploadingFile(false);
+
+    if (fileKey && fileKey.trim() !== "") {
+      try {
+        await deletedAttachedFile(fileKey);
+        toast.success("File removed");
+      } catch (error) {
+        console.error("Error deleting file:", error);
+      }
+    }
+  };
+
+  const isDisabled =
+    status === "streaming" ||
+    status === "submitted" ||
+    isUploadingLongPrompt ||
+    isUploadingFile;
   const isTool = optimisticTool !== "none";
-  const currentTool =
-    optimisticTool === "none" ? null : TOOL_REGISTRY[optimisticTool];
+  const currentTool = isTool ? TOOL_REGISTRY[optimisticTool] : null;
+
+  const watchedFile = form.watch("file");
+  const hasFile = !!watchedFile?.url;
+  const isImageFile = watchedFile?.type?.startsWith("image");
+  const fileName = watchedFile?.name;
+
+  const canSubmit =
+    (!!form.watch("prompt")?.trim().length || hasFile) && !isDisabled;
 
   return (
     <div
       className={cn(
-        "w-full px-4 z-20 bg-background rounded-b-xl",
-        isHomepageCentered
-          ? "relative" // Centered layout - no sticky positioning
-          : "sticky bottom-0 inset-x-0 pt-0" // Bottom layout - sticky positioning
+        "w-full px-4 z-20 bg-background rounded-b-2xl",
+        isHomepageCentered ? "relative" : "sticky bottom-0 inset-x-0 pt-0"
       )}
     >
       <div className="max-w-3xl mx-auto relative">
@@ -122,7 +253,39 @@ const ChatInput = ({
             onSubmit={form.handleSubmit(onSubmit)}
             className="relative pb-4"
           >
-            <div className="rounded-xl outline-2 outline-muted-foreground/10 shadow-xs dark:shadow-none bg-background/80">
+            <div className="rounded-2xl outline-2 outline-muted-foreground/10 shadow-xs dark:shadow-none bg-background/80">
+              {(hasFile || isUploadingLongPrompt || isUploadingFile) && (
+                <div className="flex items-center p-2 pb-0 rounded-t-2xl w-full dark:bg-muted-foreground/7.5">
+                  {isImageFile ? (
+                    <ImageIcon className="size-4 text-muted-foreground" />
+                  ) : (
+                    <FileIcon className="size-4 text-muted-foreground" />
+                  )}
+                  {isUploadingLongPrompt || isUploadingFile ? (
+                    <span className="mx-2 text-sm">
+                      <div className="animate-spin">
+                        <SpinnerIcon size={12} />
+                      </div>
+                    </span>
+                  ) : (
+                    <span className="mx-2 text-sm truncate text-muted-foreground">
+                      {fileName}
+                    </span>
+                  )}
+                  {!isUploadingFile && !isUploadingLongPrompt && (
+                    <button
+                      type="button"
+                      onClick={handleDetachFile}
+                      disabled={isDisabled}
+                      className="rounded-full p-1 disabled:text-muted-foreground/5"
+                      aria-label="Remove attached file"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+
               <FormField
                 control={form.control}
                 name="prompt"
@@ -130,8 +293,15 @@ const ChatInput = ({
                   <FormItem className="gap-0">
                     <FormControl>
                       <Textarea
-                        className="w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pt-4 pb-8 placeholder:text-muted-foreground shadow-none max-md:placeholder:text-sm rounded-t-xl text-sm sm:text-base"
+                        className={cn(
+                          "w-full resize-none focus:ring-0 focus:outline-none max-h-32 border-0 px-4 pb-8 placeholder:text-muted-foreground shadow-none placeholder:text-sm text-sm sm:text-base rounded-t-2xl sm:disabled:min-h-18 pt-4",
+                          (hasFile ||
+                            isUploadingLongPrompt ||
+                            isUploadingFile) &&
+                            "rounded-t-none"
+                        )}
                         {...field}
+                        value={input}
                         placeholder="Type your message here..."
                         onChange={handleTextareaChange}
                         onKeyDown={(e) => {
@@ -140,61 +310,66 @@ const ChatInput = ({
                             form.handleSubmit(onSubmit)();
                           }
                         }}
-                        disabled={
-                          status === "streaming" || status === "submitted"
-                        }
+                        disabled={isDisabled}
+                        aria-label="Chat prompt"
                       />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              <div className="flex items-center justify-between py-2.5 px-3 rounded-b-xl dark:bg-muted-foreground/7.5">
+
+              <div className="flex items-center justify-between py-2.5 px-3 rounded-b-2xl dark:bg-muted-foreground/7.5">
                 <div className="flex items-center gap-1">
                   <ModelDropDown
-                    initialModel={initialModel}
+                    optimisticModel={optimisticModel}
+                    setOptimisticModel={setOptimisticModel}
                     currentTool={optimisticTool}
-                    disabled={
-                      isTool || status === "streaming" || status === "submitted"
-                    }
+                    disabled={isTool || isDisabled || hasFile}
                   />
                   <ToolDropDown
+                    setOptimisticModel={setOptimisticModel}
                     initialModel={initialModel}
                     optimisticTool={optimisticTool}
                     setOptimisticTool={setOptimisticTool}
-                    disabledAll={
-                      status === "streaming" || status === "submitted"
-                    }
+                    disabledAll={isDisabled || hasFile}
                   />
-                  {optimisticTool &&
-                    optimisticTool !== "none" &&
-                    currentTool !== null && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        type="button"
-                        className="rounded-full max-md:text-xs"
-                        disabled={
-                          status === "streaming" || status === "submitted"
-                        }
-                        onClick={handleRemoveCurrentTool}
-                      >
-                        {<currentTool.icon />}
-                        <X className="size-3" />
-                      </Button>
+                  {currentTool && optimisticTool !== "none" && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      className="rounded-full max-md:text-xs"
+                      disabled={isDisabled}
+                      onClick={handleRemoveCurrentTool}
+                    >
+                      {<currentTool.icon />}
+                      <X className="size-3" />
+                    </Button>
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="file"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FileUpload
+                          setOptimisticModel={setOptimisticModel}
+                          onChange={field.onChange}
+                          disabled={isDisabled || isTool || hasFile}
+                          setIsUploadingFile={setIsUploadingFile}
+                        />
+                      </FormItem>
                     )}
+                  />
                 </div>
+
                 <Button
-                  variant="outline"
                   type="submit"
                   size="icon"
-                  disabled={
-                    !form.watch("prompt")?.trim().length ||
-                    (status && status === "streaming")
-                  }
-                  className="rounded-full bg-transparent"
+                  disabled={!canSubmit}
+                  className="rounded-full bg-muted-foreground/20 text-foreground border-none"
+                  aria-label="Send message"
                 >
                   <ArrowUp />
-                  <span className="sr-only">Send message</span>
                 </Button>
               </div>
             </div>

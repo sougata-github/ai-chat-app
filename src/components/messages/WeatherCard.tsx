@@ -1,66 +1,79 @@
 "use client";
 
+import { getWeatherTool } from "@/lib/tools/tool";
+import { InferUITool } from "ai";
 import {
-  Sun,
-  Cloud,
-  CloudRain,
-  CloudDrizzle,
-  CloudLightning,
-  CloudSnow,
-  CloudFog,
-  CloudHail,
-  Zap,
-} from "lucide-react";
+  WiDaySunny,
+  WiCloud,
+  WiRain,
+  WiShowers,
+  WiThunderstorm,
+  WiSnow,
+  WiFog,
+  WiDust,
+  WiSandstorm,
+  WiVolcano,
+  WiStrongWind,
+  WiTornado,
+} from "react-icons/wi";
 import React, { JSX } from "react";
 
-interface WeatherData {
-  location: string;
-  country: string;
-  current: {
-    temp: number;
-    condition: string;
-    description: string;
-    humidity: number;
-    windSpeed: number;
-  };
-  forecast: Array<{
-    name: string;
-    temp: number;
-    condition: string;
-    dayIndex: number;
-  }>;
-  error: boolean;
-  message?: string;
-}
-
 interface Props {
-  data: WeatherData;
+  data: InferUITool<typeof getWeatherTool>["output"];
 }
 
 const weatherIcons: { [key: string]: JSX.Element } = {
-  Clear: <Sun className="size-6 sm:size-10 text-muted-foreground" />,
-  Clouds: <Cloud className="size-6 sm:size-10 text-muted-foreground" />,
-  Rain: <CloudRain className="size-6 sm:size-10 text-muted-foreground" />,
-  Drizzle: <CloudDrizzle className="size-6 sm:size-10 text-muted-foreground" />,
-  Thunderstorm: (
-    <CloudLightning className="size68 sm:size-10 text-muted-foreground" />
+  Clear: (
+    <WiDaySunny className="size-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" />
   ),
-  Snow: <CloudSnow className="size-6 sm:size-10 text-muted-foreground" />,
-  Mist: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
-  Smoke: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
-  Haze: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
-  Dust: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
-  Fog: <CloudFog className="size-6 sm:size- text-muted-foreground" />,
-  Sand: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
-  Ash: <CloudFog className="size-6 sm:size-10 text-muted-foreground" />,
-  Squall: <CloudHail className="size-6 sm:size-10 text-muted-foreground" />,
-  Tornado: <Zap className="size-6 sm:size-10 text-muted-foreground" />,
+  Clouds: (
+    <WiCloud className="size-10 text-gray-400 drop-shadow-[0_0_6px_rgba(160,160,160,0.6)]" />
+  ),
+  Rain: (
+    <WiRain className="size-10 text-blue-500 drop-shadow-[0_0_6px_rgba(0,0,255,0.5)]" />
+  ),
+  Drizzle: (
+    <WiShowers className="size-10 text-blue-400 drop-shadow-[0_0_5px_rgba(0,191,255,0.5)]" />
+  ),
+  Thunderstorm: (
+    <WiThunderstorm className="size-10 text-purple-500 drop-shadow-[0_0_6px_rgba(128,0,128,0.6)]" />
+  ),
+  Snow: (
+    <WiSnow className="size-10 text-white drop-shadow-[0_0_6px_rgba(200,200,255,0.8)]" />
+  ),
+  Mist: (
+    <WiFog className="size-10 text-gray-300 drop-shadow-[0_0_5px_rgba(180,180,180,0.5)]" />
+  ),
+  Smoke: (
+    <WiFog className="size-10 text-gray-400 drop-shadow-[0_0_4px_rgba(160,160,160,0.4)]" />
+  ),
+  Haze: (
+    <WiFog className="size-10 text-gray-300 drop-shadow-[0_0_4px_rgba(180,180,180,0.4)]" />
+  ),
+  Dust: (
+    <WiDust className="size-10 text-yellow-500 drop-shadow-[0_0_4px_rgba(218,165,32,0.5)]" />
+  ),
+  Fog: (
+    <WiFog className="size-10 text-gray-300 drop-shadow-[0_0_5px_rgba(200,200,200,0.5)]" />
+  ),
+  Sand: (
+    <WiSandstorm className="size-10 text-yellow-400 drop-shadow-[0_0_4px_rgba(218,165,32,0.5)]" />
+  ),
+  Ash: (
+    <WiVolcano className="size-10 text-gray-500 drop-shadow-[0_0_4px_rgba(128,128,128,0.5)]" />
+  ),
+  Squall: (
+    <WiStrongWind className="size-10 text-sky-400 drop-shadow-[0_0_4px_rgba(135,206,250,0.5)]" />
+  ),
+  Tornado: (
+    <WiTornado className="size-10 text-gray-600 drop-shadow-[0_0_4px_rgba(100,100,100,0.5)]" />
+  ),
 };
 
 const WeatherCard = ({ data }: Props) => {
   if (data.error) {
     return (
-      <div className="w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-xl px-4 shadow-xs">
+      <div className="p-2 w-full bg-transparent dark:shadow-none border border-muted-foreground/15 rounded-xl px-4 shadow-xs">
         <div>
           <div className="flex items-center text-base font-medium text-red-500">
             Weather Error

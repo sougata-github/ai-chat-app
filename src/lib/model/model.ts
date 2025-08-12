@@ -1,36 +1,39 @@
+import {
+  customProvider,
+  extractReasoningMiddleware,
+  wrapLanguageModel,
+} from "ai";
 import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
+const custom = customProvider({
+  languageModels: {
+    "gemini-2.5-flash": google("gemini-2.5-flash"),
+    "qwen/qwen3-32b": wrapLanguageModel({
+      model: groq("qwen/qwen3-32b"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+  },
+});
+
 export const MODEL_REGISTRY = {
   "qwen/qwen3-32b": {
-    provider: groq,
+    provider: custom,
     id: "qwen/qwen3-32b",
-    name: "Qwen 3 32b",
+    name: "Qwen 32b",
     logo: "/qwen-logo.svg",
   },
-  // "llama-3.1-8b-instant": {
-  //   provider: groq,
-  //   id: "llama-3.1-8b-instant",
-  //   name: "Llama 3.1 8b",
-  //   logo: "/meta-logo.svg",
-  // },
   "gemini-2.5-flash": {
-    provider: google,
+    provider: custom,
     id: "gemini-2.5-flash",
     name: "Gemini 2.5 Flash",
-    logo: "/google-logo.svg",
-  },
-  "gemini-2.5-flash-lite-preview-06-17": {
-    provider: google,
-    id: "gemini-2.5-flash-lite-preview-06-17",
-    name: "Gemini 2.5 Flash Lite",
     logo: "/google-logo.svg",
   },
 } as const;
 
 export type ModelId = keyof typeof MODEL_REGISTRY;
 
-export const DEFAULT_MODEL_ID: ModelId = "gemini-2.5-flash-lite-preview-06-17";
+export const DEFAULT_MODEL_ID: ModelId = "gemini-2.5-flash";
 
 export function getModelConfig(modelId: ModelId) {
   const config = MODEL_REGISTRY[modelId];
@@ -43,7 +46,7 @@ export function getModelConfig(modelId: ModelId) {
 
 export function createModelInstance(modelId: ModelId) {
   const config = getModelConfig(modelId);
-  return config.provider(config.id);
+  return config.provider.languageModel(config.id);
 }
 
 export function isValidModelId(modelId: string): modelId is ModelId {

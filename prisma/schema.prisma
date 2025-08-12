@@ -24,7 +24,6 @@ model User {
 
   isAnonymous    Boolean?  @default(false)
   messageCount   Int       @default(0)
-  imageCount     Int       @default(0)
   lastReset      DateTime?
 
   chats          Chat[]
@@ -102,14 +101,32 @@ enum Role  {
     AI
 }
 
+
+model Attachment {
+  id String @id @default(uuid())
+  
+  name String
+  type String 
+  url String
+  key String?
+
+  messageId String
+  message Message?
+   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Message {
   id String @id @default(uuid())
 
   role Role
-  content String? 
   parts Json 
   imageKey String? 
   imageUrl String?
+  
+  attachmentId String? @unique
+  attachment Attachment? @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
 
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

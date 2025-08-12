@@ -10,18 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, Expand } from "lucide-react";
 import Image from "next/image";
+import { InferUITool } from "ai";
+import { generateImageTool } from "@/lib/tools/tool";
 
 interface ImageDisplayProps {
-  imageUrl: string;
-  prompt: string;
+  data: InferUITool<typeof generateImageTool>["output"];
 }
 
-const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
+const ImageDisplay = ({ data }: ImageDisplayProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { imageUrl, prompt } = data;
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(imageUrl);
+      const response = await fetch(imageUrl!);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -44,7 +46,7 @@ const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
       >
         <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted shadow-xs dark:shadow-none">
           <Image
-            src={imageUrl}
+            src={imageUrl!}
             alt={prompt}
             fill
             quality={100}
@@ -75,7 +77,7 @@ const ImageDisplay = ({ imageUrl, prompt }: ImageDisplayProps) => {
           <div className="space-y-4">
             <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
               <Image
-                src={imageUrl}
+                src={imageUrl!}
                 alt={prompt}
                 fill
                 quality={100}

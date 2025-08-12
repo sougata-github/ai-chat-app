@@ -36,7 +36,7 @@ interface Props {
 const ChatItem = ({ chat }: Props) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openRenameModal, setOpenRenameModal] = useState(false);
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile } = useSidebar();
 
   const pathname = usePathname();
   const router = useRouter();
@@ -55,12 +55,6 @@ const ChatItem = ({ chat }: Props) => {
     },
   });
 
-  const handleChatClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
-
   return (
     <>
       <ChatRenameModal
@@ -75,16 +69,16 @@ const ChatItem = ({ chat }: Props) => {
         onOpenChange={setOpenDeleteModal}
         onCancel={() => setOpenDeleteModal(false)}
       />
+
       <SidebarMenuItem>
         <SidebarMenuButton asChild isActive={pathname === `/chat/${chat.id}`}>
-          <Link
-            href={`/chat/${chat.id}`}
-            className="truncate"
-            onClick={handleChatClick}
-          >
-            {chat.title}
-          </Link>
+          <div>
+            <Link href={`/chat/${chat.id}`} className="truncate">
+              {chat.title}
+            </Link>
+          </div>
         </SidebarMenuButton>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuAction

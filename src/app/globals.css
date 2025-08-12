@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "uploadthing/tw/v4";
 @plugin "@tailwindcss/typography";
+@source "../../node_modules/@uploadthing/react/dist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -173,6 +175,18 @@
   }
 } */
 
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+}
+
 body {
   @apply overflow-x-hidden;
 }
@@ -210,6 +224,10 @@ button {
 
 .katex-display > .katex {
   @apply text-sm sm:text-base overflow-x-auto overflow-y-hidden outline outline-muted-foreground/15 rounded-lg px-4 py-5 bg-muted-foreground/5 shadow-xs dark:shadow-none max-w-lg;
+}
+
+.mord {
+  @apply tracking-wide text-xs whitespace-break-spaces;
 }
 
 @layer components {

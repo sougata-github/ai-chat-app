@@ -8,27 +8,25 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { startTransition, useOptimistic } from "react";
+import { startTransition } from "react";
 import { MODEL_REGISTRY, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
 import { Tool } from "@/lib/tools/tool";
 import Image from "next/image";
 
 interface ModelDropDownProps {
-  initialModel: ModelId;
+  optimisticModel: ModelId;
+  setOptimisticModel: (model: ModelId) => void;
   currentTool: Tool;
   disabled?: boolean;
 }
 
 const ModelDropDown = ({
-  initialModel,
+  optimisticModel,
+  setOptimisticModel,
   disabled = false,
   currentTool,
 }: ModelDropDownProps) => {
-  const [optimisticModel, setOptimisticModel] = useOptimistic(
-    initialModel || "gemini-2.5-flash-lite-preview-06-17"
-  );
-
   const handleModelChange = (modelId: ModelId) => {
     if (disabled) return;
 
@@ -56,7 +54,7 @@ const ModelDropDown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg px-2 pt-2.5"
+        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg px-2 pt-2.5 border border-muted-foreground/10"
         side="top"
         align="start"
         sideOffset={4}

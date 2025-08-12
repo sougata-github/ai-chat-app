@@ -11,8 +11,13 @@ import { getExaClient } from "./exa";
 
 export const generateImageTool = tool({
   description: "Generate an image based on a text prompt",
-  parameters: z.object({
+  inputSchema: z.object({
     prompt: z.string().describe("The prompt to generate the image from"),
+  }),
+  outputSchema: z.object({
+    imageUrl: z.string().url(),
+    imageKey: z.string(),
+    prompt: z.string(),
   }),
   execute: async ({ prompt }) => {
     try {
@@ -40,7 +45,7 @@ export const generateImageTool = tool({
       let base64Image = "";
 
       for (const file of result.files) {
-        if (file.mimeType.startsWith("image/")) {
+        if (file.mediaType.startsWith("image/")) {
           base64Image = file.base64;
         }
       }
@@ -85,23 +90,29 @@ export const generateImageTool = tool({
 
 export const webSearchTool = tool({
   description: "Search the live web and return up-to-date information.",
-  parameters: z.object({
+  inputSchema: z.object({
     query: z.string().min(1).max(400).describe("The search query"),
   }),
+  outputSchema: z.array(
+    z.object({
+      title: z.string(),
+      url: z.string().url().or(z.literal("")),
+      content: z.string(),
+      publishedDate: z.string().nullable(),
+    })
+  ),
   execute: async ({ query }) => {
     console.log("Searching the web...");
     const exa = getExaClient();
 
     try {
-      console.log("Query:", query);
-
       const { results } = await exa.searchAndContents(query, {
         livecrawl: "always",
         numResults: 2,
         summary: true,
       });
 
-      if (!results || results.length === 0) {
+      if (!results?.length) {
         return [
           {
             title: "No results found",
@@ -116,7 +127,7 @@ export const webSearchTool = tool({
       return results.map((result) => ({
         title: result.title || "Untitled",
         url: result.url || "",
-        content: result.summary.slice(0, 500) || "No content available.",
+        content: result.summary?.slice(0, 500) || "No content available.",
         publishedDate: result.publishedDate || null,
       }));
     } catch (err) {
@@ -134,15 +145,43 @@ export const webSearchTool = tool({
   },
 });
 
-export const getWeatherTool = tool({
-  description: "Get current weather and 5-day forecast for a location",
-  parameters: z.object({
-    location: z
-      .string()
-      .min(1)
-      .max(100)
-      .describe("The location to get weather for"),
+const weatherInputSchema = z.object({
+  location: z
+    .string()
+    .min(1)
+    .max(100)
+    .describe("The location to get weather for"),
+});
+
+const weatherOutputSchema = z.object({
+  location: z.string(),
+  country: z.string(),
+  current: z.object({
+    temp: z.number(),
+    condition: z.string(),
+    description: z.string(),
+    humidity: z.number(),
+    windSpeed: z.number(),
   }),
+  forecast: z.array(
+    z.object({
+      name: z.string(),
+      temp: z.number(),
+      condition: z.string(),
+      dayIndex: z.number(),
+    })
+  ),
+  error: z.boolean(),
+  message: z.string().optional(),
+});
+
+export const getWeatherTool = tool<
+  z.infer<typeof weatherInputSchema>,
+  z.infer<typeof weatherOutputSchema>
+>({
+  description: "Get current weather and 5-day forecast for a location",
+  inputSchema: weatherInputSchema,
+  outputSchema: weatherOutputSchema,
   execute: async ({ location }) => {
     console.log("Fetching weather data...");
 
@@ -153,7 +192,6 @@ export const getWeatherTool = tool({
     }
 
     try {
-      // Get current weather and 5-day forecast
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(
           location
@@ -166,13 +204,21 @@ export const getWeatherTool = tool({
             error: true,
             message: `Location "${location}" not found. Please check the spelling and try again.`,
             location,
+            country: "",
+            current: {
+              temp: 0,
+              condition: "",
+              description: "",
+              humidity: 0,
+              windSpeed: 0,
+            },
+            forecast: [],
           };
         }
         throw new Error(`Weather API error: ${response.status}`);
       }
 
       const data = await response.json();
-
       const current = data.list[0];
 
       const dailyForecast = data.list
@@ -210,6 +256,15 @@ export const getWeatherTool = tool({
         error: true,
         message: "Unable to fetch weather data. Please try again later.",
         location,
+        country: "",
+        current: {
+          temp: 0,
+          condition: "",
+          description: "",
+          humidity: 0,
+          windSpeed: 0,
+        },
+        forecast: [],
       };
     }
   },

@@ -1,83 +1,79 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { Message } from "ai";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import type { UIMessage } from "ai";
+
+type ChatStatus = "streaming" | "submitted" | "ready" | "error";
 
 interface UseScrollMessagesProps {
-  messages: Message[];
-  status: "streaming" | "submitted" | "ready" | "error";
-  isInitialLoad?: boolean;
+  chatId: string;
+  messages: UIMessage[];
+  status: ChatStatus;
   isFirstTimeChat?: boolean;
 }
 
 export function useScrollMessages({
+  chatId,
   messages,
   status,
-  isInitialLoad = false,
   isFirstTimeChat = false,
 }: UseScrollMessagesProps) {
-  // Ref to scrollable container (div with overflow)
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Ref to the last message DOM node
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
-  // Whether to show the "scroll to bottom" button
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // Whether the user has manually scrolled up
   const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
 
-  // Whether we should auto-scroll
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
-  // Tracks the previous message count
   const lastMessageCountRef = useRef(0);
 
-  // Returns true if user is close to the bottom
+  const [hasSentMessage, setHasSentMessage] = useState(false);
+
   const isAtBottom = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return true;
-
-    const scrollTop = container.scrollTop;
-    const clientHeight = container.clientHeight;
-    const scrollHeight = container.scrollHeight;
-
+    const { scrollTop, clientHeight, scrollHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    return distanceFromBottom < 50;
+    return distanceFromBottom < 180;
   }, []);
 
-  // Scroll to bottom with optional smooth animation
-  const scrollToBottom = useCallback((smooth = true) => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
+  const scrollToBottom = useCallback(
+    (behavior: "smooth" | "auto" | "instant" = "smooth") => {
+      const container = messagesContainerRef.current;
+      if (!container) return;
 
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: smooth ? "smooth" : "auto",
-    });
+      if (behavior === "smooth") {
+        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      } else {
+        container.scrollTop = container.scrollHeight;
+      }
 
-    setUserHasScrolledUp(false);
-    setShouldAutoScroll(true);
-    setShowScrollButton(false); // Hide button after scroll
-  }, []);
+      setUserHasScrolledUp(false);
+      setShouldAutoScroll(true);
+      setShowScrollButton(false);
+    },
+    []
+  );
 
-  // Track scroll position to detect manual scroll up/down
   const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
-
-    const scrollTop = container.scrollTop;
-    const clientHeight = container.clientHeight;
-    const scrollHeight = container.scrollHeight;
+    const { scrollTop, clientHeight, scrollHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-
     const isNearBottom = distanceFromBottom < 100;
 
     setUserHasScrolledUp(!isNearBottom);
     setShouldAutoScroll(isNearBottom);
 
-    // Fallback: hide button if at exact bottom
     if (isAtBottom()) {
       setShowScrollButton(false);
     } else if (!isNearBottom) {
@@ -85,16 +81,13 @@ export function useScrollMessages({
     }
   }, [isAtBottom]);
 
-  // Attach scroll listener
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
-
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // Track visibility of the last message using IntersectionObserver
   useEffect(() => {
     const target = lastMessageRef.current;
     const container = messagesContainerRef.current;
@@ -110,53 +103,50 @@ export function useScrollMessages({
       },
       {
         root: container,
-        threshold: 0.98,
+        threshold: 0.8,
       }
     );
-
     observer.observe(target);
     return () => observer.disconnect();
   }, [messages]);
 
-  // Scroll to bottom when visiting a chat (first load)
-  useEffect(() => {
-    if (isInitialLoad && messages.length > 0) {
-      setTimeout(() => {
-        scrollToBottom(true);
-      }, 100);
-    }
-  }, [isInitialLoad, messages.length, scrollToBottom]);
+  useLayoutEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
 
-  // Scroll after submitting first prompt (on home)
+    const raf = requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+      setUserHasScrolledUp(false);
+      setShouldAutoScroll(true);
+      setShowScrollButton(false);
+    });
+
+    setHasSentMessage(false);
+
+    return () => cancelAnimationFrame(raf);
+  }, [chatId]);
+
   useEffect(() => {
     if (isFirstTimeChat && messages.length > 0) {
-      setTimeout(() => {
-        scrollToBottom(true);
-      }, 100);
+      scrollToBottom("smooth");
     }
   }, [isFirstTimeChat, messages.length, scrollToBottom]);
 
-  // Scroll after response finishes, if allowed
   useEffect(() => {
-    if (
-      status === "ready" &&
-      shouldAutoScroll &&
-      !userHasScrolledUp &&
-      messages.length > lastMessageCountRef.current
-    ) {
-      setTimeout(() => {
-        scrollToBottom(true);
-      }, 100);
+    if (status === "submitted") {
+      setHasSentMessage(true);
+      scrollToBottom("smooth");
     }
+
+    setHasSentMessage(false);
   }, [
-    messages.length,
     status,
+    messages.length,
+    scrollToBottom,
     shouldAutoScroll,
     userHasScrolledUp,
-    scrollToBottom,
   ]);
 
-  // Keep track of previous message count
   useEffect(() => {
     lastMessageCountRef.current = messages.length;
   }, [messages.length]);
@@ -168,5 +158,6 @@ export function useScrollMessages({
     scrollToBottom,
     handleScroll,
     isAtBottom,
+    hasSentMessage,
   };
 }

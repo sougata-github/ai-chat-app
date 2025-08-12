@@ -8,10 +8,9 @@ Todo:
 - Rate limiting (messages and chats for logged in and guest users)
 - Share page
 - Refinements (Animations, UX improvement)
-- Future updates (tool calling, edit message)
 - Migrate to Convex
-- File Attachments, paste long text as text files for input
-- Image and File uploads for content summary
+- File Attachments, paste long text as text files for input✅
+- Image and File uploads for content summary✅
 - MCP integrations (ex: Notion, Google, Discord, etc )
 
 ## Tech Stack
@@ -27,3 +26,8 @@ Todo:
 - Upstash
 - Uploadthing
 - Vercel
+
+## Bugs
+
+- no user message for when client disconnectsor routing mid stream (resumable streams) going back -> it shows blank
+- resumable streams don't work

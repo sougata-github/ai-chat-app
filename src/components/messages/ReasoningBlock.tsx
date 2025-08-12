@@ -9,20 +9,20 @@ import { MemoizedMarkdown } from "./MemoizedMarkdown";
 import { SpinnerIcon } from "./SpinnerIcon";
 
 interface Props {
-  reasoning: string;
+  reasoningText: string;
   isStreaming?: boolean;
 }
 
-const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
+const ReasoningBlock = ({ reasoningText, isStreaming = false }: Props) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const formatReasoningSteps = (text: string) => {
-    // Split reasoning into logical steps/paragraphs
+    // split reasoning into logical steps/paragraphs
     const steps = text.split("\n\n").filter((step) => step.trim());
     return steps;
   };
 
-  const reasoningSteps = formatReasoningSteps(reasoning);
+  const reasoningSteps = formatReasoningSteps(reasoningText);
 
   return (
     <div className="w-full pl-0 bg-transparent rounded-none transition min-h-[20px] mb-10">
@@ -54,11 +54,7 @@ const ReasoningBlock = ({ reasoning, isStreaming = false }: Props) => {
               isExpanded && "rotate-90"
             )}
           />
-          {isExpanded ? (
-            <>Hide reasoning steps</>
-          ) : (
-            <>Show reasoning steps ({reasoningSteps.length} steps)</>
-          )}
+          {isExpanded ? <>Hide reasoning steps</> : <>Show reasoning steps</>}
         </Button>
       </div>
 

@@ -11,6 +11,7 @@ export default async function ChatPage() {
   return (
     <ChatView
       chatId={chatId}
+      autoResume={false}
       initialMessages={[]}
       selectedTool={selectedTool}
       selectedModel={selectedModel}

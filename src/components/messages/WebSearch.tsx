@@ -2,24 +2,19 @@
 
 import { ArrowUpRightIcon, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
-
-interface WebSearchResult {
-  title: string;
-  url: string;
-  content: string;
-  publishedDate?: string;
-}
+import { InferUITool } from "ai";
+import { webSearchTool } from "@/lib/tools/tool";
 
 interface WebSearchCardProps {
-  results: WebSearchResult[];
-  query: string;
+  results: InferUITool<typeof webSearchTool>["output"];
+  input: InferUITool<typeof webSearchTool>["input"];
 }
 
-const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
+const WebSearchCard = ({ results, input }: WebSearchCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -42,7 +37,7 @@ const WebSearchCard = ({ results, query }: WebSearchCardProps) => {
               )}
             />
             <span className="text-xs sm:text-sm max-w-xs">
-              Results for {query}
+              Results for {input.query}
             </span>
           </Button>
         </div>

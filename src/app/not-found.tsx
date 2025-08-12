@@ -1,6 +1,6 @@
 export default function NotFound() {
   return (
-    <div className="sticky top-[50%] flex items-center justify-center overflow-hidden max-w-xl mx-auto">
+    <div className="fixed flex items-center justify-center inset-0">
       Oops! The page you&apos;re looking for doesn&apos;t exist.
     </div>
   );
