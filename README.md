@@ -4,8 +4,8 @@ Todo:
 - resumable streams✅
 - Code generation and syntax highlighting✅
 - Image Generation, Web Search tool, Check Weather tool, multi model setup, scroll hooks (scroll to bottom, auto-scroll)✅
-- Copy and Retry buttons for messages
-- Rate limiting (messages and chats for logged in and guest users)
+- Copy and Retry buttons for messages ✅
+- Rate limiting 
 - Share page
 - Refinements (Animations, UX improvement)
 - Migrate to Convex
@@ -27,7 +27,3 @@ Todo:
 - Uploadthing
 - Vercel
 
-## Bugs
-
-- no user message for when client disconnectsor routing mid stream (resumable streams) going back -> it shows blank
-- resumable streams don't work
