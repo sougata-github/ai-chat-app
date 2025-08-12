@@ -226,10 +226,6 @@ button {
   @apply text-sm sm:text-base overflow-x-auto overflow-y-hidden outline outline-muted-foreground/15 rounded-lg px-4 py-5 bg-muted-foreground/5 shadow-xs dark:shadow-none max-w-lg;
 }
 
-.mord {
-  @apply tracking-wide text-xs whitespace-break-spaces;
-}
-
 @layer components {
   .content-styles {
     @apply prose dark:prose-invert prose-sm sm:prose-base max-w-none;
