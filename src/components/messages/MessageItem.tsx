@@ -54,17 +54,17 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 group",
-        isUser ? "py-2.5 items-end" : " py-6 md:py-10"
+        "flex flex-col gap-1 group py-2 md:py-4",
+        isUser && "items-end"
       )}
     >
       <div className={cn("w-full", isUser && "flex justify-end")}>
         <div
           className={cn(
-            "px-4 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px] relative",
+            "px-4 py-2 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px] relative",
             isUser
-              ? "py-2.5 bg-muted-foreground/10 max-w-[300px] md:max-w-md break-words"
-              : "bg-transparent w-full break-words"
+              ? "bg-muted-foreground/10 max-w-[300px] md:max-w-md break-words"
+              : "bg-transparent w-full break-words pb-0"
           )}
         >
           {/* user file attachments */}
@@ -72,13 +72,13 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
             <div className="p-2 mb-2">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {fileAttachment.mediaType.startsWith("image") ? (
-                  <div className="relative max-h-[200px]">
+                  <div className="relative">
                     <Image
                       priority
                       quality={100}
                       src={fileAttachment.url ?? "https://placehold.co/200x100"}
                       alt={`Image ${fileAttachment.filename} uploaded by user`}
-                      height={120}
+                      height={200}
                       width={320}
                       className="w-80 object-cover rounded"
                     />
@@ -229,7 +229,7 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
       </div>
       <div
         className={cn(
-          "group-hover:opacity-100 opacity-0 transition-opacity duration-400 flex items-center gap-2 pl-4 mt-1"
+          "sm:group-hover:opacity-100 sm:opacity-0 transition-opacity duration-400 flex items-center gap-2 pl-4 mt-1"
         )}
       >
         {isUser && (
@@ -238,7 +238,7 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
             className="bg-transparent disabled:text-muted-foreground"
             disabled={status !== "ready"}
           >
-            <RefreshCcw className="size-3.5" />
+            <RefreshCcw className="size-3 sm:size-3.5" />
           </button>
         )}
 
@@ -250,9 +250,9 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
           )}
         >
           {copied ? (
-            <Check className="size-3.5" />
+            <Check className="size-3 sm:size-3.5" />
           ) : (
-            <Copy className="size-3.5" />
+            <Copy className="size-3 sm:size-3.5" />
           )}
         </button>
       </div>

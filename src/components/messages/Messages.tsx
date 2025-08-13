@@ -50,7 +50,7 @@ const Messages = ({ messages, status, lastMessageRef, regenerate }: Props) => {
       })}
 
       {showLoader && (
-        <div className="flex w-full justify-start pt-6 md:pt-10">
+        <div className="flex w-full justify-start pt-4 md:pt-6 pl-4">
           <Thinking size="sm" />
         </div>
       )}
@@ -58,7 +58,7 @@ const Messages = ({ messages, status, lastMessageRef, regenerate }: Props) => {
       {status === "error" &&
         messages.length > 0 &&
         messages[messages.length - 1].role === "user" && (
-          <div className="flex w-full justify-start pt-6 md:pt-10">
+          <div className="flex w-full justify-start pt-4 md:pt-6 pl-4">
             <div className="px-4 py-2 whitespace-pre-wrap bg-destructive/80 rounded-lg dark:text-foreground text-background">
               There was an error generating the response.
             </div>
