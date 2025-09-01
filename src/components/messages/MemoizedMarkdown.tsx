@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 "use client";
 
 import ReactMarkdown, { type Components } from "react-markdown";

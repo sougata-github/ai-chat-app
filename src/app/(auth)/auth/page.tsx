@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,42 +10,45 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { FaGoogle } from "react-icons/fa";
-import { createAuthClient } from "better-auth/react";
-import { trpc } from "@/trpc/client";
+import { authClient } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
-
-const authClient = createAuthClient();
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 export default function AuthPage() {
   const router = useRouter();
-  const utils = trpc.useUtils();
-  const { data: session } = authClient.useSession();
-
+  const currentUser = useQuery(api.auth.getCurrentUser);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
+  console.log(currentUser);
+
   useEffect(() => {
-    if (session && session.user.name !== "Anonymous") {
+    if (currentUser && !currentUser.isAnonymous) {
       router.push("/");
     }
-  }, [session, router]);
+  }, [currentUser, router]);
 
   const signIn = async () => {
-    setIsSigningIn(true);
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        fetchOptions: {
+      await authClient.signIn.social(
+        {
+          provider: "google",
+        },
+        {
+          onRequest: () => {
+            setIsSigningIn(true);
+          },
           onSuccess: () => {
-            utils.user.getCurrentUser.invalidate();
+            setIsSigningIn(false);
             window.location.replace("/");
           },
-          onError: (error) => {
-            console.error("Couldn't sign in", error);
+          onError: (ctx) => {
+            setIsSigningIn(false);
+            console.log(ctx.error.message);
           },
-        },
-      });
+        }
+      );
     } catch (error) {
       console.error("Sign in error", error);
     } finally {
@@ -55,7 +57,7 @@ export default function AuthPage() {
   };
 
   return (
-    <Card className="max-w-sm w-full py-10 outline shadow outline-muted-foreground/15 dark:shadow-none dark:outline-none rounde">
+    <Card className="max-w-sm w-full py-10 outline shadow outline-muted-foreground/15 dark:shadow-none dark:outline-none rounded">
       <CardHeader className="text-center">
         <CardTitle className="text-xl font-semibold">
           Welcome to Ai Chat
@@ -67,7 +69,7 @@ export default function AuthPage() {
           {isSigningIn ? (
             <>
               <Loader2 className="animate-spin mr-2 size-4 transition" />
-              Signing in...
+              Signing in
             </>
           ) : (
             <>

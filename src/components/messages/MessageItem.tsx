@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import Image from "next/image";
-import { Check, Copy, FileIcon, RefreshCcw } from "lucide-react";
+import { Check, Copy, FileIcon, PenSquareIcon, RotateCw } from "lucide-react";
 import { cn, sanitizeText } from "@/lib/utils";
 import { MemoizedMarkdown } from "./MemoizedMarkdown";
 import LoadingSkeleton from "./LoadingSkeleton";
@@ -16,17 +16,45 @@ import {
   getWeatherTool,
   webSearchTool,
 } from "@/lib/tools/tool";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { toast } from "sonner";
+import { Doc } from "@convex/_generated/dataModel";
 
 interface Props {
+  updateChat: () => void;
+  setMessageToEdit: (message: Doc<"messages">) => void;
+  setHandleRegenerate: React.Dispatch<
+    React.SetStateAction<(() => Promise<void>) | undefined>
+  >;
+  setHiddenMessageIds: Dispatch<SetStateAction<Set<string>>>;
   message: UIMessage;
   regenerate: ({ messageId }: { messageId: string }) => void;
   status: "streaming" | "submitted" | "ready" | "error";
+  chatId: string;
 }
 
-const MessageItem = ({ message, regenerate, status }: Props) => {
+const MessageItem = ({
+  updateChat,
+  setMessageToEdit,
+  setHandleRegenerate,
+  message,
+  regenerate,
+  status,
+  chatId,
+  setHiddenMessageIds,
+}: Props) => {
   const isUser = message.role === "user";
   const fileAttachment = message.parts.find((part) => part.type === "file");
   const [copied, setCopied] = useState(false);
+
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const messageToRegenerate = useQuery(api.chats.getMessagesByUUID, {
+    messageId: message.id,
+  });
+
+  const allMessages = useQuery(api.chats.getMessagesByChatId, { chatId });
+  const deleteMessage = useMutation(api.chats.deleteMessage);
 
   const reasoningPart = message.parts.find((part) => part.type === "reasoning");
   const otherParts = message.parts.filter((part) => part.type !== "reasoning");
@@ -45,32 +73,61 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
     }
   };
 
-  const handleRegenerate = () => {
-    regenerate({ messageId: message.id });
+  const handleRegenerate = async () => {
+    try {
+      setIsRegenerating(true);
+      toast.success("Regenerating response");
+      if (allMessages && messageToRegenerate) {
+        const toRemoveIds = allMessages
+          .filter((msg) => msg.createdAt > messageToRegenerate.createdAt)
+          .map((msg) => msg.id);
+
+        setHiddenMessageIds((prev) => {
+          const updated = new Set(prev);
+          toRemoveIds.forEach((id) => updated.add(id));
+          return updated;
+        });
+
+        await Promise.all(toRemoveIds.map((id) => deleteMessage({ id })));
+      }
+
+      regenerate({ messageId: message.id });
+      updateChat();
+    } catch (error) {
+      setIsRegenerating(false);
+      console.log("Error in Regenerating response", (error as Error).message);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (messageToRegenerate) {
+      setMessageToEdit(messageToRegenerate);
+    }
+
+    setHandleRegenerate(() => handleRegenerate);
   };
 
   if (message.parts.length === 0) return null;
 
   return (
     <div
-      className={cn(
-        "flex flex-col gap-1 group py-2 md:py-4",
-        isUser && "items-end"
-      )}
+      className={cn("flex flex-col group gap-1 py-2", isUser && "items-end")}
     >
       <div className={cn("w-full", isUser && "flex justify-end")}>
         <div
           className={cn(
-            "px-4 py-2 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px] relative",
+            "px-4 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px] relative",
             isUser
-              ? "bg-muted-foreground/10 max-w-[300px] md:max-w-md break-words"
-              : "bg-transparent w-full break-words pb-0"
+              ? "dark:bg-muted-foreground/15 bg-muted-foreground/5 font-medium max-w-[300px] md:max-w-md break-words py-2"
+              : "bg-transparent w-full break-words"
           )}
         >
           {/* user file attachments */}
           {isUser && fileAttachment && (
             <div className="p-2 mb-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-foreground">
                 {fileAttachment.mediaType.startsWith("image") ? (
                   <div className="relative">
                     <Image
@@ -87,7 +144,7 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
                   <FileIcon className="size-4" />
                 )}
               </div>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-foreground">
                 {fileAttachment.filename}
               </span>
             </div>
@@ -229,28 +286,32 @@ const MessageItem = ({ message, regenerate, status }: Props) => {
       </div>
       <div
         className={cn(
-          "sm:group-hover:opacity-100 sm:opacity-0 transition-opacity duration-400 flex items-center gap-2 pl-4 mt-1"
+          "sm:group-hover:opacity-100 sm:opacity-0 transition-opacity duration-400 flex items-center gap-3 pl-4 mt-1  text-muted-foreground"
         )}
       >
         {isUser && (
           <button
-            onClick={handleRegenerate}
-            className="bg-transparent disabled:text-muted-foreground"
-            disabled={status !== "ready"}
+            onClick={handleEdit}
+            className="bg-transparent"
+            disabled={status !== "ready" || isRegenerating}
           >
-            <RefreshCcw className="size-3 sm:size-3.5" />
+            <PenSquareIcon className="size-3 sm:size-3.5" />
           </button>
         )}
 
-        <button
-          onClick={handleCopy}
-          className={cn(
-            "bg-transparent",
-            status !== "ready" && !isUser && "opacity-0"
-          )}
-        >
+        {isUser && (
+          <button
+            onClick={handleRegenerate}
+            className="bg-transparent"
+            disabled={status !== "ready" || isRegenerating}
+          >
+            <RotateCw className="size-3 sm:size-3.5" />
+          </button>
+        )}
+
+        <button onClick={handleCopy} className={cn("bg-transparent")}>
           {copied ? (
-            <Check className="size-3 sm:size-3.5" />
+            <Check className="size-3.5 sm:size-3.5" />
           ) : (
             <Copy className="size-3 sm:size-3.5" />
           )}

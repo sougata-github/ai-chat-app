@@ -25,7 +25,7 @@ const ScrollToBottom = ({ onClick, show }: ScrollToBottomButtonProps) => {
         variant="secondary"
         className="rounded-full shadow-lg border bg-background/95 backdrop-blur-sm transition-all duration-200"
       >
-        <ArrowDown className="size-4" />
+        <ArrowDown />
         <span className="sr-only">Scroll to bottom</span>
       </Button>
     </div>

@@ -1,19 +1,12 @@
 import { createUIMessageStream, JsonToSseTransformStream, UIMessage } from "ai";
-import { getChatById, getMessagesByChatId, loadStreams } from "@/lib/chat";
-import { createResumableStreamContext } from "resumable-stream";
-import { convertToAISDKMessages } from "@/lib/utils";
+import { convertConvexMessagesToAISDK } from "@/lib/utils";
+import { getToken } from "@convex-dev/better-auth/nextjs";
 import { differenceInSeconds } from "date-fns";
-import { auth } from "@/lib/auth/auth";
-import { after } from "next/server";
+import { api } from "@convex/_generated/api";
+import { fetchQuery } from "convex/nextjs";
+import { createAuth } from "@/lib/auth";
 
-function getStreamContext() {
-  try {
-    return createResumableStreamContext({ waitUntil: after });
-  } catch (err) {
-    console.warn("Resumable stream disabled", err);
-    return null;
-  }
-}
+import { getStreamContext } from "../../route";
 
 export async function GET(
   req: Request,
@@ -32,21 +25,30 @@ export async function GET(
     return new Response("chatId is required", { status: 400 });
   }
 
-  const session = await auth.api.getSession({
-    headers: req.headers,
-  });
+  const token = await getToken(createAuth);
 
-  if (!session || !session.user) {
+  if (!token) {
+    return new Response("Unautorized", { status: 401 });
+  }
+
+  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+
+  if (!user) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const chat = await getChatById(chatId);
+  if (!chatId) {
+    return new Response("Chat ID is required", { status: 400 });
+  }
+
+  const chat = await fetchQuery(api.chats.getChatByUUID, { chatId });
 
   if (!chat) {
     return new Response("Chat not found", { status: 404 });
   }
 
-  const streamIds = await loadStreams(chatId);
+  const streamIds = await fetchQuery(api.streams.loadStreams, { chatId });
+
   if (!streamIds.length) {
     return new Response("No streams found", { status: 404 });
   }
@@ -75,8 +77,11 @@ export async function GET(
   }
 
   // If stream already finished, try sending the assistant's last message
-  const dbMessages = await getMessagesByChatId(chatId);
-  const messages = convertToAISDKMessages(dbMessages);
+  const dbMessages = await fetchQuery(api.chats.getMessagesByChatId, {
+    chatId,
+  });
+
+  const messages = convertConvexMessagesToAISDK(dbMessages);
 
   const mostRecent = messages.at(-1);
 

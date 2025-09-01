@@ -17,26 +17,25 @@ import { saveChatModelAsCookie } from "@/lib/model";
 interface ModelDropDownProps {
   setOptimisticModel: (model: ModelId) => void;
   disabledAll: boolean;
-  initialModel: ModelId;
+  optimisticModel: ModelId;
   optimisticTool: Tool;
   setOptimisticTool: (toolId: Tool) => void;
 }
 
 const ToolDropDown = ({
   disabledAll,
-  initialModel,
+  optimisticModel,
   optimisticTool,
   setOptimisticTool,
   setOptimisticModel,
 }: ModelDropDownProps) => {
   const handleToolChange = (toolId: Tool) => {
+    setOptimisticTool(toolId);
     startTransition(async () => {
-      setOptimisticTool(toolId);
       await saveToolAsCookie(toolId);
-
       // set appropriate model for the tool
       if (toolId !== "none") {
-        const toolModel = getModelForTool(toolId, initialModel);
+        const toolModel = getModelForTool(toolId, optimisticModel);
         setOptimisticModel(toolModel);
         await saveChatModelAsCookie(toolModel as ModelId);
       }

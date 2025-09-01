@@ -2,9 +2,9 @@
 
 import InfiniteScroll from "@/components/InfiniteScroll";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DEFAULT_LIMIT } from "@/constants";
-import { trpc } from "@/trpc/client";
 import ArchivedChatItem from "./ArchivedChatItem";
+import { usePaginatedQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 const ArchivedChatListSkeleton = () => {
   return (
@@ -24,30 +24,38 @@ interface Props {
 }
 
 const ArchivedChatList = ({ onOpenChange }: Props) => {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    trpc.chats.getMany.useInfiniteQuery(
-      {
-        limit: DEFAULT_LIMIT,
-        isArchived: true,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.chats.getMany,
+    { isArchived: true },
+    { initialNumItems: 10 }
+  );
 
-  const merged = {
-    today: data?.pages.flatMap((p) => p.chats.today) ?? [],
-    last7Days: data?.pages.flatMap((p) => p.chats.last7Days) ?? [],
-    older: data?.pages.flatMap((p) => p.chats.older) ?? [],
+  const isLoading = status === "LoadingMore" || status === "LoadingFirstPage";
+
+  const allChats = results;
+
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const grouped = {
+    today: allChats.filter((chat) => new Date(chat.updatedAt) >= startOfToday),
+    last7Days: allChats.filter((chat) => {
+      const updatedAt = new Date(chat.updatedAt);
+      return updatedAt < startOfToday && updatedAt >= sevenDaysAgo;
+    }),
+    older: allChats.filter((chat) => new Date(chat.updatedAt) < sevenDaysAgo),
   };
 
   if (
-    merged.today.length === 0 &&
-    merged.today.length === 0 &&
-    merged.today.length === 0
+    grouped.today.length === 0 &&
+    grouped.last7Days.length === 0 &&
+    grouped.older.length === 0
   )
     return (
-      <p className="text-center p-4 pt-0 text-muted-foreground text-sm">
+      <p className="text-muted-foreground pb-4 text-center text-sm">
         No archived Chats
       </p>
     );
@@ -57,13 +65,13 @@ const ArchivedChatList = ({ onOpenChange }: Props) => {
       {isLoading && <ArchivedChatListSkeleton />}
 
       {/* today group */}
-      {merged.today.length > 0 && (
+      {grouped.today.length > 0 && (
         <div className="flex flex-col">
           Today
           <div className="flex flex-col gap-2 mt-2">
-            {merged.today.map((chat) => (
+            {grouped.today.map((chat) => (
               <ArchivedChatItem
-                key={chat.id}
+                key={chat._id}
                 chat={chat}
                 onOpenChange={onOpenChange}
               />
@@ -73,13 +81,13 @@ const ArchivedChatList = ({ onOpenChange }: Props) => {
       )}
 
       {/* last 7 Days group */}
-      {merged.last7Days.length > 0 && (
+      {grouped.last7Days.length > 0 && (
         <div className="flex flex-col">
           Last 7 Days
           <div className="flex flex-col gap-2 mt-2">
-            {merged.last7Days.map((chat) => (
+            {grouped.last7Days.map((chat) => (
               <ArchivedChatItem
-                key={chat.id}
+                key={chat._id}
                 chat={chat}
                 onOpenChange={onOpenChange}
               />
@@ -89,13 +97,13 @@ const ArchivedChatList = ({ onOpenChange }: Props) => {
       )}
 
       {/* older group */}
-      {merged.older.length > 0 && (
+      {grouped.older.length > 0 && (
         <div className="flex flex-col">
           Older
           <div className="flex flex-col gap-2 mt-2">
-            {merged.older.map((chat) => (
+            {grouped.older.map((chat) => (
               <ArchivedChatItem
-                key={chat.id}
+                key={chat._id}
                 chat={chat}
                 onOpenChange={onOpenChange}
               />
@@ -104,17 +112,11 @@ const ArchivedChatList = ({ onOpenChange }: Props) => {
         </div>
       )}
 
-      {!isLoading &&
-        data?.pages[0]?.chats &&
-        (data.pages[0].chats.today.length > 0 ||
-          data.pages[0].chats.last7Days.length > 0 ||
-          data.pages[0].chats.older.length > 0) && (
-          <InfiniteScroll
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            fetchNextPage={fetchNextPage}
-          />
-        )}
+      <InfiniteScroll
+        hasNextPage={!isLoading && !!loadMore}
+        isFetchingNextPage={status === "LoadingMore"}
+        fetchNextPage={loadMore}
+      />
     </div>
   );
 };

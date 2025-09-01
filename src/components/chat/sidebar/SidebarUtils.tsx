@@ -7,30 +7,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { RefreshCw, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import ArchivedChatsModal from "../modals/archive-chat/ArchivedChatsModal";
 import SearchCommand from "../modals/SearchCommand";
-import { useRouter } from "next/navigation";
 
 const SidebarUtils = () => {
-  const router = useRouter();
-
   const [openArchivedChats, setOpenArchivedChats] = useState(false);
   const [openSearch, setOpenSearch] = useState(false);
-
-  const { isMobile, setOpenMobile } = useSidebar();
-
-  const handleChatClick = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-
-    router.refresh();
-  };
 
   return (
     <>
@@ -46,7 +32,7 @@ const SidebarUtils = () => {
             asChild
             className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
           >
-            <Link href="/" onClick={handleChatClick}>
+            <Link href="/">
               <span>New Chat</span>
             </Link>
           </Button>

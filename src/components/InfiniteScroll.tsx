@@ -2,18 +2,17 @@
 
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useEffect } from "react";
-import { Button } from "./ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 
 interface Props {
   isManual?: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  fetchNextPage: () => void;
+  fetchNextPage: (items: number) => void;
 }
 
 const InfiniteScroll = ({
-  isManual = false, //for manually loading more data
+  isManual = false,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -25,7 +24,7 @@ const InfiniteScroll = ({
 
   useEffect(() => {
     if (isIntersecting && hasNextPage && !isFetchingNextPage && !isManual) {
-      fetchNextPage();
+      fetchNextPage(10);
     }
   }, [
     isIntersecting,
@@ -38,20 +37,8 @@ const InfiniteScroll = ({
   return (
     <div className="flex flex-col items-center gap-4">
       <div ref={targetRef} className="h-1" />
-      {hasNextPage ? (
-        <Button
-          variant="ghost"
-          disabled={!hasNextPage || isFetchingNextPage}
-          onClick={() => fetchNextPage()}
-        >
-          {isFetchingNextPage ? (
-            <Loader2 className="size-4 text-muted-foreground animate-spin transition-all" />
-          ) : (
-            "Load More"
-          )}
-        </Button>
-      ) : (
-        <></>
+      {hasNextPage && isFetchingNextPage && (
+        <Loader className="animate-spin transition size-4" />
       )}
     </div>
   );

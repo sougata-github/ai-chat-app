@@ -18,7 +18,7 @@ import type z from "zod";
 import type { ModelId } from "@/lib/model/model";
 import type { chatInputSchema } from "@/schemas";
 
-type FileValue = z.infer<typeof chatInputSchema.shape.file>;
+export type FileValue = z.infer<typeof chatInputSchema.shape.file>;
 
 interface FileUploadProps {
   setOptimisticModel: (model: ModelId) => void;

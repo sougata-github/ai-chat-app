@@ -29,9 +29,8 @@ const ModelDropDown = ({
 }: ModelDropDownProps) => {
   const handleModelChange = (modelId: ModelId) => {
     if (disabled) return;
-
+    setOptimisticModel(modelId);
     startTransition(async () => {
-      setOptimisticModel(modelId);
       await saveChatModelAsCookie(modelId);
     });
   };

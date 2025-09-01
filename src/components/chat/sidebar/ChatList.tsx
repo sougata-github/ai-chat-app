@@ -1,120 +1,100 @@
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, } from "@/components/ui/sidebar";
+import { usePaginatedQuery } from "convex-helpers/react/cache/hooks";
 import InfiniteScroll from "@/components/InfiniteScroll";
-import { DEFAULT_LIMIT } from "@/constants";
-import { trpc } from "@/trpc/client";
-import { useEffect } from "react";
+import { api } from "@convex/_generated/api";
 
 import ChatItem, { ChatItemSkeleton } from "./ChatItem";
 
-const ChatListSkeleton = () => {
-  return (
-    <div className="flex flex-col gap-3 px-2">
-      {[...new Array(25)].fill(0).map((_, index) => (
-        <ChatItemSkeleton key={index} />
-      ))}
-    </div>
-  );
-};
+
+const ChatListSkeleton = () => (
+  <div className="flex flex-col gap-3 px-2">
+    {Array.from({ length: 25 }).map((_, index) => (
+      <ChatItemSkeleton key={index} />
+    ))}
+  </div>
+);
 
 const ChatList = () => {
-  const { openMobile } = useSidebar();
-
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-  } = trpc.chats.getMany.useInfiniteQuery(
-    {
-      limit: DEFAULT_LIMIT,
-      isArchived: false,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      refetchOnWindowFocus: false,
-      refetchOnMount: true,
-      staleTime: 0,
-      placeholderData: (prev) => prev,
-    }
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.chats.getMany,
+    { isArchived: false },
+    { initialNumItems: 10 }
   );
 
-  useEffect(() => {
-    if (openMobile) {
-      refetch();
-    }
-  }, [openMobile, refetch]);
+  const isLoading = status === "LoadingMore" || status === "LoadingFirstPage";
 
-  const merged = {
-    today: data?.pages.flatMap((p) => p.chats.today) ?? [],
-    last7Days: data?.pages.flatMap((p) => p.chats.last7Days) ?? [],
-    older: data?.pages.flatMap((p) => p.chats.older) ?? [],
+  const allChats = results;
+
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const grouped = {
+    today: allChats.filter((chat) => new Date(chat.updatedAt) >= startOfToday),
+    last7Days: allChats.filter((chat) => {
+      const updatedAt = new Date(chat.updatedAt);
+      return updatedAt < startOfToday && updatedAt >= sevenDaysAgo;
+    }),
+    older: allChats.filter((chat) => new Date(chat.updatedAt) < sevenDaysAgo),
   };
 
   return (
     <div className="overflow-y-auto pb-20">
       {isLoading && <ChatListSkeleton />}
-      {/* today group */}
 
-      {merged.today.length > 0 && (
+      {/* Today */}
+      {grouped.today.length > 0 && (
         <SidebarGroup>
           <SidebarGroupLabel>Today</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {merged.today.map((chat) => (
-                <ChatItem key={chat.id} chat={chat} />
+              {grouped.today.map((chat) => (
+                <ChatItem key={chat._id} chat={chat} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       )}
 
-      {/* last 7 Days group */}
-      {merged.last7Days.length > 0 && (
+      {/* Last 7 Days */}
+      {grouped.last7Days.length > 0 && (
         <SidebarGroup>
           <SidebarGroupLabel>Last 7 Days</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {merged.last7Days.map((chat) => (
-                <ChatItem key={chat.id} chat={chat} />
+              {grouped.last7Days.map((chat) => (
+                <ChatItem key={chat._id} chat={chat} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       )}
 
-      {/* older group */}
-      {merged.older.length > 0 && (
+      {/* Older */}
+      {grouped.older.length > 0 && (
         <SidebarGroup>
           <SidebarGroupLabel>Older</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {merged.older.map((chat) => (
-                <ChatItem key={chat.id} chat={chat} />
+              {grouped.older.map((chat) => (
+                <ChatItem key={chat._id} chat={chat} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       )}
 
-      {!isLoading &&
-        data?.pages[0]?.chats &&
-        (data.pages[0].chats.today.length > 0 ||
-          data.pages[0].chats.last7Days.length > 0 ||
-          data.pages[0].chats.older.length > 0) && (
+      {grouped.last7Days.length > 0 ||
+        grouped.older.length > 0 ||
+        (grouped.today.length > 0 && (
           <InfiniteScroll
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            fetchNextPage={fetchNextPage}
+            hasNextPage={!isLoading && !!loadMore}
+            isFetchingNextPage={status === "LoadingMore"}
+            fetchNextPage={loadMore}
           />
-        )}
+        ))}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { DataStreamProvider } from "@/context/DataStreamProvider";
+import { ChatProvider } from "@/components/providers/ChatProvider";
 import ChatSidebar from "@/components/chat/sidebar/ChatSidebar";
 import AuthGate from "@/components/chat/auth/AuthGate";
 import ChatHeader from "@/components/chat/ChatHeader";
@@ -12,7 +12,7 @@ export default function ChatLayout({
   return (
     <main className="h-dvh">
       <AuthGate>
-        <DataStreamProvider>
+        <ChatProvider>
           <SidebarProvider
             style={
               {
@@ -27,7 +27,7 @@ export default function ChatLayout({
               <section className="flex-1 flex flex-col">{children}</section>
             </SidebarInset>
           </SidebarProvider>
-        </DataStreamProvider>
+        </ChatProvider>
       </AuthGate>
     </main>
   );

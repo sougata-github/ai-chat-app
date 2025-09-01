@@ -18,13 +18,13 @@ import { WandSparkles } from "lucide-react";
 import SidebarUtils from "./SidebarUtils";
 import ChatList from "./ChatList";
 import LoginButton from "./LoginButton";
-import { trpc } from "@/trpc/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
-  const { data, isLoading } = trpc.user.getCurrentUser.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+  const userData = useQuery(api.auth.getCurrentUser);
+  const isLoading = userData === undefined;
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -47,13 +47,13 @@ const ChatSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
       <SidebarFooter>
         {isLoading ? (
           <Skeleton className="h-5 rounded-md" />
-        ) : data && data.name === "Anonymous" ? (
+        ) : userData && userData.name === "Anonymous" ? (
           <LoginButton />
         ) : (
           <UserInfo
-            name={data?.name ?? "John Doe"}
-            image={data?.image ?? "https://avatar.vercel.sh/jack"}
-            email={data?.email ?? "johndoe@example.com"}
+            name={userData?.name ?? "John Doe"}
+            image={userData?.image ?? "https://avatar.vercel.sh/jack"}
+            email={userData?.email ?? "johndoe@example.com"}
           />
         )}
       </SidebarFooter>

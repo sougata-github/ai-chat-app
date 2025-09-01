@@ -21,7 +21,6 @@ import {
 import { CommandIcon } from "lucide-react";
 
 import { createAuthClient } from "better-auth/react";
-import { trpc } from "@/trpc/client";
 import Image from "next/image";
 import { useState } from "react";
 import SearchCommand from "../modals/SearchCommand";
@@ -37,15 +36,12 @@ const UserInfo = ({ name, email, image }: Props) => {
 
   const { isMobile } = useSidebar();
 
-  const utils = trpc.useUtils();
-
   const authClient = createAuthClient();
 
   const signOut = async () => {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          utils.user.getCurrentUser.invalidate();
           window.location.replace("/");
         },
         onError: (error) => {
@@ -124,7 +120,6 @@ const UserInfo = ({ name, email, image }: Props) => {
                   </div>
                   Search
                 </DropdownMenuItem>
-                {/* todo: Manage Account Settings from Clerk */}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>

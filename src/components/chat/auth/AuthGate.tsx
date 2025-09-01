@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
 
 const AuthGate = ({ children }: { children: React.ReactNode }) => {
@@ -11,12 +11,20 @@ const AuthGate = ({ children }: { children: React.ReactNode }) => {
 
     const init = async () => {
       const session = await authClient.getSession();
+      console.log("Session", session);
 
       if (!cancelled) {
         if (!session.data?.user) {
-          await authClient.signIn.anonymous();
+          console.log("Signing in anonymously");
+          await authClient.signIn.anonymous(
+            {},
+            {
+              onError: (ctx) => {
+                console.error(ctx.error.message);
+              },
+            }
+          );
         }
-
         setReady(true);
       }
     };

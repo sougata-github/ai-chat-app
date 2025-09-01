@@ -1,12 +1,11 @@
 import {
   streamText,
-  smoothStream,
-  UIMessage,
   createUIMessageStream,
   JsonToSseTransformStream,
   convertToModelMessages,
   stepCountIs,
   InferUITool,
+  UIMessage,
 } from "ai";
 import {
   generateImageTool,
@@ -23,30 +22,39 @@ import {
   ModelId,
 } from "@/lib/model/model";
 import {
-  appendStreamId,
-  generateTitleFromUserMessage,
-  getChatById,
-} from "@/lib/chat";
-import { convertToAISDKMessages, injectCurrentDate } from "@/lib/utils";
+  createResumableStreamContext,
+  ResumableStreamContext,
+} from "resumable-stream";
+import { convertConvexMessagesToAISDK, injectCurrentDate } from "@/lib/utils";
 import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
-import { createResumableStreamContext } from "resumable-stream";
+import { getToken } from "@convex-dev/better-auth/nextjs";
+import { generateTitleFromUserMessage } from "@/lib/chat";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { getChatModelFromCookies } from "@/lib/model";
 import { getToolFromCookies } from "@/lib/tools";
-import { getMessagesByChatId } from "@/lib/chat";
+import { api } from "@convex/_generated/api";
 import { v4 as uuid } from "@lukeed/uuid";
-import { auth } from "@/lib/auth/auth";
+import { createAuth } from "@/lib/auth";
+import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
-import { db } from "@/db";
 
-export const maxDuration = 60;
+export const maxDuration = 100;
 
-function getStreamContext() {
-  try {
-    return createResumableStreamContext({ waitUntil: after });
-  } catch (err) {
-    console.warn("Resumable stream disabled", err);
-    return null;
+let globalStreamContext: ResumableStreamContext | null = null;
+
+export function getStreamContext(): ResumableStreamContext | null {
+  if (!globalStreamContext) {
+    try {
+      globalStreamContext = createResumableStreamContext({ waitUntil: after });
+    } catch (error) {
+      if ((error as Error).message.includes("REDIS_URL")) {
+        console.log("Resumable streams are disabled due to missing REDIS_URL");
+      } else {
+        console.error(error);
+      }
+    }
   }
+  return globalStreamContext;
 }
 
 export async function POST(req: Request) {
@@ -55,141 +63,66 @@ export async function POST(req: Request) {
     id: chatId,
     timezone = "Asia/Kolkata",
     trigger,
-    messageId,
   } = await req.json();
+
+  const streamId = uuid();
+  await fetchMutation(api.streams.appendStreamId, { chatId, streamId });
 
   const selectedTool = await getToolFromCookies();
   const selectedModel = await getChatModelFromCookies();
 
-  const session = await auth.api.getSession({
-    headers: req.headers,
-  });
+  const token = await getToken(createAuth);
 
-  if (!session || !session.user) {
-    return new Response("Unauthorized", { status: 401 });
+  if (!token) {
+    return new Response("Unautorized", { status: 401 });
   }
 
-  const { user } = session;
+  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   if (!chatId) {
     return new Response("Chat ID is required", { status: 400 });
   }
 
-  let promptId = "";
+  const previousMessages = await fetchQuery(api.chats.getMessagesByChatId, {
+    chatId,
+  });
 
-  //when regenerating messages
-  if (trigger === "regenerate-message") {
-    promptId = messageId;
+  const uiMessages =
+    trigger === "regenerate-message"
+      ? convertConvexMessagesToAISDK(previousMessages)
+      : [...convertConvexMessagesToAISDK(previousMessages), message];
 
-    if (!messageId)
-      return new Response("Message ID is required for regeneration", {
-        status: 400,
-      });
+  const existingChat = await fetchQuery(
+    api.chats.getChatByUUID,
+    { chatId },
+    { token }
+  );
 
-    //message to regenerate
-    const messageToRegenerate = await db.message.findUnique({
-      where: {
-        id: messageId,
-      },
-    });
+  if (!existingChat) return new Response("Chat is missing", { status: 400 });
 
-    if (!messageToRegenerate || messageToRegenerate.role !== "USER") {
-      return new Response("Invalid message for regeneration", { status: 400 });
-    }
-
-    //delete all messages after this user message
-    await db.message.deleteMany({
-      where: {
-        chatId,
-        createdAt: {
-          gt: messageToRegenerate.createdAt,
-        },
-      },
-    });
-  }
-
-  const existingChat = await getChatById(chatId);
-
-  if (!existingChat) {
-    const messageContent = (message as UIMessage).parts.find(
+  if (
+    existingChat.title.trim() === "New Chat" &&
+    previousMessages.length <= 2 &&
+    trigger !== "regenerate-message"
+  ) {
+    const userPrompt = (message as UIMessage).parts.find(
       (part) => part.type === "text"
     )?.text;
 
-    console.log(messageContent);
+    if (userPrompt) {
+      const updatedTitle = await generateTitleFromUserMessage(userPrompt);
 
-    const chatTitle = await generateTitleFromUserMessage(
-      messageContent ?? "Untitled"
-    );
-
-    await db.chat.create({
-      data: {
-        id: chatId,
-        userId: user.id,
-        title: chatTitle,
-      },
-    });
+      await fetchMutation(
+        api.chats.updateChatTitle,
+        { chatId, title: updatedTitle.split(" ").slice(0, 4).join(" ") },
+        { token }
+      );
+    }
   }
-
-  //create user message when submitting a message
-  if (trigger === "submit-message") {
-    const createUserMessage = async () => {
-      try {
-        //extract file parts if present
-        let attachmentId: string | null = null;
-
-        const fileAttachment = (message as UIMessage).parts?.find(
-          (part) => part.type === "file"
-        );
-
-        if (
-          fileAttachment &&
-          fileAttachment.filename &&
-          fileAttachment.url &&
-          fileAttachment.type
-        ) {
-          const attachment = await db.attachment.create({
-            data: {
-              messageId: message.id,
-              url: fileAttachment.url,
-              name: fileAttachment.filename,
-              type: fileAttachment.mediaType,
-              key: message.metadata?.fileKey,
-            },
-          });
-          attachmentId = attachment.id;
-        }
-
-        const userMessage = await db.message.create({
-          data: {
-            id: message.id,
-            role: "USER",
-            chatId,
-            userId: user.id,
-            attachmentId,
-            parts: message.parts,
-            createdAt: message.createdAt || new Date(),
-          },
-        });
-
-        return userMessage;
-      } catch (error) {
-        console.log("Failed to create user message ", error);
-      }
-    };
-
-    const userMessage = await createUserMessage();
-
-    if (!userMessage)
-      return new Response("Failed to create user message", { status: 500 });
-
-    promptId = userMessage.id;
-  }
-
-  const previousMessages = await getMessagesByChatId(chatId);
-  const uiMessages =
-    trigger === "regenerate-message"
-      ? convertToAISDKMessages(previousMessages)
-      : [...convertToAISDKMessages(previousMessages), message];
 
   let tool: Tool = "none";
 
@@ -204,9 +137,6 @@ export async function POST(req: Request) {
 
   const finalModel = getModelForTool(tool, model);
   const modelInstance = createModelInstance(finalModel);
-
-  const streamId = uuid();
-  await appendStreamId({ chatId, streamId });
 
   const finalSystemPrompt =
     tool === "reasoning"
@@ -226,7 +156,7 @@ export async function POST(req: Request) {
         },
         toolChoice: "auto",
         stopWhen: stepCountIs(5),
-        experimental_transform: smoothStream({ chunking: "word" }),
+        // experimental_transform: smoothStream({ chunking: "line" }),
       });
 
       result.consumeStream();
@@ -241,8 +171,14 @@ export async function POST(req: Request) {
         dataStream.merge(result.toUIMessageStream());
       }
     },
-    async onFinish({ messages }) {
+    onFinish: async ({ messages }) => {
       try {
+        await fetchMutation(
+          api.chats.updateChatStatus,
+          { chatId, status: "ready" },
+          { token }
+        );
+
         const assistantMessages = messages.filter(
           (message) => message.role === "assistant"
         );
@@ -260,8 +196,8 @@ export async function POST(req: Request) {
             part.state === "output-available"
         );
 
-        let imageUrl: string | null = null;
-        let imageKey: string | null = null;
+        let imageUrl: string | undefined = undefined;
+        let imageKey: string | undefined = undefined;
 
         if (hasToolResults) {
           for (const part of lastAssistantMessage.parts ?? []) {
@@ -279,36 +215,28 @@ export async function POST(req: Request) {
             }
           }
         }
-
-        const existingMessage = await db.message.findFirst({
-          where: { promptId, role: "AI" },
-        });
-
-        if (!existingMessage) {
-          try {
-            await db.message.create({
-              data: {
-                role: "AI",
-                chatId,
-                userId: user.id,
-                parts: JSON.parse(
-                  JSON.stringify(lastAssistantMessage.parts ?? [])
-                ),
-                imageUrl,
-                imageKey,
-                promptId,
-                createdAt: new Date(),
-              },
-            });
-          } catch (error) {
-            console.error("Error saving message to DB:", error);
-          }
-        }
+        await fetchMutation(
+          api.chats.createMessage,
+          {
+            id: uuidv4(),
+            role: "AI",
+            chatId,
+            parts: lastAssistantMessage.parts ?? [],
+            imageUrl,
+            imageKey,
+          },
+          { token }
+        );
       } catch (error) {
-        console.error("Error in onFinish:", error);
+        console.log("Failed to save response in DB", (error as Error).message);
       }
     },
     onError: (error) => {
+      void fetchMutation(
+        api.chats.updateChatStatus,
+        { chatId, status: "ready" },
+        { token }
+      );
       console.error("Stream error details:", error);
       return "An error occurred during stream";
     },

@@ -20,7 +20,7 @@ const WebSearchCard = ({ results, input }: WebSearchCardProps) => {
   return (
     <motion.div className="w-full pl-0 bg-transparent rounded-none transition min-h-[20px] mb-10">
       <div className="px-0">
-        <div className="flex items-center text-base font-medium">
+        <div className="flex items-center text-sm font-medium">
           Web Search Results
         </div>
         <div className="text-sm">

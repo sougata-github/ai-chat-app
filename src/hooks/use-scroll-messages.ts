@@ -1,163 +1,96 @@
 "use client";
 
 import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
   useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
 } from "react";
 import type { UIMessage } from "ai";
 
-type ChatStatus = "streaming" | "submitted" | "ready" | "error";
-
 interface UseScrollMessagesProps {
+  isNewChat: boolean;
   chatId: string;
   messages: UIMessage[];
-  status: ChatStatus;
-  isFirstTimeChat?: boolean;
+  status: "streaming" | "submitted" | "ready" | "error";
 }
 
 export function useScrollMessages({
+  isNewChat,
   chatId,
   messages,
   status,
-  isFirstTimeChat = false,
 }: UseScrollMessagesProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
-  const lastMessageRef = useRef<HTMLDivElement>(null);
-
-  const [showScrollButton, setShowScrollButton] = useState(false);
-
-  const [userHasScrolledUp, setUserHasScrolledUp] = useState(false);
-
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-
-  const lastMessageCountRef = useRef(0);
-
+  const [isAtBottom, setIsAtBottom] = useState(false);
   const [hasSentMessage, setHasSentMessage] = useState(false);
-
-  const isAtBottom = useCallback(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return true;
-    const { scrollTop, clientHeight, scrollHeight } = container;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    return distanceFromBottom < 180;
-  }, []);
-
-  const scrollToBottom = useCallback(
-    (behavior: "smooth" | "auto" | "instant" = "smooth") => {
-      const container = messagesContainerRef.current;
-      if (!container) return;
-
-      if (behavior === "smooth") {
-        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-      } else {
-        container.scrollTop = container.scrollHeight;
-      }
-
-      setUserHasScrolledUp(false);
-      setShouldAutoScroll(true);
-      setShowScrollButton(false);
-    },
-    []
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [scrollBehavior, setScrollBehavior] = useState<ScrollBehavior | false>(
+    false
   );
-
-  const handleScroll = useCallback(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    const { scrollTop, clientHeight, scrollHeight } = container;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    const isNearBottom = distanceFromBottom < 100;
-
-    setUserHasScrolledUp(!isNearBottom);
-    setShouldAutoScroll(isNearBottom);
-
-    if (isAtBottom()) {
-      setShowScrollButton(false);
-    } else if (!isNearBottom) {
-      setShowScrollButton(true);
-    }
-  }, [isAtBottom]);
-
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  useEffect(() => {
-    const target = lastMessageRef.current;
-    const container = messagesContainerRef.current;
-    if (!target || !container) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const isVisible = entry.isIntersecting;
-        setShowScrollButton(!isVisible);
-        if (isVisible) {
-          setUserHasScrolledUp(false);
-        }
-      },
-      {
-        root: container,
-        threshold: 0.8,
-      }
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [messages]);
-
-  useLayoutEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    const raf = requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight;
-      setUserHasScrolledUp(false);
-      setShouldAutoScroll(true);
-      setShowScrollButton(false);
-    });
-
-    setHasSentMessage(false);
-
-    return () => cancelAnimationFrame(raf);
-  }, [chatId]);
-
-  useEffect(() => {
-    if (isFirstTimeChat && messages.length > 0) {
-      scrollToBottom("smooth");
-    }
-  }, [isFirstTimeChat, messages.length, scrollToBottom]);
 
   useEffect(() => {
     if (status === "submitted") {
       setHasSentMessage(true);
-      scrollToBottom("smooth");
     }
-
-    setHasSentMessage(false);
-  }, [
-    status,
-    messages.length,
-    scrollToBottom,
-    shouldAutoScroll,
-    userHasScrolledUp,
-  ]);
+  }, [status]);
 
   useEffect(() => {
-    lastMessageCountRef.current = messages.length;
-  }, [messages.length]);
+    if (scrollBehavior) {
+      endRef.current?.scrollIntoView({
+        behavior: scrollBehavior,
+      });
+      setScrollBehavior(false);
+    }
+  }, [scrollBehavior]);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    setScrollBehavior(behavior);
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsAtBottom(entry.isIntersecting);
+        setShowScrollButton(!entry.isIntersecting);
+      },
+      { root: messagesContainerRef.current, threshold: 0.01 }
+    );
+
+    if (endRef.current) observer.observe(endRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const hasAutoScrolled = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    if (
+      !isNewChat &&
+      messages.length > 0 &&
+      hasAutoScrolled.current !== chatId
+    ) {
+      scrollToBottom("instant");
+      setHasSentMessage(false);
+      hasAutoScrolled.current = chatId;
+    }
+  }, [chatId, isNewChat, messages.length, scrollToBottom]);
+
+  useEffect(() => {
+    if (messages.length > 0 && status === "submitted") {
+      requestAnimationFrame(() => scrollToBottom("smooth"));
+    }
+  }, [messages, status, scrollToBottom]);
 
   return {
     messagesContainerRef,
-    lastMessageRef,
+    endRef,
+    isAtBottom,
+    setIsAtBottom,
+    hasSentMessage,
     showScrollButton,
     scrollToBottom,
-    handleScroll,
-    isAtBottom,
-    hasSentMessage,
   };
 }

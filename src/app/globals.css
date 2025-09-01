@@ -240,6 +240,14 @@ button {
     @apply text-foreground font-semibold;
   }
 
+  .content-styles blockquote {
+    @apply border-none;
+  }
+
+  .content-styles blockquote > p {
+    @apply text-muted-foreground;
+  }
+
   .content-styles p {
     @apply text-foreground leading-normal my-3;
   }

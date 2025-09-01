@@ -1,20 +1,11 @@
-import { getChatModelFromCookies } from "@/lib/model";
+"use client";
+
 import ChatView from "@/components/chat/ChatView";
-import { getToolFromCookies } from "@/lib/tools";
+import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-export default async function ChatPage() {
-  const chatId = uuidv4();
-  const selectedTool = await getToolFromCookies();
-  const selectedModel = await getChatModelFromCookies();
+export default function ChatPage() {
+  const [chatId] = useState(() => uuidv4());
 
-  return (
-    <ChatView
-      chatId={chatId}
-      autoResume={false}
-      initialMessages={[]}
-      selectedTool={selectedTool}
-      selectedModel={selectedModel}
-    />
-  );
+  return <ChatView chatId={chatId} isNewChat={true} autoResume={false} />;
 }

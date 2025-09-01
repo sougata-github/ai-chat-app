@@ -16,15 +16,17 @@ import { z } from "zod";
 import { chatRenameSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { ChatGetOneOutput } from "@/types";
-import { trpc } from "@/trpc/client";
+import { chatGetManyOutput } from "@/types";
 import { toast } from "sonner";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { useState } from "react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  chat: ChatGetOneOutput;
+  chat: chatGetManyOutput;
 }
 
 const ChatRenameModal = ({ open, onOpenChange, onCancel, chat }: Props) => {
@@ -35,26 +37,23 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chat }: Props) => {
     },
   });
 
-  const utils = trpc.useUtils();
+  const rename = useMutation(api.chats.rename);
+  const [isRenaming, setIsRenaming] = useState(false);
 
-  const rename = trpc.chats.rename.useMutation({
-    onSuccess: (data) => {
-      toast.success("Chat Renamed");
-      utils.chats.getMany.invalidate();
-      utils.chats.getOne.invalidate({ chatId: data.id });
-      onCancel();
-    },
-    onError: (error) => {
-      toast.error("Failed to rename chat", {
-        description: error.message || "Something went wrong. Please try again.",
-      });
-    },
-  });
-
-  const onSubmit = (values: z.infer<typeof chatRenameSchema>) => {
+  const onSubmit = async (values: z.infer<typeof chatRenameSchema>) => {
     const { title } = values;
     if (chat) {
-      rename.mutate({ chatId: chat?.id, title });
+      try {
+        setIsRenaming(true);
+        await rename({ chatId: chat._id, title });
+        toast.success("Chat Renamed");
+        onCancel();
+      } catch (error) {
+        console.log((error as Error).message);
+        toast.error("Failed to rename chat");
+      } finally {
+        setIsRenaming(false);
+      }
     }
   };
 
@@ -102,7 +101,7 @@ const ChatRenameModal = ({ open, onOpenChange, onCancel, chat }: Props) => {
             <Button
               type="submit"
               className="w-full md:w-fit"
-              disabled={rename.isPending}
+              disabled={isRenaming}
             >
               Rename
             </Button>

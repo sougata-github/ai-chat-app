@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, startTransition, useOptimistic, useState } from "react";
+import { useEffect, startTransition, useState, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { ChatRequestOptions, CreateUIMessage, UIMessage } from "ai";
+import type { CreateUIMessage, FileUIPart, UIMessage } from "ai";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
@@ -21,40 +21,56 @@ import { deletedAttachedFile, uploadTextFile } from "@/lib/upload";
 import { toast } from "sonner";
 import FileUpload from "./FileUpload";
 import { SpinnerIcon } from "../messages/SpinnerIcon";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { v4 as uuidv4 } from "uuid";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { Doc } from "@convex/_generated/dataModel";
 
 interface Props {
-  suggestion?: string;
+  chatId: string;
   status?: "streaming" | "submitted" | "ready" | "error";
   input: string;
   setInput: (value: string) => void;
-  handleInitialSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions
-  ) => void;
-  initialModel: ModelId;
-  initialTool: Tool;
+  createUserMessage: (
+    message: UIMessage,
+    fileKey: string | undefined
+  ) => Promise<void>;
+  handleInitialSubmit?: () => void;
+  updateChat: () => void;
   isHomepageCentered?: boolean;
   sendMessage: (message: UIMessage | CreateUIMessage<UIMessage>) => void;
+  setMessageToEdit: React.Dispatch<SetStateAction<Doc<"messages"> | null>>;
+  messageToEdit: Doc<"messages"> | null;
+  handleRegenerate: (() => Promise<void>) | undefined;
 }
 
 const ChatInput = ({
+  chatId,
   status,
   input,
   setInput,
+  createUserMessage,
   handleInitialSubmit,
-  initialModel,
-  initialTool,
+  updateChat,
   isHomepageCentered = false,
   sendMessage,
+  messageToEdit,
+  setMessageToEdit,
+  handleRegenerate,
 }: Props) => {
-  const [optimisticTool, setOptimisticTool] = useOptimistic<Tool>(
-    initialTool || "none"
+  const [optimisticTool, setOptimisticTool] = useLocalStorage<Tool>(
+    "chat-tool",
+    "none"
   );
-  const [optimisticModel, setOptimisticModel] = useOptimistic<ModelId>(
-    initialModel || "gemini-2.5-flash"
+
+  const [optimisticModel, setOptimisticModel] = useLocalStorage<ModelId>(
+    "chat-model",
+    "gemini-2.5-flash"
   );
+
+  const updateMessage = useMutation(api.chats.updateMessage);
+  const createAttachment = useMutation(api.chats.createAttachment);
 
   const form = useForm<z.infer<typeof chatInputSchema>>({
     resolver: zodResolver(chatInputSchema),
@@ -74,13 +90,103 @@ const ChatInput = ({
     }
   }, [input, form]);
 
-  const handleSubmit = async (message: CreateUIMessage<UIMessage>) => {
-    handleInitialSubmit();
+  useEffect(() => {
+    if (messageToEdit) {
+      const text = messageToEdit.parts.find(
+        (part: UIMessage["parts"][number]) => part.type === "text"
+      ).text;
+
+      if (text) {
+        setInput(text);
+        form.setValue("prompt", text, { shouldDirty: true });
+      }
+
+      if (messageToEdit.fileKey) {
+        const file: FileUIPart = messageToEdit.parts.find(
+          (part: UIMessage["parts"][number]) => part.type === "file"
+        );
+
+        if (file.filename) {
+          form.setValue(
+            "file",
+            {
+              name: file.filename,
+              type: file.mediaType,
+              url: file.url,
+              key: messageToEdit.fileKey,
+            },
+            { shouldDirty: true }
+          );
+        }
+
+        setOptimisticModel("gemini-2.5-flash");
+        startTransition(async () => {
+          await saveChatModelAsCookie("gemini-2.5-flash");
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messageToEdit]);
+
+  const handleSubmit = async (
+    message: UIMessage,
+    fileKey: string | undefined = undefined
+  ) => {
+    if (status === "streaming" || status === "submitted") return;
+
+    if (messageToEdit) {
+      let attachmentId: string | undefined = undefined;
+      //create an attachment if currently there is a file in editing mode
+      if (message.parts.some((part) => part.type === "file")) {
+        if (fileKey !== undefined) {
+          const fileAttachment = (message as UIMessage).parts?.find(
+            (part) => part.type === "file"
+          );
+
+          if (
+            fileAttachment &&
+            fileAttachment.filename &&
+            fileAttachment.url &&
+            fileAttachment.type
+          ) {
+            const attachment = await createAttachment({
+              id: uuidv4(),
+              messageId: message.id,
+              name: fileAttachment.filename,
+              type: fileAttachment.mediaType,
+              url: fileAttachment.url,
+              key: fileKey,
+              chatId,
+            });
+            attachmentId = attachment.uuid;
+          }
+        }
+      }
+
+      //updateMessage
+      await updateMessage({
+        messageId: messageToEdit.id,
+        parts: message.parts,
+        fileKey,
+        attachmentId,
+      });
+
+      //regenerate response
+      handleRegenerate?.();
+
+      setMessageToEdit(null);
+      form.reset();
+      setInput("");
+      updateChat();
+      return;
+    }
 
     sendMessage(message);
-
+    handleInitialSubmit?.();
+    await createUserMessage(message, fileKey);
     form.reset();
     setInput("");
+    updateChat();
   };
 
   const onSubmit = async (values: z.infer<typeof chatInputSchema>) => {
@@ -89,12 +195,12 @@ const ChatInput = ({
 
     if (!trimmed && !hasFile) return;
 
-    if (!hasFile && trimmed.length < 2) {
+    const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+
+    if (hasFile && wordCount <= 0) {
       toast.error("Prompt has to be at least 2 characters long");
       return;
     }
-
-    const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
 
     if (hasFile && wordCount >= 800) {
       toast.error("Prompt cannot exceed 800 words");
@@ -103,7 +209,8 @@ const ChatInput = ({
 
     // file and prompt
     if (hasFile) {
-      const message: CreateUIMessage<UIMessage> = {
+      const message: UIMessage = {
+        id: uuidv4(),
         role: "user" as const,
         parts: [
           {
@@ -121,16 +228,17 @@ const ChatInput = ({
           fileKey: values.file?.key,
         },
       };
-      handleSubmit(message);
+      handleSubmit(message, values.file?.key);
       return;
     }
 
     // just prompt
-    const message: CreateUIMessage<UIMessage> = {
+    const message: UIMessage = {
+      id: uuidv4(),
       role: "user" as const,
       parts: [{ type: "text", text: trimmed }],
     };
-    handleSubmit(message);
+    handleSubmit(message, undefined);
   };
 
   const handleTextareaChange = async (
@@ -180,8 +288,8 @@ const ChatInput = ({
           { shouldDirty: true }
         );
 
+        setOptimisticModel("gemini-2.5-flash");
         startTransition(async () => {
-          setOptimisticModel("gemini-2.5-flash");
           await saveChatModelAsCookie("gemini-2.5-flash");
         });
 
@@ -196,8 +304,9 @@ const ChatInput = ({
   };
 
   const handleRemoveCurrentTool = () => {
+    setOptimisticTool("none");
+    setOptimisticModel("gemini-2.5-flash");
     startTransition(async () => {
-      setOptimisticTool("none");
       await saveToolAsCookie("none");
       await saveChatModelAsCookie(DEFAULT_MODEL_ID);
     });
@@ -214,7 +323,7 @@ const ChatInput = ({
 
     setIsUploadingFile(false);
 
-    if (fileKey && fileKey.trim() !== "") {
+    if (fileKey && fileKey.trim() !== "" && !messageToEdit) {
       try {
         await deletedAttachedFile(fileKey);
         toast.success("File removed");
@@ -243,11 +352,29 @@ const ChatInput = ({
   return (
     <div
       className={cn(
-        "w-full px-4 z-20 bg-background rounded-b-2xl",
+        "w-full px-4 z-20 rounded-b-2xl",
         isHomepageCentered ? "relative" : "sticky bottom-0 inset-x-0 pt-0"
       )}
     >
       <div className="max-w-3xl mx-auto relative">
+        {messageToEdit && (
+          <div className="-top-10 absolute w-fit flex gap-1 items-center px-4 py-1 rounded-full bg-muted-foreground/5 dark:bg-muted-foreground/10 mb-2.5 backdrop-blur-lg">
+            <p className="text-sm">Editing Mode</p>
+            <button
+              className="p-1 bg-transparent inline-flex items-center justify-center"
+              disabled={isUploadingFile || isUploadingLongPrompt}
+            >
+              <X
+                className="size-4"
+                onClick={() => {
+                  setMessageToEdit(null);
+                  setInput("");
+                  form.reset();
+                }}
+              />
+            </button>
+          </div>
+        )}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -310,7 +437,6 @@ const ChatInput = ({
                             form.handleSubmit(onSubmit)();
                           }
                         }}
-                        disabled={isDisabled}
                         aria-label="Chat prompt"
                       />
                     </FormControl>
@@ -327,8 +453,8 @@ const ChatInput = ({
                     disabled={isTool || isDisabled || hasFile}
                   />
                   <ToolDropDown
+                    optimisticModel={optimisticModel}
                     setOptimisticModel={setOptimisticModel}
-                    initialModel={initialModel}
                     optimisticTool={optimisticTool}
                     setOptimisticTool={setOptimisticTool}
                     disabledAll={isDisabled || hasFile}
@@ -364,9 +490,10 @@ const ChatInput = ({
 
                 <Button
                   type="submit"
+                  variant={"default"}
                   size="icon"
                   disabled={!canSubmit}
-                  className="rounded-full bg-muted-foreground/20 text-foreground border-none"
+                  className="rounded-full border-none disabled:bg-muted-foreground/40"
                   aria-label="Send message"
                 >
                   <ArrowUp />

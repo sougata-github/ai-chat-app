@@ -2,38 +2,42 @@
 
 import { Button } from "@/components/ui/button";
 import ResponsiveModal from "./ResponsiveModal";
-import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
 import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import { useState } from "react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  chatId: string;
+  chatId: string; //uuid
 }
 
 const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
-  const utils = trpc.useUtils();
+  const deleteChat = useMutation(api.chats.deleteOne);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const deleteChat = trpc.chats.deleteOne.useMutation({
-    onSuccess: () => {
+  const handleDelete = async (chatId: string) => {
+    try {
+      if (pathname === `chat/${chatId}`) {
+        router.replace("/");
+      }
+      setIsDeleting(true);
+      await deleteChat({ chatId });
       onCancel();
       toast.success("Chat Deleted");
-      utils.chats.getMany.invalidate();
-      if (pathname === `/chat/${chatId}`) {
-        router.push("/");
-      }
-    },
-    onError: (error) => {
-      toast.error("Failed to delete chat", {
-        description: error.message || "Something went wrong. Please try again.",
-      });
-    },
-  });
+    } catch (error) {
+      console.log((error as Error).message);
+      toast.error("Failed to delete chat");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <ResponsiveModal
@@ -55,10 +59,10 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
           <Button
             className="transition-all sm:w-20"
             variant="destructive"
-            onClick={() => deleteChat.mutate({ chatId })}
-            disabled={deleteChat.isPending}
+            onClick={() => handleDelete(chatId)}
+            disabled={isDeleting}
           >
-            {deleteChat.isPending ? (
+            {isDeleting ? (
               <>
                 <Loader2 className="size-4 animate-spin transition" />
               </>

@@ -1,4 +1,3 @@
-import { inferRouterOutputs } from "@trpc/server";
-import { AppRouter } from "@/trpc/routers/_app";
+import { Doc } from "../../convex/_generated/dataModel";
 
-export type ChatGetOneOutput = inferRouterOutputs<AppRouter>["chats"]["getOne"];
+export type chatGetManyOutput = Doc<"chats">;

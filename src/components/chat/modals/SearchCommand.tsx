@@ -7,13 +7,13 @@ import {
   CommandList,
   CommandEmpty,
 } from "@/components/ui/command";
-import { trpc } from "@/trpc/client";
-import { DEFAULT_LIMIT } from "@/constants";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import InfiniteScroll from "@/components/InfiniteScroll";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePaginatedQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
 
 interface Props {
   open: boolean;
@@ -34,17 +34,13 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 200);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    trpc.chats.search.useInfiniteQuery(
-      {
-        limit: DEFAULT_LIMIT,
-        query: debouncedQuery,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        enabled: open,
-      }
-    );
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.chats.search,
+    { query: debouncedQuery },
+    { initialNumItems: 10 }
+  );
+
+  const isLoading = status === "LoadingMore" || status === "LoadingFirstPage";
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -70,36 +66,27 @@ const SearchCommand = ({ open, onOpenChange }: Props) => {
         {isLoading && <SearchChatListSkeleton />}
 
         {!isLoading &&
-          data?.pages?.flatMap((page) =>
-            page.chats.map((chat) => (
-              <CommandItem
-                key={chat.id}
-                value={chat.title}
-                title={chat.title}
-                asChild
-                className="cursor-pointer rounded-lg h-8 mt-2 first:mt-0"
+          results.map((chat) => (
+            <CommandItem
+              key={chat._id}
+              value={chat.title}
+              title={chat.title}
+              asChild
+              className="cursor-pointer rounded-lg h-8 mt-2 first:mt-0"
+            >
+              <Link
+                href={`/chat/${chat.id}`}
+                onClick={() => onOpenChange(false)}
               >
-                <Link
-                  href={`/chat/${chat.id}`}
-                  onClick={() => onOpenChange(false)}
-                >
-                  {chat.title}
-                </Link>
-              </CommandItem>
-            ))
-          )}
-
-        {!isLoading &&
-          data?.pages &&
-          data?.pages[0]?.chats.length > 0 &&
-          hasNextPage && (
-            <InfiniteScroll
-              isManual
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              fetchNextPage={fetchNextPage}
-            />
-          )}
+                {chat.title}
+              </Link>
+            </CommandItem>
+          ))}
+        <InfiniteScroll
+          hasNextPage={!isLoading && !!loadMore}
+          isFetchingNextPage={status === "LoadingMore"}
+          fetchNextPage={loadMore}
+        />
       </CommandList>
     </CommandDialog>
   );

@@ -1,10 +1,12 @@
 import "./globals.css";
 
+import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
+import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import { TRPCProvider } from "@/trpc/client";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,17 +38,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.className} ${inter.variable}  ${geistMono.variable} ${geistSans.variable} antialiased`}
       >
-        <TRPCProvider>
+        <ConvexClientProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-            <Toaster richColors expand={false} duration={2000} />
-            {children}
+            <Toaster expand={false} duration={2000} />
+            <ConvexQueryCacheProvider>{children}</ConvexQueryCacheProvider>
           </ThemeProvider>
-        </TRPCProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

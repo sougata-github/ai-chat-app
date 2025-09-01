@@ -1,45 +1,38 @@
-import { getChatById, getMessagesByChatId } from "@/lib/chat";
-import { getChatModelFromCookies } from "@/lib/model";
-import { convertToAISDKMessages } from "@/lib/utils";
+"use client";
+
 import ChatView from "@/components/chat/ChatView";
-import { getToolFromCookies } from "@/lib/tools";
 import { validate as uuidValidate } from "uuid";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth/auth";
+import { api } from "@convex/_generated/api";
+import { useEffect } from "react";
+import { useQuery } from "convex/react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
-interface Props {
-  params: Promise<{ chatId: string }>;
-}
-
-export default async function MessagesPage({ params }: Props) {
-  const { chatId } = await params;
-
-  if (!uuidValidate(chatId)) return redirect("/");
-
-  const selectedTool = await getToolFromCookies();
-  const selectedModel = await getChatModelFromCookies();
-
-  const messages = await getMessagesByChatId(chatId);
-  const initialMessages = convertToAISDKMessages(messages);
-
-  const session = await auth.api.getSession({
-    headers: await headers(),
+export default function MessagesPage() {
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const chatId = params.chatId as string;
+  const chat = useQuery(api.chats.getChatByUUID, {
+    chatId,
   });
 
-  const chat = await getChatById(chatId);
+  const skipResume = searchParams.get("skipResume") === "1";
 
-  if (initialMessages.length >= 2 && session?.user.id !== chat?.userId) {
-    redirect("/");
-  }
+  useEffect(() => {
+    if (!uuidValidate(params.chatId as string)) {
+      router.replace("/");
+      return;
+    }
+    if (chat === null) {
+      router.replace("/");
+    }
+  }, [params, chat, router]);
 
   return (
     <ChatView
-      chatId={chatId}
-      autoResume={true}
-      initialMessages={initialMessages}
-      selectedTool={selectedTool}
-      selectedModel={selectedModel}
+      chatId={params.chatId as string}
+      isNewChat={false}
+      autoResume={!skipResume}
     />
   );
 }
