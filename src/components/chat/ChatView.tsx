@@ -137,11 +137,11 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
     <div className="flex-1 flex flex-col">
       {isNewChat ? (
         <>
-          <div className="flex flex-1 flex-col items-center justify-center px-4">
+          <div className="sm:flex flex-1 flex-col items-center justify-center px-4 hidden">
             <div className="w-full max-w-3xl">
-              <div className="mb-8 text-center">
-                <h1 className="text-2xl sm:text-4xl font-semibold inline-flex items-center gap-1 sm:gap-2">
-                  <WandSparkles className="size-5 sm:size-8" /> Get Started
+              <div className="mb-5 text-center">
+                <h1 className="text-5xl font-semibold inline-flex items-center gap-2">
+                  <WandSparkles className="size-8" /> Get Started
                 </h1>
               </div>
 
@@ -162,6 +162,32 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
               <ChatSuggestions setSuggestions={setInput} />
             </div>
           </div>
+
+          {/* for mobile */}
+          <div className="flex flex-1 flex-col justify-center px-4 sm:hidden">
+            <div className="w-full max-w-3xl">
+              <div className="mb-5 text-left">
+                <h1 className="text-3xl font-semibold inline-flex items-center gap-2">
+                  Get Started
+                </h1>
+              </div>
+              <ChatSuggestions setSuggestions={setInput} />
+            </div>
+          </div>
+          <ChatInput
+            chatId={chatId}
+            messageToEdit={messageToEdit}
+            setMessageToEdit={setMessageToEdit}
+            handleRegenerate={handleRegenerate}
+            updateChat={handleUpdateChat}
+            createUserMessage={handleCreateUserMessage}
+            sendMessage={sendMessage}
+            input={input}
+            setInput={setInput}
+            handleInitialSubmit={handleInitialSubmit}
+            status={status}
+            isHomepageCentered={false}
+          />
         </>
       ) : (
         <>

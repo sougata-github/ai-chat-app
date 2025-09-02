@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { RefreshCw, Search } from "lucide-react";
+import { Image as ImageIcon, RefreshCw, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import ArchivedChatsModal from "../modals/archive-chat/ArchivedChatsModal";
@@ -54,6 +54,13 @@ const SidebarUtils = () => {
                 <Search />
                 <span className="font-medium">Search Chats</span>
               </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/library">
+                <SidebarMenuButton className="gap-2">
+                  <ImageIcon /> Library
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>

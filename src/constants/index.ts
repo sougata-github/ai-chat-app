@@ -3,18 +3,20 @@ import {
   BookOpen,
   Code,
   FileText,
-  Search,
-  Sparkles,
   ListOrdered,
   Terminal,
   Code2,
   PenLine,
-  ClipboardList,
-  BarChart3,
   Layers,
   Database,
   Braces,
+  Lightbulb,
+  TrendingUp,
+  GitCompare,
+  Brain,
+  MessageSquare,
 } from "lucide-react";
+import { FaXTwitter } from "react-icons/fa6";
 
 type IconType = React.ElementType<{ className?: string }>;
 
@@ -37,29 +39,30 @@ export const suggestionCategories: SuggestionCategory[] = [
     icon: WandSparkles,
     items: [
       {
-        label: "Generate 10 SaaS ideas for remote teams",
-        value: "Generate 10 SaaS ideas for remote teams",
-        icon: Sparkles,
-        hint: "Focus on pain points and differentiators",
-      },
-      {
-        label: "List 5 micro‑SaaS niches with monetization",
-        value: "List 5 micro-SaaS niches with monetization strategies",
-        icon: ListOrdered,
-        hint: "Include pricing models",
-      },
-      {
-        label: "Brainstorm 8 onboarding experiments",
-        value: "Brainstorm 8 onboarding experiments for improving activation",
-        icon: Sparkles,
-        hint: "Low dev effort, high impact",
-      },
-      {
-        label: "Outline a 3‑tier pricing plan",
+        label: "3-tier pricing plan",
         value:
           "Outline a 3-tier pricing plan (Starter, Pro, Business) with features",
         icon: Layers,
         hint: "Include value metrics",
+      },
+      {
+        label: "Generate 10 SaaS ideas",
+        value: "Generate 10 SaaS ideas for remote teams",
+        icon: Lightbulb,
+        hint: "Focus on pain points and differentiators",
+      },
+
+      {
+        label: "Suggest 7 growth hacks",
+        value: "Suggest 7 growth hacks for early-stage SaaS",
+        icon: TrendingUp,
+        hint: "Low dev effort, high impact",
+      },
+      {
+        label: "List 5 micro‑SaaS niches",
+        value: "List 5 micro-SaaS niches with monetization strategies",
+        icon: ListOrdered,
+        hint: "Include pricing models",
       },
     ],
   },
@@ -68,27 +71,29 @@ export const suggestionCategories: SuggestionCategory[] = [
     icon: BookOpen,
     items: [
       {
-        label: "Explain transformers in simple terms",
-        value:
-          "Explain how transformer models work in simple terms with an analogy",
-        icon: BookOpen,
-      },
-      {
-        label: "Vector DBs and embeddings",
-        value: "Explain what vector databases and embeddings are with examples",
-        icon: BookOpen,
-      },
-      {
         label: "RAG vs fine‑tuning",
         value:
           "Compare RAG vs fine-tuning with pros and cons and when to use each",
-        icon: BookOpen,
+        icon: GitCompare,
       },
+
+      {
+        label: "Vector DBs and embeddings",
+        value: "Explain what vector databases and embeddings are with examples",
+        icon: Database,
+      },
+
       {
         label: "Server Components tradeoffs",
         value:
           "Explain tradeoffs of React Server Components for data-heavy apps",
-        icon: BookOpen,
+        icon: Layers,
+      },
+      {
+        label: "Explain transformers in simple terms",
+        value:
+          "Explain how transformer models work in simple terms with an analogy",
+        icon: Brain,
       },
     ],
   },
@@ -97,7 +102,7 @@ export const suggestionCategories: SuggestionCategory[] = [
     icon: Code,
     items: [
       {
-        label: "Print Hello World in Rust",
+        label: "Hello World in Rust",
         value: "Print Hello World in Rust",
         icon: Terminal,
       },
@@ -113,7 +118,7 @@ export const suggestionCategories: SuggestionCategory[] = [
         icon: Braces,
       },
       {
-        label: "Design Prisma schema for a simple todo app",
+        label: "Prisma schema for a todo app",
         value:
           "How to design a Prisma schema for a simple todo app with models, fields, and best practices",
         icon: Database,
@@ -125,6 +130,17 @@ export const suggestionCategories: SuggestionCategory[] = [
     icon: FileText,
     items: [
       {
+        label: "Bug report reply",
+        value:
+          "Compose a friendly reply to a bug report acknowledging, confirming, and providing next steps",
+        icon: MessageSquare,
+      },
+      {
+        label: "Clear changelog entry",
+        value: "Write a clear changelog entry for a small UX improvement",
+        icon: FileText,
+      },
+      {
         label: "200‑word product intro",
         value:
           "Write a concise 200-word product introduction for a landing page",
@@ -134,48 +150,7 @@ export const suggestionCategories: SuggestionCategory[] = [
         label: "Launch thread (5 tweets)",
         value:
           "Draft a 5-tweet launch thread highlighting key benefits and CTA",
-        icon: PenLine,
-      },
-      {
-        label: "Clear changelog entry",
-        value: "Write a clear changelog entry for a small UX improvement",
-        icon: FileText,
-      },
-      {
-        label: "Bug report reply",
-        value:
-          "Compose a friendly reply to a bug report acknowledging, confirming, and providing next steps",
-        icon: FileText,
-      },
-    ],
-  },
-  {
-    tag: "Research",
-    icon: Search,
-    items: [
-      {
-        label: "Competitive analysis template",
-        value:
-          "Provide a concise competitive analysis template with fields and example entries",
-        icon: Search,
-      },
-      {
-        label: "Onboarding metrics (5)",
-        value:
-          "List 5 common onboarding metrics, definitions, and how to instrument them",
-        icon: BarChart3,
-      },
-      {
-        label: "User interview questions",
-        value:
-          "Provide a list of 10 user interview questions to understand friction in onboarding",
-        icon: ClipboardList,
-      },
-      {
-        label: "Prioritize with RICE",
-        value:
-          "Create a RICE framework table for 4 feature ideas with sample scores",
-        icon: ListOrdered,
+        icon: FaXTwitter,
       },
     ],
   },

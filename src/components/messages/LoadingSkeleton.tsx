@@ -59,7 +59,7 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
           },
         }}
       >
-        <div className="flex items-center gap-2 font-medium">
+        <div className="flex items-center gap-2 font-medium mb-1">
           <div className="animate-spin transition text-sm">
             <SpinnerIcon />
           </div>

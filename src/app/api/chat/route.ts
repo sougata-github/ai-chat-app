@@ -33,7 +33,6 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { getChatModelFromCookies } from "@/lib/model";
 import { getToolFromCookies } from "@/lib/tools";
 import { api } from "@convex/_generated/api";
-import { v4 as uuid } from "@lukeed/uuid";
 import { createAuth } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
@@ -65,7 +64,7 @@ export async function POST(req: Request) {
     trigger,
   } = await req.json();
 
-  const streamId = uuid();
+  const streamId = uuidv4();
   await fetchMutation(api.streams.appendStreamId, { chatId, streamId });
 
   const selectedTool = await getToolFromCookies();
@@ -96,16 +95,27 @@ export async function POST(req: Request) {
       ? convertConvexMessagesToAISDK(previousMessages)
       : [...convertConvexMessagesToAISDK(previousMessages), message];
 
-  const existingChat = await fetchQuery(
+  let existingChat = await fetchQuery(
     api.chats.getChatByUUID,
     { chatId },
     { token }
   );
 
-  if (!existingChat) return new Response("Chat is missing", { status: 400 });
+  if (!existingChat) {
+    await fetchMutation(
+      api.chats.createChat,
+      { id: chatId, title: "New Chat" },
+      { token }
+    );
+    existingChat = await fetchQuery(
+      api.chats.getChatByUUID,
+      { chatId },
+      { token }
+    );
+  }
 
   if (
-    existingChat.title.trim() === "New Chat" &&
+    existingChat?.title.trim() === "New Chat" &&
     previousMessages.length <= 2 &&
     trigger !== "regenerate-message"
   ) {

@@ -47,6 +47,21 @@ export const getMessagesByChatId = query({
   },
 });
 
+export const getMessagesWithImages = query({
+  handler: async (ctx) => {
+    const authUser = await betterAuthComponent.getAuthUser(ctx);
+    if (!authUser) throw new ConvexError("Unauthorized");
+
+    const messagesWithImages = await ctx.db
+      .query("messages")
+      .withIndex("by_user", (q) => q.eq("userId", authUser.userId!))
+      .filter((q) => q.or(q.neq(q.field("imageKey"), undefined)))
+      .collect();
+
+    return messagesWithImages || [];
+  },
+});
+
 export const createMessage = mutation({
   args: {
     id: v.string(), // uuid
@@ -200,6 +215,13 @@ export const createChat = mutation({
 
     if (!authUser) throw new ConvexError("Unauthorized");
 
+    const existing = await ctx.db
+      .query("chats")
+      .withIndex("by_uuid", (q) => q.eq("id", id))
+      .first();
+
+    if (existing) return { convexId: existing._id, uuid: existing.id };
+
     const now = Date.now();
     const chatId = await ctx.db.insert("chats", {
       id, //uuid
@@ -210,6 +232,7 @@ export const createChat = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
     return { convexId: chatId, uuid: id };
   },
 });

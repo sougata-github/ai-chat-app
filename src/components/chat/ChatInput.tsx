@@ -26,6 +26,7 @@ import { v4 as uuidv4 } from "uuid";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   chatId: string;
@@ -82,6 +83,8 @@ const ChatInput = ({
   //file states
   const [isUploadingLongPrompt, setIsUploadingLongPrompt] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     form.setValue("prompt", input, { shouldDirty: true, shouldTouch: true });
@@ -353,33 +356,35 @@ const ChatInput = ({
     <div
       className={cn(
         "w-full px-4 z-20 rounded-b-2xl",
-        isHomepageCentered ? "relative" : "sticky bottom-0 inset-x-0 pt-0"
+        isHomepageCentered
+          ? "relative"
+          : "sticky bottom-0 inset-x-0 pt-0 sm:hidden"
       )}
     >
       <div className="max-w-3xl mx-auto relative">
-        {messageToEdit && (
-          <div className="-top-10 absolute w-fit flex gap-1 items-center px-4 py-1 rounded-full bg-muted-foreground/5 dark:bg-muted-foreground/10 mb-2.5 backdrop-blur-lg">
-            <p className="text-sm">Editing Mode</p>
-            <button
-              className="p-1 bg-transparent inline-flex items-center justify-center"
-              disabled={isUploadingFile || isUploadingLongPrompt}
-            >
-              <X
-                className="size-4"
-                onClick={() => {
-                  setMessageToEdit(null);
-                  setInput("");
-                  form.reset();
-                }}
-              />
-            </button>
-          </div>
-        )}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="relative pb-4"
           >
+            {messageToEdit && (
+              <div className="rounded-2xl rounded-b-none bg-background/80 flex justify-between p-2">
+                <p className="text-sm">Editing Mode</p>
+                <button
+                  className="p-1 inline-flex items-center justify-center"
+                  disabled={isUploadingFile || isUploadingLongPrompt}
+                >
+                  <X
+                    className="size-4"
+                    onClick={() => {
+                      setMessageToEdit(null);
+                      setInput("");
+                      form.reset();
+                    }}
+                  />
+                </button>
+              </div>
+            )}
             <div className="rounded-2xl outline-2 outline-muted-foreground/10 shadow-xs dark:shadow-none bg-background/80">
               {(hasFile || isUploadingLongPrompt || isUploadingFile) && (
                 <div className="flex items-center p-2 pb-0 rounded-t-2xl w-full dark:bg-muted-foreground/7.5">
@@ -433,8 +438,10 @@ const ChatInput = ({
                         onChange={handleTextareaChange}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            form.handleSubmit(onSubmit)();
+                            if (!isMobile) {
+                              e.preventDefault();
+                              form.handleSubmit(onSubmit)();
+                            }
                           }
                         }}
                         aria-label="Chat prompt"

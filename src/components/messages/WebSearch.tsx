@@ -18,17 +18,17 @@ const WebSearchCard = ({ results, input }: WebSearchCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <motion.div className="w-full pl-0 bg-transparent rounded-none transition min-h-[20px] mb-10">
+    <motion.div className="pl-0 bg-transparent rounded-none transition min-h-[20px] mb-10">
       <div className="px-0">
         <div className="flex items-center text-sm font-medium">
           Web Search Results
         </div>
-        <div className="text-sm">
+        <div className="text-sm flex items-start mt-1 gap-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-fit py-1 pl-0 h-auto text-sm text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent"
+            className="w-fit py-0.5 pl-0 h-auto text-sm text-muted-foreground hover:text-foreground rounded-sm hover:bg-transparent dark:hover:bg-transparent"
           >
             <ChevronRight
               className={cn(
@@ -36,10 +36,8 @@ const WebSearchCard = ({ results, input }: WebSearchCardProps) => {
                 isExpanded && "rotate-90"
               )}
             />
-            <span className="text-xs sm:text-sm max-w-xs">
-              Results for {input.query}
-            </span>
           </Button>
+          <span className="text-xs sm:text-sm">Results for {input.query}</span>
         </div>
       </div>
       {isExpanded && (
