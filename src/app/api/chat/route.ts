@@ -1,30 +1,7 @@
-import {
-  streamText,
-  createUIMessageStream,
-  JsonToSseTransformStream,
-  convertToModelMessages,
-  stepCountIs,
-  InferUITool,
-  UIMessage,
-} from "ai";
-import {
-  generateImageTool,
-  getModelForTool,
-  getWeatherTool,
-  isValidTool,
-  Tool,
-  webSearchTool,
-} from "@/lib/tools/tool";
-import {
-  createModelInstance,
-  DEFAULT_MODEL_ID,
-  isValidModelId,
-  ModelId,
-} from "@/lib/model/model";
-import {
-  createResumableStreamContext,
-  ResumableStreamContext,
-} from "resumable-stream";
+import { streamText, createUIMessageStream, JsonToSseTransformStream, convertToModelMessages, stepCountIs, InferUITool, UIMessage, } from "ai";
+import { generateImageTool, getModelForTool, getWeatherTool, isValidTool, Tool, webSearchTool, } from "@/lib/tools/tool";
+import { createModelInstance, DEFAULT_MODEL_ID, isValidModelId, ModelId, } from "@/lib/model/model";
+import { createResumableStreamContext, ResumableStreamContext, } from "resumable-stream";
 import { convertConvexMessagesToAISDK, injectCurrentDate } from "@/lib/utils";
 import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
 import { getToken } from "@convex-dev/better-auth/nextjs";
@@ -36,6 +13,7 @@ import { api } from "@convex/_generated/api";
 import { createAuth } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
+
 
 export const maxDuration = 100;
 

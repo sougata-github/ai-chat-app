@@ -4,6 +4,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { v4 as uuidv4 } from "uuid";
 
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -38,3 +39,11 @@ export function convertConvexMessagesToAISDK(messages: Doc<"messages">[]) {
 export function generateChatId(): string {
   return uuidv4();
 }
+
+export const getBaseURL = () => {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  }
+
+  return process.env.NEXT_PUBLIC_LOCAL_URL || "http://localhost:3000";
+};
