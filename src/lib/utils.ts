@@ -39,11 +39,3 @@ export function convertConvexMessagesToAISDK(messages: Doc<"messages">[]) {
 export function generateChatId(): string {
   return uuidv4();
 }
-
-export const getBaseURL = () => {
-  if (process.env.NODE_ENV === "production") {
-    return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  }
-
-  return process.env.NEXT_PUBLIC_LOCAL_URL || "http://localhost:3000";
-};

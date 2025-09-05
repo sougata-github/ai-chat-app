@@ -5,11 +5,11 @@ import { betterAuthComponent } from "@convex/auth";
 import { anonymous } from "better-auth/plugins";
 import { betterAuth } from "better-auth";
 
-import { getBaseURL } from "./utils";
 
+const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 const createOptions = (ctx: GenericCtx) => ({
-  baseURL: getBaseURL(),
+  baseURL,
   database: convexAdapter(ctx, betterAuthComponent),
   socialProviders: {
     google: {
