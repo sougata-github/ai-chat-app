@@ -32,7 +32,7 @@ const WebSearchCard = ({ results, input }: WebSearchCardProps) => {
           >
             <ChevronRight
               className={cn(
-                "size-4 transition-transform duration-200 ease-in-out",
+                "size-4 transition-transform duration-200 ease-in-out max-sm:-mt-[1.8px]",
                 isExpanded && "rotate-90"
               )}
             />
