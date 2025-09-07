@@ -148,10 +148,12 @@ const Library = () => {
                 aria-label="Open image"
               >
                 <Image
-                  src={item.imageUrl || "/placeholder.svg"}
+                  src={item.imageUrl || "https://placehold.co/400x400/png"}
                   alt={item.prompt}
-                  fill
-                  className="object-cover aspect-square"
+                  width={400}
+                  height={400}
+                  quality={100}
+                  className="object-cover"
                   unoptimized
                 />
 
@@ -185,9 +187,10 @@ const Library = () => {
                     src={active.imageUrl || "/placeholder.svg"}
                     alt={active.prompt}
                     fill
+                    quality={100}
                     sizes="(max-width: 768px) 100vw, 80vw"
                     className="object-contain"
-                    priority
+                    unoptimized
                   />
                 </div>
                 <div className="flex items-center justify-between gap-4">

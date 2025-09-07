@@ -1,14 +1,11 @@
-import {
-  BetterAuth,
-  type AuthFunctions,
-  type PublicAuthFunctions,
-} from "@convex-dev/better-auth";
+import { BetterAuth, type AuthFunctions, type PublicAuthFunctions, } from "@convex-dev/better-auth";
 import { ConvexError } from "convex/values";
 import { createAuth } from "@/lib/auth";
 
 import { api, components, internal } from "./_generated/api";
 import type { Id, DataModel } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+
 
 const authFunctions: AuthFunctions = internal.auth;
 const publicAuthFunctions: PublicAuthFunctions = api.auth;
@@ -136,7 +133,7 @@ export const {
 });
 
 export const LIMITS = {
-  guest: 5,
+  guest: 10,
   verified: 20,
 };
 

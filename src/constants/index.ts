@@ -1,22 +1,6 @@
-import {
-  WandSparkles,
-  BookOpen,
-  Code,
-  FileText,
-  ListOrdered,
-  Terminal,
-  Code2,
-  PenLine,
-  Layers,
-  Database,
-  Braces,
-  Lightbulb,
-  TrendingUp,
-  GitCompare,
-  Brain,
-  MessageSquare,
-} from "lucide-react";
+import { WandSparkles, BookOpen, Code, FileText, ListOrdered, Terminal, Code2, PenLine, Layers, Database, Braces, Lightbulb, TrendingUp, GitCompare, Brain, MessageSquare, } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
+
 
 type IconType = React.ElementType<{ className?: string }>;
 
@@ -157,7 +141,7 @@ export const suggestionCategories: SuggestionCategory[] = [
 ];
 
 export const LIMITS = {
-  guest: 5,
+  guest: 10,
   verified: 20,
 };
 

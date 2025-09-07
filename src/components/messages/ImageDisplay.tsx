@@ -50,7 +50,7 @@ const ImageDisplay = ({ data }: ImageDisplayProps) => {
             alt={prompt}
             fill
             quality={100}
-            priority
+            unoptimized
             className="object-cover transition-transform"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
@@ -77,13 +77,13 @@ const ImageDisplay = ({ data }: ImageDisplayProps) => {
           <div className="space-y-4">
             <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
               <Image
-                src={imageUrl!}
+                src={imageUrl || "https://placehold.co/400x400/png"}
                 alt={prompt}
                 fill
                 quality={100}
-                priority
                 className="object-contain"
                 sizes="(max-width: 768px) 100vw, 80vw"
+                unoptimized
               />
             </div>
             <div className="flex items-center justify-between">
