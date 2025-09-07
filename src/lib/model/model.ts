@@ -9,9 +9,9 @@ import { groq } from "@ai-sdk/groq";
 const custom = customProvider({
   languageModels: {
     "gemini-2.5-flash": google("gemini-2.5-flash"),
-    "meta-llama/llama-4-scout-17b-16e-instruct": groq(
-      "meta-llama/llama-4-scout-17b-16e-instruct"
-    ),
+    // "meta-llama/llama-4-scout-17b-16e-instruct": groq(
+    //   "meta-llama/llama-4-scout-17b-16e-instruct"
+    // ),
     "qwen/qwen3-32b": wrapLanguageModel({
       model: groq("qwen/qwen3-32b"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -26,12 +26,12 @@ export const MODEL_REGISTRY = {
     name: "Qwen 32b",
     logo: "/qwen-logo.svg",
   },
-  "meta-llama/llama-4-scout-17b-16e-instruct": {
-    provider: custom,
-    id: "meta-llama/llama-4-scout-17b-16e-instruct",
-    name: "Llama 4",
-    logo: "/meta-logo.svg",
-  },
+  // "meta-llama/llama-4-scout-17b-16e-instruct": {
+  //   provider: custom,
+  //   id: "meta-llama/llama-4-scout-17b-16e-instruct",
+  //   name: "Llama 4",
+  //   logo: "/meta-logo.svg",
+  // },
   "gemini-2.5-flash": {
     provider: custom,
     id: "gemini-2.5-flash",
