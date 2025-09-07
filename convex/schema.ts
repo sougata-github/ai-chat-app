@@ -10,7 +10,7 @@ export default defineSchema({
 
     isAnonymous: v.optional(v.boolean()),
     messageCount: v.number(),
-    lastReset: v.optional(v.number()),
+    lastReset: v.number(),
 
     createdAt: v.number(),
     updatedAt: v.number(),

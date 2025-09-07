@@ -3,11 +3,12 @@ import {
   type AuthFunctions,
   type PublicAuthFunctions,
 } from "@convex-dev/better-auth";
+import { ConvexError } from "convex/values";
 import { createAuth } from "@/lib/auth";
 
 import { api, components, internal } from "./_generated/api";
 import type { Id, DataModel } from "./_generated/dataModel";
-import { query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 const authFunctions: AuthFunctions = internal.auth;
 const publicAuthFunctions: PublicAuthFunctions = api.auth;
@@ -38,6 +39,7 @@ export const {
       messageCount: 0,
       createdAt: now,
       updatedAt: now,
+      lastReset: Date.now(),
     });
 
     return userId;
@@ -133,6 +135,13 @@ export const {
   },
 });
 
+export const LIMITS = {
+  guest: 5,
+  verified: 20,
+};
+
+export const RESET_WINDOW = 1 * 12 * 60 * 60 * 1000;
+
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
@@ -150,6 +159,30 @@ export const getCurrentUser = query({
       ...user,
       ...userMetadata,
     };
+  },
+});
+
+export const resetUserQuota = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const authUser = await betterAuthComponent.getAuthUser(ctx);
+    if (!authUser) throw new ConvexError("Unauthorized");
+
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("_id"), authUser.userId))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const now = Date.now();
+
+    if (now - user.lastReset >= RESET_WINDOW) {
+      console.log("Resetting Quota");
+      await ctx.db.patch(user._id, {
+        messageCount: 0,
+        lastReset: now,
+      });
+    }
   },
 });
 

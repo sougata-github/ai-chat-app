@@ -3,7 +3,7 @@ import { generateImageTool, getModelForTool, getWeatherTool, isValidTool, Tool, 
 import { createModelInstance, DEFAULT_MODEL_ID, isValidModelId, ModelId, } from "@/lib/model/model";
 import { createResumableStreamContext, ResumableStreamContext, } from "resumable-stream";
 import { convertConvexMessagesToAISDK, injectCurrentDate } from "@/lib/utils";
-import { REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
+import { LIMITS, REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
 import { getToken } from "@convex-dev/better-auth/nextjs";
 import { generateTitleFromUserMessage } from "@/lib/chat";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
@@ -58,6 +58,15 @@ export async function POST(req: Request) {
 
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  const tier = user.emailVerified ? "verified" : "guest";
+  const limit = LIMITS[tier];
+  const currentCount = user.messageCount ?? 0;
+
+  if (currentCount >= limit) {
+    console.warn("Rate limit exceeded for user", user._id);
+    return new Response("Too Many Requests", { status: 429 });
   }
 
   if (!chatId) {
@@ -212,6 +221,22 @@ export async function POST(req: Request) {
             parts: lastAssistantMessage.parts ?? [],
             imageUrl,
             imageKey,
+          },
+          { token }
+        );
+
+        const hasToolCalls =
+          lastAssistantMessage.parts?.some((part) =>
+            part.type.startsWith("tool-")
+          ) || false;
+
+        const cost = hasToolCalls ? 5 : 1;
+
+        //update user usage
+        await fetchMutation(
+          api.user.updateUser,
+          {
+            cost,
           },
           { token }
         );

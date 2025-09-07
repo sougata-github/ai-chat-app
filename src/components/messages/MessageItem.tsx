@@ -20,6 +20,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { toast } from "sonner";
 import { Doc } from "@convex/_generated/dataModel";
+import { useUsageStatus } from "@/hooks/use-usage-status";
 
 interface Props {
   updateChat: () => void;
@@ -55,6 +56,8 @@ const MessageItem = ({
 
   const allMessages = useQuery(api.chats.getMessagesByChatId, { chatId });
   const deleteMessage = useMutation(api.chats.deleteMessage);
+
+  const { canSend } = useUsageStatus();
 
   const reasoningPart = message.parts.find((part) => part.type === "reasoning");
   const otherParts = message.parts.filter((part) => part.type !== "reasoning");
@@ -293,7 +296,7 @@ const MessageItem = ({
           <button
             onClick={handleEdit}
             className="bg-transparent"
-            disabled={status !== "ready" || isRegenerating}
+            disabled={status !== "ready" || isRegenerating || !canSend}
           >
             <PenSquareIcon className="size-3 sm:size-3.5" />
           </button>
@@ -303,7 +306,7 @@ const MessageItem = ({
           <button
             onClick={handleRegenerate}
             className="bg-transparent"
-            disabled={status !== "ready" || isRegenerating}
+            disabled={status !== "ready" || isRegenerating || !canSend}
           >
             <RotateCw className="size-3 sm:size-3.5" />
           </button>

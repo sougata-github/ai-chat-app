@@ -152,7 +152,7 @@ const Library = () => {
                   alt={item.prompt}
                   fill
                   className="object-cover aspect-square"
-                  quality={100}
+                  unoptimized
                 />
 
                 <div className="hidden md:flex absolute inset-0 items-end justify-center p-4 bg-foreground/40 dark:bg-background/40 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-5 transition-all duration-200 text-center">

@@ -24,14 +24,20 @@ import { createAuthClient } from "better-auth/react";
 import Image from "next/image";
 import { useState } from "react";
 import SearchCommand from "../modals/SearchCommand";
+import { Progress } from "@/components/ui/progress";
 
 interface Props {
   name: string;
   email: string;
   image: string;
+  messageCount: number;
+  lastReset: number | null;
 }
 
-const UserInfo = ({ name, email, image }: Props) => {
+//can be harcoded since this renders for verified users only
+const LIMIT = 20;
+
+const UserInfo = ({ name, email, image, messageCount, lastReset }: Props) => {
   const [openSearch, setOpenSearch] = useState(false);
 
   const { isMobile } = useSidebar();
@@ -50,6 +56,20 @@ const UserInfo = ({ name, email, image }: Props) => {
       },
     });
   };
+
+  const messagesLeft = Math.max(LIMIT - messageCount, 0);
+  const percent = Math.min((messageCount / LIMIT) * 100, 100);
+
+  const nextResetHours =
+    lastReset != null
+      ? Math.max(
+          0,
+          Math.ceil(
+            (lastReset + 1 * 12 * 60 * 60 * 1000 - Date.now()) /
+              (1000 * 60 * 60)
+          )
+        )
+      : null;
 
   return (
     <>
@@ -111,6 +131,21 @@ const UserInfo = ({ name, email, image }: Props) => {
                   </div>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <div className="px-2 py-1.5 space-y-2">
+                  <Progress value={percent} className="h-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {messagesLeft} / {LIMIT} messages left
+                  </p>
+                  {nextResetHours && (
+                    <p className="text-xs text-muted-foreground">
+                      Resets in {nextResetHours}{" "}
+                      {nextResetHours > 1 ? "hrs" : "hr"}
+                    </p>
+                  )}
+                </div>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => setOpenSearch(true)}>

@@ -27,6 +27,8 @@ import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Doc } from "@convex/_generated/dataModel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUsageStatus } from "@/hooks/use-usage-status";
+import { motion } from "framer-motion";
 
 interface Props {
   chatId: string;
@@ -69,6 +71,8 @@ const ChatInput = ({
     "chat-model",
     "gemini-2.5-flash"
   );
+
+  const { canSend, isLoading } = useUsageStatus();
 
   const updateMessage = useMutation(api.chats.updateMessage);
   const createAttachment = useMutation(api.chats.createAttachment);
@@ -135,7 +139,14 @@ const ChatInput = ({
     message: UIMessage,
     fileKey: string | undefined = undefined
   ) => {
-    if (status === "streaming" || status === "submitted") return;
+    if (
+      status === "streaming" ||
+      status === "submitted" ||
+      isUploadingFile ||
+      isUploadingLongPrompt ||
+      !canSend
+    )
+      return;
 
     if (messageToEdit) {
       let attachmentId: string | undefined = undefined;
@@ -367,6 +378,24 @@ const ChatInput = ({
             onSubmit={form.handleSubmit(onSubmit)}
             className="relative pb-4"
           >
+            {!canSend && !isLoading && (
+              <motion.div
+                className="rounded-md bg-destructive flex items-center p-2 text-sm dark:text-foreground text-background mb-4"
+                initial={{
+                  opacity: 0,
+                  y: 5,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: 0.5,
+                  },
+                }}
+              >
+                You have reached your messages limit for today.
+              </motion.div>
+            )}
             {messageToEdit && (
               <div className="rounded-2xl rounded-b-none bg-background/80 flex justify-between p-2">
                 <p className="text-sm">Editing Mode</p>

@@ -17,9 +17,6 @@ export default function MessagesPage() {
   });
   const user = useQuery(api.auth.getCurrentUser);
 
-  console.log(user?.userId);
-  console.log(chat?.userId);
-
   const skipResume = searchParams.get("skipResume") === "1";
 
   useEffect(() => {

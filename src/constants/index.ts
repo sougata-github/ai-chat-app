@@ -156,7 +156,10 @@ export const suggestionCategories: SuggestionCategory[] = [
   },
 ];
 
-export const DEFAULT_LIMIT = 20;
+export const LIMITS = {
+  guest: 5,
+  verified: 20,
+};
 
 export const SYSTEM_PROMPT = `You are a highly capable, warm, and reliable AI assistant. Communicate clearly, solve problems, and help users efficiently.
 
