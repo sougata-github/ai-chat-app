@@ -9,6 +9,7 @@ import { z } from "zod";
 import { ModelId } from "../model/model";
 import { getExaClient } from "./exa";
 
+
 export const generateImageTool = tool({
   description: "Generate an image based on a text prompt",
   inputSchema: z.object({
@@ -110,7 +111,7 @@ export const webSearchTool = tool({
         livecrawl: "fallback",
         numResults: 4,
         summary: true,
-        type: "keyword",
+        type: "auto",
       });
 
       if (!results?.length) {
