@@ -64,10 +64,8 @@ const UserInfo = ({ name, email, image, messageCount, lastReset }: Props) => {
     lastReset != null
       ? Math.max(
           0,
-          Math.ceil(
-            (lastReset + 1 * 12 * 60 * 60 * 1000 - Date.now()) /
-              (1000 * 60 * 60)
-          )
+
+          (lastReset + 1 * 12 * 60 * 60 * 1000 - Date.now()) / (1000 * 60 * 60)
         )
       : null;
 
@@ -138,10 +136,15 @@ const UserInfo = ({ name, email, image, messageCount, lastReset }: Props) => {
                   <p className="text-xs text-muted-foreground">
                     {messagesLeft} / {LIMIT} messages left
                   </p>
-                  {nextResetHours && (
+                  {nextResetHours !== null && (
                     <p className="text-xs text-muted-foreground">
-                      Resets in {nextResetHours}{" "}
-                      {nextResetHours > 1 ? "hrs" : "hr"}
+                      {nextResetHours < 1
+                        ? "Resets in less than 1 hr"
+                        : `Resets in ${
+                            Number.isInteger(nextResetHours)
+                              ? nextResetHours
+                              : Number(nextResetHours.toFixed(1))
+                          } ${nextResetHours > 1 ? "hrs" : "hr"}`}
                     </p>
                   )}
                 </div>
