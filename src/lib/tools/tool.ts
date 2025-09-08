@@ -107,9 +107,10 @@ export const webSearchTool = tool({
 
     try {
       const { results } = await exa.searchAndContents(query, {
-        livecrawl: "always",
-        numResults: 2,
+        livecrawl: "fallback",
+        numResults: 4,
         summary: true,
+        type: "keyword",
       });
 
       if (!results?.length) {

@@ -69,28 +69,46 @@ const WebSearchCard = ({ results, input }: WebSearchCardProps) => {
           style={{ overflow: "hidden" }}
         >
           <div className="flex flex-col gap-4 px-2 mt-4">
-            {results.map((result, index) => (
-              <Link key={index} href={`${result.url}`} target="_blank">
-                <div className="flex items-start justify-between">
-                  <h4 className="font-medium text-sm line-clamp-1 flex-1">
-                    {result.title}
-                  </h4>
-                  <ArrowUpRightIcon className="size-4 text-muted-foreground" />
-                </div>
+            {results.map((result, index) => {
+              const isValidUrl = result.url && /^https?:\/\//.test(result.url);
 
-                <div className="flex items-center text-xs text-muted-foreground mt-1">
-                  <span className="truncate">
-                    {new URL(result.url).hostname}
-                  </span>{" "}
-                  <span className="mx-1">|</span>{" "}
-                  {result.publishedDate && (
-                    <span>
-                      {new Date(result.publishedDate).toLocaleDateString()}
-                    </span>
+              return (
+                <div key={index}>
+                  {isValidUrl ? (
+                    <Link href={result.url} target="_blank">
+                      <div className="flex items-start justify-between">
+                        <h4 className="font-medium text-sm line-clamp-1 flex-1">
+                          {result.title}
+                        </h4>
+                        <ArrowUpRightIcon className="size-4 text-muted-foreground" />
+                      </div>
+
+                      <div className="flex items-center text-xs text-muted-foreground mt-1">
+                        <span className="truncate">
+                          {new URL(result.url).hostname}
+                        </span>
+                        {result.publishedDate && (
+                          <>
+                            <span className="mx-1">|</span>
+                            <span>
+                              {new Date(
+                                result.publishedDate
+                              ).toLocaleDateString()}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </Link>
+                  ) : (
+                    <div>
+                      <div className="flex items-center text-xs text-muted-foreground mt-1">
+                        <span>No valid link</span>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       )}
