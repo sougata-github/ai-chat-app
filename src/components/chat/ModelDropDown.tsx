@@ -12,7 +12,6 @@ import { startTransition } from "react";
 import { MODEL_REGISTRY, type ModelId } from "@/lib/model/model";
 import { saveChatModelAsCookie } from "@/lib/model";
 import { Tool } from "@/lib/tools/tool";
-import Image from "next/image";
 
 interface ModelDropDownProps {
   optimisticModel: ModelId;
@@ -71,13 +70,7 @@ const ModelDropDown = ({
             }
           >
             <div className="flex items-center gap-1.5">
-              <Image
-                src={config.logo}
-                alt={`${config.name}`}
-                width={20}
-                height={20}
-                className="size-4"
-              />
+              {<config.logo className="size-4" />}
               <span className="max-sm:text-xs">{config.name}</span>
             </div>
           </DropdownMenuItem>
