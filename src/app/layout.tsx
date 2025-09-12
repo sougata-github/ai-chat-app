@@ -3,10 +3,9 @@ import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,14 +17,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "Ai Chat",
   description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
+  openGraph: {
+    title: "Ai Chat",
+    description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
+    url: "https://ai-chat-app-dev.vercel.app",
+    siteName: "Ai Chat",
+    images: [
+      {
+        url: "/ai-chat.png",
+        width: 1200,
+        height: 630,
+        alt: "Ai ChatBot interface preview",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ai Chat",
+    description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
+    images: ["/ai-chat.png"],
+  },
 };
 
 export default function RootLayout({
@@ -36,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.className} ${inter.variable}  ${geistMono.variable} ${geistSans.variable} antialiased`}
+        className={`${geistSans.className} ${geistMono.variable} ${geistSans.variable} antialiased`}
       >
         <ConvexClientProvider>
           <ThemeProvider
