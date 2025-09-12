@@ -7,6 +7,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -18,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ai-chat-app-dev.vercel.app"),
   title: "Ai Chat",
   description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
   openGraph: {
