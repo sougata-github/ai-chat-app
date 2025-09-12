@@ -19,30 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ai-chat-app-dev.vercel.app"),
   title: "Ai Chat",
   description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
-  openGraph: {
-    title: "Ai Chat",
-    description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
-    url: "https://ai-chat-app-dev.vercel.app",
-    siteName: "Ai Chat",
-    images: [
-      {
-        url: "/ai-chat.png",
-        width: 1200,
-        height: 630,
-        alt: "Ai ChatBot interface preview",
-      },
-    ],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Ai Chat",
-    description: "Advanced Ai ChatBot built using Next.js and Vercel AI SDK.",
-    images: ["/ai-chat.png"],
-  },
 };
 
 export default function RootLayout({
