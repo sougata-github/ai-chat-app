@@ -7,7 +7,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -21,6 +20,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI Chat",
   description: "AI chat app built using Next.js, Convex and Vercel AI SDK.",
+  icons: {
+    icon: [
+      {
+        rel: "icon",
+        url: "/favicon-dark.ico",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        rel: "icon",
+        url: "/favicon-light.ico",
+        media: "(prefers-color-scheme: light)",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
