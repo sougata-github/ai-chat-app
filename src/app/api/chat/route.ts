@@ -1,7 +1,29 @@
-import { streamText, createUIMessageStream, JsonToSseTransformStream, convertToModelMessages, stepCountIs, InferUITool, UIMessage, } from "ai";
-import { generateImageTool, getModelForTool, getWeatherTool, isValidTool, Tool, webSearchTool, } from "@/lib/tools/tool";
-import { createModelInstance, DEFAULT_MODEL_ID, isValidModelId, ModelId, } from "@/lib/model/model";
-import { createResumableStreamContext, ResumableStreamContext, } from "resumable-stream";
+import {
+  streamText,
+  createUIMessageStream,
+  JsonToSseTransformStream,
+  convertToModelMessages,
+  stepCountIs,
+  UIMessage,
+  smoothStream,
+} from "ai";
+import {
+  getModelForTool,
+  getWeatherTool,
+  isValidTool,
+  Tool,
+  webSearchTool,
+} from "@/lib/tools/tool";
+import {
+  createModelInstance,
+  DEFAULT_MODEL_ID,
+  isValidModelId,
+  ModelId,
+} from "@/lib/model/model";
+import {
+  createResumableStreamContext,
+  ResumableStreamContext,
+} from "resumable-stream";
 import { convertConvexMessagesToAISDK, injectCurrentDate } from "@/lib/utils";
 import { LIMITS, REASONING_SYSTEM_PROMPT, SYSTEM_PROMPT } from "@/constants";
 import { getToken } from "@convex-dev/better-auth/nextjs";
@@ -13,7 +35,6 @@ import { api } from "@convex/_generated/api";
 import { createAuth } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
-
 
 export const maxDuration = 100;
 
@@ -147,13 +168,15 @@ export async function POST(req: Request) {
         system: finalSystemPrompt,
         messages: convertToModelMessages(uiMessages),
         tools: {
-          generateImageTool,
           getWeatherTool,
           webSearchTool,
         },
         toolChoice: "auto",
         stopWhen: stepCountIs(5),
-        // experimental_transform: smoothStream({ chunking: "line" }),
+        experimental_transform: smoothStream({
+          delayInMs: 2,
+          chunking: "word",
+        }),
       });
 
       result.consumeStream();
@@ -187,31 +210,31 @@ export async function POST(req: Request) {
           return;
         }
 
-        const hasToolResults = lastAssistantMessage.parts?.some(
-          (part) =>
-            part.type === "tool-generateImageTool" &&
-            part.state === "output-available"
-        );
+        // const hasToolResults = lastAssistantMessage.parts?.some(
+        //   (part) =>
+        //     part.type === "tool-generateImageTool" &&
+        //     part.state === "output-available"
+        // );
 
-        let imageUrl: string | undefined = undefined;
-        let imageKey: string | undefined = undefined;
+        // let imageUrl: string | undefined = undefined;
+        // let imageKey: string | undefined = undefined;
 
-        if (hasToolResults) {
-          for (const part of lastAssistantMessage.parts ?? []) {
-            if (
-              part.type === "tool-generateImageTool" &&
-              part.state === "output-available"
-            ) {
-              const { output } = part;
-              const result = output as InferUITool<
-                typeof generateImageTool
-              >["output"];
-              imageUrl = result.imageUrl!;
-              imageKey = result.imageKey!;
-              break;
-            }
-          }
-        }
+        // if (hasToolResults) {
+        //   for (const part of lastAssistantMessage.parts ?? []) {
+        //     if (
+        //       part.type === "tool-generateImageTool" &&
+        //       part.state === "output-available"
+        //     ) {
+        //       const { output } = part;
+        //       const result = output as InferUITool<
+        //         typeof generateImageTool
+        //       >["output"];
+        //       imageUrl = result.imageUrl!;
+        //       imageKey = result.imageKey!;
+        //       break;
+        //     }
+        //   }
+        // }
         await fetchMutation(
           api.chats.createMessage,
           {
@@ -219,8 +242,6 @@ export async function POST(req: Request) {
             role: "AI",
             chatId,
             parts: lastAssistantMessage.parts ?? [],
-            imageUrl,
-            imageKey,
           },
           { token }
         );

@@ -1,6 +1,22 @@
-import { WandSparkles, BookOpen, Code, FileText, ListOrdered, Terminal, Code2, PenLine, Layers, Database, Braces, Lightbulb, TrendingUp, GitCompare, Brain, MessageSquare, } from "lucide-react";
+import {
+  WandSparkles,
+  BookOpen,
+  Code,
+  FileText,
+  ListOrdered,
+  Terminal,
+  Code2,
+  PenLine,
+  Layers,
+  Database,
+  Braces,
+  Lightbulb,
+  TrendingUp,
+  GitCompare,
+  Brain,
+  MessageSquare,
+} from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
-
 
 type IconType = React.ElementType<{ className?: string }>;
 
@@ -241,7 +257,7 @@ For example:
 - Always prioritize user needs over tool convenience
 - Integrate the retrieved information seamlessly into the response without notifying the user explicitly.
 
-- Only call **webSearchTool**, **getWeatherTool**, or **generateImageTool** when:
+- Only call **webSearchTool** or **getWeatherTool** when:
   1. The user explicitly requests real-time or external data (e.g., “What’s the current price of X?”, “Show me today’s weather…”).
   2. The user asks you to generate or fetch an image.
   3. You are _uncertain_ and can’t answer from your training data.
@@ -279,14 +295,14 @@ Assistant: <function_call name="getWeather" arguments={"location":"London"}>
   - Suggest users to turn on weather tool for checking the current weather
   - Offer to help with weather-related questions that don't require real-time data
 
-### Image Generation
-- If image generation available: produce ONE image per request unless multiple requested
-- Provide descriptive caption with proper spacing
- - **IMPORTANT — STRICT RULE:**  In the final response, NEVER include raw image URLs  (including http:// or https:// links), file paths, or any technical details under any circumstances.
-- If unavailable:
-  - State: "I can't generate images right now"
-  - Suggest users to turn on image generation tool for generating images
-  - Suggest alternative ways to help with visual concepts
+// ### Image Generation
+// - If image generation available: produce ONE image per request unless multiple requested
+// - Provide descriptive caption with proper spacing
+//  - **IMPORTANT — STRICT RULE:**  In the final response, NEVER include raw image URLs  (including http:// or https:// links), file paths, or any technical details under any circumstances.
+// - If unavailable:
+//   - State: "I can't generate images right now"
+//   - Suggest users to turn on image generation tool for generating images
+//   - Suggest alternative ways to help with visual concepts
 
 ## Conversation Management
 
@@ -369,7 +385,7 @@ export const REASONING_SYSTEM_PROMPT = `You are an intelligent AI assistant. You
 - Always prioritize user needs over tool convenience
 - Integrate the retrieved information seamlessly into the response without notifying the user explicitly.
 
-- Only call **webSearchTool**, **getWeatherTool**, or **generateImageTool** when:
+- Only call **webSearchTool** or **getWeatherTool** when:
   1. The user explicitly requests real-time or external data (e.g., “What’s the current price of X?”, “Show me today’s weather…”).
   2. The user asks you to generate or fetch an image.
   3. You are _uncertain_ and can’t answer from your training data.
@@ -407,14 +423,14 @@ Assistant: <function_call name="getWeather" arguments={"location":"London"}>
   - Suggest users to turn on weather tool for checking the current weather
   - Offer to help with weather-related questions that don't require real-time data
 
-### Image Generation
-- If image generation available: produce ONE image per request unless multiple requested
-- Provide descriptive caption with proper spacing
- - **IMPORTANT — STRICT RULE:**  In the final response, NEVER include raw image URLs  (including http:// or https:// links), file paths, or any technical details under any circumstances.
-- If unavailable:
-  - State: "I can't generate images right now"
-  - Suggest users to turn on image generation tool for generating images
-  - Suggest alternative ways to help with visual concepts
+// ### Image Generation
+// - If image generation available: produce ONE image per request unless multiple requested
+// - Provide descriptive caption with proper spacing
+//  - **IMPORTANT — STRICT RULE:**  In the final response, NEVER include raw image URLs  (including http:// or https:// links), file paths, or any technical details under any circumstances.
+// - If unavailable:
+//   - State: "I can't generate images right now"
+//   - Suggest users to turn on image generation tool for generating images
+//   - Suggest alternative ways to help with visual concepts
 
 ## Context Awareness
 

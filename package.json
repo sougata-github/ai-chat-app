@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/google": "^2.0.11",
+    "@ai-sdk/google": "^2.0.24",
     "@ai-sdk/groq": "^2.0.3",
     "@ai-sdk/react": "^2.0.22",
     "@convex-dev/better-auth": "^0.7.17",

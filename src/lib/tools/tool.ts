@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GlobeIcon, Image, Lightbulb, Zap } from "lucide-react";
+import { GlobeIcon, Lightbulb, Zap } from "lucide-react";
 import { UTApi, UTFile } from "uploadthing/server";
 import { v4 as uuid } from "@lukeed/uuid";
 import { google } from "@ai-sdk/google";
@@ -8,7 +8,6 @@ import { z } from "zod";
 
 import { ModelId } from "../model/model";
 import { getExaClient } from "./exa";
-
 
 export const generateImageTool = tool({
   description: "Generate an image based on a text prompt",
@@ -36,7 +35,7 @@ export const generateImageTool = tool({
       // const base64Data = image.base64.replace(/^data:image\/\w+;base64,/, "");
 
       const result = await generateText({
-        model: google("gemini-2.0-flash-preview-image-generation"),
+        model: google("gemini-2.5-flash-image"),
         providerOptions: {
           google: { responseModalities: ["TEXT", "IMAGE"] },
         },
@@ -272,12 +271,7 @@ export const getWeatherTool = tool<
   },
 });
 
-export type Tool =
-  | "none"
-  | "image-gen"
-  | "web-search"
-  | "get-weather"
-  | "reasoning";
+export type Tool = "none" | "web-search" | "get-weather" | "reasoning";
 
 export const TOOL_REGISTRY = {
   "get-weather": {
@@ -299,18 +293,17 @@ export const TOOL_REGISTRY = {
     defaultModel: "qwen/qwen3-32b" as const,
     icon: Lightbulb,
   },
-  "image-gen": {
-    name: "Create image",
-    tool: generateImageTool,
-    defaultModel: "gemini-2.5-flash" as const,
-    icon: Image,
-  },
+  // "image-gen": {
+  //   name: "Create image",
+  //   tool: generateImageTool,
+  //   defaultModel: "gemini-2.5-flash" as const,
+  //   icon: Image,
+  // },
 } as const;
 
 export function isValidTool(tool: string): tool is Tool {
   return (
     tool === "none" ||
-    tool === "image-gen" ||
     tool === "web-search" ||
     tool === "get-weather" ||
     tool === "reasoning"
