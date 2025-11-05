@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GlobeIcon, Lightbulb, Zap } from "lucide-react";
+import { GlobeIcon, Lightbulb, Zap, ChartLine } from "lucide-react";
 import { UTApi, UTFile } from "uploadthing/server";
 import { v4 as uuid } from "@lukeed/uuid";
 import { google } from "@ai-sdk/google";
-import { generateText, tool } from "ai";
+import { generateText, generateObject, tool } from "ai";
 import { z } from "zod";
 
 import { ModelId } from "../model/model";
@@ -146,6 +146,176 @@ export const webSearchTool = tool({
   },
 });
 
+const marketResearchInputSchema = z.object({
+  query: z
+    .string()
+    .min(1)
+    .max(400)
+    .describe("The market research query or topic to analyze"),
+});
+
+const marketResearchOutputSchema = z.object({
+  marketTrends: z
+    .string()
+    .describe("Point-wise summary of market trends (max 4 points)"),
+  chartConfigurations: z
+    .array(
+      z.object({
+        type: z
+          .enum(["bar", "line"])
+          .describe('The type of chart to generate. Either "bar" or "line"'),
+        labels: z.array(z.string()).describe("A list of chart labels"),
+        data: z.array(z.number()).describe("A list of the chart data"),
+        label: z.string().describe("A label for the chart"),
+        colors: z
+          .array(z.string())
+          .describe(
+            'A list of colors to use for the chart, e.g. "rgba(255, 99, 132, 0.8)"'
+          ),
+      })
+    )
+    .describe("A list of 1-3 chart configurations for visualization"),
+  sources: z
+    .array(
+      z.object({
+        title: z.string(),
+        url: z.string().url().or(z.literal("")),
+        publishedDate: z.string().nullable(),
+      })
+    )
+    .describe("Array of sources used for the research"),
+  error: z.boolean(),
+  message: z.string().optional(),
+});
+
+export const marketResearchTool = tool<
+  z.infer<typeof marketResearchInputSchema>,
+  z.infer<typeof marketResearchOutputSchema>
+>({
+  description:
+    "Perform market research with current data and generate visualizations with charts",
+  inputSchema: marketResearchInputSchema,
+  outputSchema: marketResearchOutputSchema,
+  execute: async ({ query }) => {
+    console.log("Performing market research...");
+
+    try {
+      // Step 1: Search market trends using Google Search
+      const { text: marketData, sources: rawSources } = await generateText({
+        model: google("gemini-2.5-flash"),
+        tools: {
+          google_search: google.tools.googleSearch({} as any) as any,
+        },
+        prompt: `Search the web for current market trends, data, and insights about: ${query}
+        
+        Focus on:
+        - Market size and growth rates
+        - Key players and market share
+        - Recent trends and developments
+        - Statistical data that can be visualized with charts
+        - Important metrics and figures
+        
+        IMPORTANT: Do NOT include any images, image URLs, or image references in your response. Only provide text-based data and information.
+        
+        Provide comprehensive, up-to-date information.`,
+      });
+
+      if (!marketData) {
+        return {
+          error: true,
+          message: "Unable to fetch market research data. Please try again.",
+          marketTrends: "",
+          chartConfigurations: [],
+          sources: [],
+        };
+      }
+
+      console.log("Market data retrieved, generating charts...");
+
+      // Step 2: Extract chart data using generateObject
+      const { object: chartData } = await generateObject({
+        model: google("gemini-2.5-flash"),
+        schema: z.object({
+          chartConfigurations: z
+            .array(
+              z.object({
+                type: z
+                  .enum(["bar", "line"])
+                  .describe(
+                    'The type of chart to generate. Either "bar" or "line"'
+                  ),
+                labels: z.array(z.string()).describe("A list of chart labels"),
+                data: z.array(z.number()).describe("A list of the chart data"),
+                label: z.string().describe("A label for the chart"),
+                colors: z
+                  .array(z.string())
+                  .describe(
+                    'A list of colors to use for the chart, e.g. "rgba(255, 99, 132, 0.8)"'
+                  ),
+              })
+            )
+            .describe("A list of 1-3 chart configurations"),
+        }),
+        prompt: `Given the following market research data, create 1-3 meaningful bar or line charts with accurate data for visualization.
+
+Market Data:
+${marketData}
+
+Generate charts that best represent the key metrics, comparisons, or trends found in the data.
+
+IMPORTANT: Do NOT include any images, image URLs, or image references. Only provide chart configuration data.`,
+      });
+
+      console.log("Charts generated, creating summary...");
+
+      // Step 3: Generate point-wise summary (max 4 points)
+      const { text: summary } = await generateText({
+        model: google("gemini-2.5-flash"),
+        prompt: `Based on the following market research data, create a concise point-wise summary with a MAXIMUM of 4 key points.
+
+Market Data:
+${marketData}
+
+Requirements:
+- Use bullet points (-)
+- Maximum 4 points
+- Each point should be concise and informative
+- Focus on the most important insights
+- Do NOT include any source citations or references in the points
+- Do NOT include any images, image URLs, or image references
+- Highlight key metrics in bold using **text**
+
+Format your response as a markdown list with bullet points.`,
+      });
+
+      // Process sources
+      const sources =
+        rawSources?.map((source: any) => ({
+          title: source.title || "Untitled",
+          url: source.url || "",
+          publishedDate: source.publishedDate || null,
+        })) || [];
+
+      return {
+        marketTrends: summary,
+        chartConfigurations: chartData.chartConfigurations || [],
+        sources: sources.slice(0, 8), // Limit to 8 sources
+        error: false,
+      };
+    } catch (error) {
+      console.error("Market research error:", error);
+      return {
+        error: true,
+        message:
+          "An error occurred while performing market research. Please try again.",
+        marketTrends: "",
+        chartConfigurations: [],
+        sources: [],
+      };
+    }
+  },
+});
+
 const weatherInputSchema = z.object({
   location: z
     .string()
@@ -271,27 +441,40 @@ export const getWeatherTool = tool<
   },
 });
 
-export type Tool = "none" | "web-search" | "get-weather" | "reasoning";
+export type Tool =
+  | "none"
+  | "web-search"
+  | "get-weather"
+  | "reasoning"
+  | "market-research";
 
 export const TOOL_REGISTRY = {
   "get-weather": {
-    name: "Get weather",
+    name: "Get Weather",
     tool: getWeatherTool,
     defaultModel: "gemini-2.5-flash" as const,
     icon: Zap,
   },
 
   "web-search": {
-    name: "Search web",
+    name: "Search Web",
     tool: webSearchTool,
     defaultModel: "gemini-2.5-flash" as const,
     icon: GlobeIcon,
   },
+
   reasoning: {
-    name: "Think longer",
-    tool: {},
+    name: "Think Longer",
+    tool: null as any,
     defaultModel: "qwen/qwen3-32b" as const,
     icon: Lightbulb,
+  },
+
+  "market-research": {
+    name: "Market Research",
+    tool: marketResearchTool,
+    defaultModel: "gemini-2.5-flash" as const,
+    icon: ChartLine,
   },
   // "image-gen": {
   //   name: "Create image",
@@ -306,7 +489,8 @@ export function isValidTool(tool: string): tool is Tool {
     tool === "none" ||
     tool === "web-search" ||
     tool === "get-weather" ||
-    tool === "reasoning"
+    tool === "reasoning" ||
+    tool === "market-research"
   );
 }
 

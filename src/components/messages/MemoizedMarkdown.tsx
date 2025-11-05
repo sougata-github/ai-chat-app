@@ -68,6 +68,18 @@ const components: Partial<Components> = {
       </div>
     );
   },
+  img: ({ src, alt, ...props }) => {
+    // Don't render images with empty or invalid src
+    if (
+      !src ||
+      (typeof src === "string" &&
+        (src.trim() === "" || src === "null" || src === "undefined"))
+    ) {
+      return null;
+    }
+    // Don't render images at all to prevent any image-related issues
+    return null;
+  },
 };
 
 const MemoizedMarkdownBlock = memo(

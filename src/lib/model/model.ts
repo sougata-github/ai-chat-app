@@ -1,18 +1,21 @@
-import { customProvider, extractReasoningMiddleware, wrapLanguageModel, } from "ai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { OpenAI, Google, Qwen } from "@lobehub/icons";
+import {
+  customProvider,
+  extractReasoningMiddleware,
+  wrapLanguageModel,
+} from "ai";
+// import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { Google, Qwen } from "@lobehub/icons";
 import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 
-
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPEN_ROUTER_KEY,
-});
+// const openrouter = createOpenRouter({
+//   apiKey: process.env.OPEN_ROUTER_KEY,
+// });
 
 const custom = customProvider({
   languageModels: {
     "gemini-2.5-flash": google("gemini-2.5-flash"),
-    "openai/gpt-4o-mini": openrouter.chat("openai/gpt-4o-mini"),
+    // "openai/gpt-4o-mini": openrouter.chat("openai/gpt-4o-mini"),
     "qwen/qwen3-32b": wrapLanguageModel({
       model: groq("qwen/qwen3-32b"),
       middleware: extractReasoningMiddleware({ tagName: "think" }),
@@ -27,12 +30,12 @@ export const MODEL_REGISTRY = {
     name: "Qwen 32b",
     logo: Qwen,
   },
-  "openai/gpt-4o-mini": {
-    provider: custom,
-    id: "openai/gpt-4o-mini",
-    name: "GPT-4o Mini",
-    logo: OpenAI,
-  },
+  // "openai/gpt-4o-mini": {
+  //   provider: custom,
+  //   id: "openai/gpt-4o-mini",
+  //   name: "GPT-4o Mini",
+  //   logo: OpenAI,
+  // },
   "gemini-2.5-flash": {
     provider: custom,
     id: "gemini-2.5-flash",

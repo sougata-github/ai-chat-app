@@ -5,7 +5,7 @@ import { SpinnerIcon } from "./SpinnerIcon";
 import { motion } from "framer-motion";
 
 interface LoadingSkeletonProps {
-  type: "image" | "web-search" | "weather";
+  type: "image" | "web-search" | "weather" | "market-research";
 }
 
 const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
@@ -64,6 +64,29 @@ const LoadingSkeleton = ({ type }: LoadingSkeletonProps) => {
             <SpinnerIcon />
           </div>
           Searching the web
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (type === "market-research") {
+    return (
+      <motion.div
+        initial={{
+          opacity: 0,
+        }}
+        animate={{
+          opacity: 1,
+          transition: {
+            duration: 0.2,
+          },
+        }}
+      >
+        <div className="flex items-center gap-2 font-medium mb-1">
+          <div className="animate-spin transition text-sm">
+            <SpinnerIcon />
+          </div>
+          Performing research
         </div>
       </motion.div>
     );

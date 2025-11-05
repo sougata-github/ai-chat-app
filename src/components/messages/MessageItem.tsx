@@ -9,12 +9,14 @@ import LoadingSkeleton from "./LoadingSkeleton";
 import ImageDisplay from "./ImageDisplay";
 import WebSearchCard from "./WebSearch";
 import WeatherCard from "./WeatherCard";
+import MarketResearchCard from "./MarketResearchCard";
 import ReasoningBlock from "./ReasoningBlock";
 import type { InferUITool, UIMessage } from "ai";
 import {
   generateImageTool,
   getWeatherTool,
   webSearchTool,
+  marketResearchTool,
 } from "@/lib/tools/tool";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -265,6 +267,41 @@ const MessageItem = ({
                     <div key={toolCallId} className="mt-3">
                       <p className="text-sm sm:text-[15px] text-red-500">
                         Error fetching weather.
+                      </p>
+                    </div>
+                  );
+              }
+            }
+
+            if (type === "tool-marketResearchTool") {
+              const { state, toolCallId } = part;
+              switch (state) {
+                case "input-available":
+                  return (
+                    <div key={toolCallId}>
+                      <LoadingSkeleton type="market-research" />
+                    </div>
+                  );
+                case "output-available": {
+                  const { output, input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <MarketResearchCard
+                        data={
+                          output as InferUITool<typeof marketResearchTool>["output"]
+                        }
+                        input={
+                          input as InferUITool<typeof marketResearchTool>["input"]
+                        }
+                      />
+                    </div>
+                  );
+                }
+                case "output-error":
+                  return (
+                    <div key={toolCallId} className="mt-3">
+                      <p className="text-sm sm:text-[15px] text-red-500">
+                        Error performing market research.
                       </p>
                     </div>
                   );

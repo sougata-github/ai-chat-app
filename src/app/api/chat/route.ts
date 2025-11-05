@@ -13,6 +13,7 @@ import {
   isValidTool,
   Tool,
   webSearchTool,
+  marketResearchTool,
 } from "@/lib/tools/tool";
 import {
   createModelInstance,
@@ -63,19 +64,30 @@ export async function POST(req: Request) {
     trigger,
   } = await req.json();
 
+  // Early validation
+  if (!chatId) {
+    return new Response("Chat ID is required", { status: 400 });
+  }
+
   const streamId = uuidv4();
-  await fetchMutation(api.streams.appendStreamId, { chatId, streamId });
 
-  const selectedTool = await getToolFromCookies();
-  const selectedModel = await getChatModelFromCookies();
-
-  const token = await getToken(createAuth);
+  // Parallelize independent operations
+  const [token, selectedTool, selectedModel] = await Promise.all([
+    getToken(createAuth),
+    getToolFromCookies(),
+    getChatModelFromCookies(),
+  ]);
 
   if (!token) {
     return new Response("Unautorized", { status: 401 });
   }
 
-  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+  // Parallelize user and chat queries
+  const [user, previousMessages, existingChat] = await Promise.all([
+    fetchQuery(api.auth.getCurrentUser, {}, { token }),
+    fetchQuery(api.chats.getMessagesByChatId, { chatId }),
+    fetchQuery(api.chats.getChatByUUID, { chatId }, { token }),
+  ]);
 
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
@@ -90,38 +102,22 @@ export async function POST(req: Request) {
     return new Response("Too Many Requests", { status: 429 });
   }
 
-  if (!chatId) {
-    return new Response("Chat ID is required", { status: 400 });
+  // Create chat if it doesn't exist (non-blocking)
+  if (!existingChat) {
+    void fetchMutation(
+      api.chats.createChat,
+      { id: chatId, title: "New Chat" },
+      { token }
+    );
   }
 
-  const previousMessages = await fetchQuery(api.chats.getMessagesByChatId, {
-    chatId,
-  });
-
+  // Prepare messages and start stream immediately
   const uiMessages =
     trigger === "regenerate-message"
       ? convertConvexMessagesToAISDK(previousMessages)
       : [...convertConvexMessagesToAISDK(previousMessages), message];
 
-  let existingChat = await fetchQuery(
-    api.chats.getChatByUUID,
-    { chatId },
-    { token }
-  );
-
-  if (!existingChat) {
-    await fetchMutation(
-      api.chats.createChat,
-      { id: chatId, title: "New Chat" },
-      { token }
-    );
-    existingChat = await fetchQuery(
-      api.chats.getChatByUUID,
-      { chatId },
-      { token }
-    );
-  }
-
+  // Generate title in background (non-blocking)
   if (
     existingChat?.title.trim() === "New Chat" &&
     previousMessages.length <= 2 &&
@@ -132,15 +128,23 @@ export async function POST(req: Request) {
     )?.text;
 
     if (userPrompt) {
-      const updatedTitle = await generateTitleFromUserMessage(userPrompt);
-
-      await fetchMutation(
-        api.chats.updateChatTitle,
-        { chatId, title: updatedTitle.split(" ").slice(0, 4).join(" ") },
-        { token }
-      );
+      // Don't await - run in background
+      generateTitleFromUserMessage(userPrompt)
+        .then((updatedTitle) => {
+          return fetchMutation(
+            api.chats.updateChatTitle,
+            { chatId, title: updatedTitle.split(" ").slice(0, 4).join(" ") },
+            { token }
+          );
+        })
+        .catch((error) => {
+          console.error("Failed to generate title:", error);
+        });
     }
   }
+
+  // Append stream ID (non-blocking)
+  void fetchMutation(api.streams.appendStreamId, { chatId, streamId });
 
   let tool: Tool = "none";
 
@@ -170,11 +174,12 @@ export async function POST(req: Request) {
         tools: {
           getWeatherTool,
           webSearchTool,
+          marketResearchTool,
         },
         toolChoice: "auto",
         stopWhen: stepCountIs(5),
         experimental_transform: smoothStream({
-          delayInMs: 2,
+          delayInMs: 1,
           chunking: "word",
         }),
       });
@@ -193,12 +198,6 @@ export async function POST(req: Request) {
     },
     onFinish: async ({ messages }) => {
       try {
-        await fetchMutation(
-          api.chats.updateChatStatus,
-          { chatId, status: "ready" },
-          { token }
-        );
-
         const assistantMessages = messages.filter(
           (message) => message.role === "assistant"
         );
@@ -210,42 +209,6 @@ export async function POST(req: Request) {
           return;
         }
 
-        // const hasToolResults = lastAssistantMessage.parts?.some(
-        //   (part) =>
-        //     part.type === "tool-generateImageTool" &&
-        //     part.state === "output-available"
-        // );
-
-        // let imageUrl: string | undefined = undefined;
-        // let imageKey: string | undefined = undefined;
-
-        // if (hasToolResults) {
-        //   for (const part of lastAssistantMessage.parts ?? []) {
-        //     if (
-        //       part.type === "tool-generateImageTool" &&
-        //       part.state === "output-available"
-        //     ) {
-        //       const { output } = part;
-        //       const result = output as InferUITool<
-        //         typeof generateImageTool
-        //       >["output"];
-        //       imageUrl = result.imageUrl!;
-        //       imageKey = result.imageKey!;
-        //       break;
-        //     }
-        //   }
-        // }
-        await fetchMutation(
-          api.chats.createMessage,
-          {
-            id: uuidv4(),
-            role: "AI",
-            chatId,
-            parts: lastAssistantMessage.parts ?? [],
-          },
-          { token }
-        );
-
         const hasToolCalls =
           lastAssistantMessage.parts?.some((part) =>
             part.type.startsWith("tool-")
@@ -253,14 +216,25 @@ export async function POST(req: Request) {
 
         const cost = hasToolCalls ? 5 : 1;
 
-        //update user usage
-        await fetchMutation(
-          api.user.updateUser,
-          {
-            cost,
-          },
-          { token }
-        );
+        // Parallelize mutations for faster completion
+        await Promise.all([
+          fetchMutation(
+            api.chats.updateChatStatus,
+            { chatId, status: "ready" },
+            { token }
+          ),
+          fetchMutation(
+            api.chats.createMessage,
+            {
+              id: uuidv4(),
+              role: "AI",
+              chatId,
+              parts: lastAssistantMessage.parts ?? [],
+            },
+            { token }
+          ),
+          fetchMutation(api.user.updateUser, { cost }, { token }),
+        ]);
       } catch (error) {
         console.log("Failed to save response in DB", (error as Error).message);
       }
