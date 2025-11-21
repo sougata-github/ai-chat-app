@@ -42,7 +42,7 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       '@openrouter/ai-sdk-provider':
-        specifier: ^1.2.0
+        specifier: ^1.2.5
         version: 1.2.5(ai@5.0.98(zod@3.25.76))(zod@3.25.76)
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.14
@@ -147,7 +147,7 @@ importers:
         specifier: ^0.13.0
         version: 0.13.0
       katex:
-        specifier: ^0.16.11
+        specifier: ^0.16.25
         version: 0.16.25
       lucide-react:
         specifier: ^0.513.0

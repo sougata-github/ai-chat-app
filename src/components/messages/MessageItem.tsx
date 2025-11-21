@@ -125,8 +125,8 @@ const MessageItem = ({
           className={cn(
             "px-4 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px] relative",
             isUser
-              ? "dark:bg-muted-foreground/15 bg-muted-foreground/5 font-medium max-w-[300px] md:max-w-md break-words py-2"
-              : "bg-transparent w-full break-words"
+              ? "dark:bg-muted-foreground/15 bg-muted-foreground/5 font-medium max-w-[300px] md:max-w-md wrap-break-word py-2"
+              : "bg-transparent w-full wrap-break-word"
           )}
         >
           {/* user file attachments */}
@@ -288,10 +288,14 @@ const MessageItem = ({
                     <div key={toolCallId}>
                       <MarketResearchCard
                         data={
-                          output as InferUITool<typeof marketResearchTool>["output"]
+                          output as InferUITool<
+                            typeof marketResearchTool
+                          >["output"]
                         }
                         input={
-                          input as InferUITool<typeof marketResearchTool>["input"]
+                          input as InferUITool<
+                            typeof marketResearchTool
+                          >["input"]
                         }
                       />
                     </div>
