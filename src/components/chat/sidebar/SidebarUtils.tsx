@@ -55,13 +55,13 @@ const SidebarUtils = () => {
                 <span className="font-medium">Search Chats</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
+            {/* <SidebarMenuItem>
               <Link href="/library">
                 <SidebarMenuButton className="gap-2">
                   <ImageIcon /> Library
                 </SidebarMenuButton>
               </Link>
-            </SidebarMenuItem>
+            </SidebarMenuItem> */}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>

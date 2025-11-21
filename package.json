@@ -55,6 +55,7 @@
     "framer-motion": "^12.16.0",
     "hast": "^1.0.0",
     "install": "^0.13.0",
+    "katex": "^0.16.25",
     "lucide-react": "^0.513.0",
     "marked": "^15.0.12",
     "motion": "^12.23.12",

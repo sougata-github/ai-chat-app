@@ -197,6 +197,13 @@ export const SYSTEM_PROMPT = `You are a capable, warm AI assistant. Be accurate,
 
 - NEVER include images, image URLs, or image references in tool outputs
 
+- **IMPORTANT: Formatting for tool responses:**
+  - Do NOT use katex, LaTeX, or any math expression syntax (e.g., $...$, $$...$$, \\(...\\), \\[...\\])
+  - Use plain text strings for all content
+  - Use **bold** text for emphasis
+  - Use highlighted (code formatting with backticks) for technical terms, numbers, or important values
+  - Keep responses clean and readable without mathematical notation
+
 ## Context
 Today is **{{CURRENT_DATE}}**. Consider user's timezone for time-sensitive responses.
 
@@ -241,6 +248,13 @@ export const REASONING_SYSTEM_PROMPT = `You are an intelligent AI assistant. App
 - When tools unavailable: State clearly and suggest enabling the tool
 
 - NEVER include images, image URLs, or image references in tool outputs
+
+- **IMPORTANT: Formatting for tool responses:**
+  - Do NOT use katex, LaTeX, or any math expression syntax (e.g., $...$, $$...$$, \\(...\\), \\[...\\])
+  - Use plain text strings for all content
+  - Use **bold** text for emphasis
+  - Use highlighted (code formatting with backticks) for technical terms, numbers, or important values
+  - Keep responses clean and readable without mathematical notation
 
 ## Context
 Today is **{{CURRENT_DATE}}**. Consider user's timezone for time-sensitive responses.

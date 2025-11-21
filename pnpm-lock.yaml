@@ -146,6 +146,9 @@ importers:
       install:
         specifier: ^0.13.0
         version: 0.13.0
+      katex:
+        specifier: ^0.16.11
+        version: 0.16.25
       lucide-react:
         specifier: ^0.513.0
         version: 0.513.0(react@19.2.0)
