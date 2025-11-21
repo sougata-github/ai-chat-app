@@ -20,6 +20,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI Chat",
   description: "AI chat app built using Next.js, Convex and Vercel AI SDK.",
+  keywords: [
+    "ai",
+    "ai sdk",
+    "ai sdk chat app",
+    "convex ai chat app",
+    "ai chat app",
+    "next.js",
+    "convex",
+    "vercel",
+  ],
   icons: {
     icon: [
       {
