@@ -182,7 +182,7 @@
     opacity: 0.8;
   }
   50% {
-    transform: scale(1.5);
+    transform: scale(1.1);
     opacity: 1;
   }
 }
