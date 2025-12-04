@@ -21,14 +21,6 @@ import type {
   FunctionReference,
 } from "convex/server";
 
-/**
- * A utility for referencing Convex functions in your app's API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   chats: typeof chats;
@@ -37,14 +29,30 @@ declare const fullApi: ApiFromModules<{
   uploadthing: typeof uploadthing;
   user: typeof user;
 }>;
-declare const fullApiWithMounts: typeof fullApi;
 
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
 export declare const api: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "public">
 >;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
 export declare const internal: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "internal">
 >;
 
@@ -125,10 +133,10 @@ export declare const components: {
               }
             | {
                 data: {
-                  createdAt?: null | number;
+                  createdAt: number;
                   expiresAt: number;
                   identifier: string;
-                  updatedAt?: null | number;
+                  updatedAt: number;
                   value: string;
                 };
                 model: "verification";
@@ -297,6 +305,8 @@ export declare const components: {
                   status?: null | string;
                   stripeCustomerId?: null | string;
                   stripeSubscriptionId?: null | string;
+                  trialEnd?: null | number;
+                  trialStart?: null | number;
                 };
                 model: "subscription";
               }
@@ -660,10 +670,10 @@ export declare const components: {
                 sortBy?: { direction: "asc" | "desc"; field: string };
                 unique?: boolean;
                 update: {
-                  createdAt?: null | number;
+                  createdAt?: number;
                   expiresAt?: number;
                   identifier?: string;
-                  updatedAt?: null | number;
+                  updatedAt?: number;
                   value?: string;
                 };
                 where?: Array<{
@@ -1326,6 +1336,8 @@ export declare const components: {
                   status?: null | string;
                   stripeCustomerId?: null | string;
                   stripeSubscriptionId?: null | string;
+                  trialEnd?: null | number;
+                  trialStart?: null | number;
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -1571,10 +1583,10 @@ export declare const components: {
             | {
                 model: "verification";
                 update: {
-                  createdAt?: null | number;
+                  createdAt?: number;
                   expiresAt?: number;
                   identifier?: string;
-                  updatedAt?: null | number;
+                  updatedAt?: number;
                   value?: string;
                 };
                 where?: Array<{
@@ -2055,6 +2067,8 @@ export declare const components: {
                   status?: null | string;
                   stripeCustomerId?: null | string;
                   stripeSubscriptionId?: null | string;
+                  trialEnd?: null | number;
+                  trialStart?: null | number;
                 };
                 where?: Array<{
                   connector?: "AND" | "OR";
