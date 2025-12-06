@@ -158,20 +158,24 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
                 handleInitialSubmit={handleInitialSubmit}
                 status={status}
                 isHomepageCentered={true}
+                isNewChat={true}
               />
-              <ChatSuggestions setSuggestions={setInput} />
+              {/* <ChatSuggestions setSuggestions={setInput} /> */}
             </div>
           </div>
 
           {/* for mobile */}
           <div className="flex flex-1 flex-col justify-center px-4 sm:hidden">
-            <div className="w-full max-w-3xl">
-              <div className="mb-5 text-left">
+            <div className="w-full max-w-3xl mx-auto text-center">
+              <div className="mb-5">
                 <h1 className="text-3xl font-semibold inline-flex items-center gap-2">
-                  Get Started
+                  <WandSparkles className="size-6" /> Get Started
                 </h1>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Start a new chat with a prompt or upload a file.
+                </p>
               </div>
-              <ChatSuggestions setSuggestions={setInput} />
+              {/* <ChatSuggestions setSuggestions={setInput} /> */}
             </div>
           </div>
           <ChatInput
@@ -187,6 +191,7 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
             handleInitialSubmit={handleInitialSubmit}
             status={status}
             isHomepageCentered={false}
+            isNewChat={false}
           />
         </>
       ) : (
@@ -231,6 +236,7 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
             setInput={setInput}
             status={status}
             isHomepageCentered={true}
+            isNewChat={false}
           />
         </>
       )}

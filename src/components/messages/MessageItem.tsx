@@ -123,7 +123,7 @@ const MessageItem = ({
       <div className={cn("w-full", isUser && "flex justify-end")}>
         <div
           className={cn(
-            "px-4 rounded-lg whitespace-pre-wrap text-sm sm:text-[15px] relative",
+            "px-4 rounded-sm whitespace-pre-wrap text-sm sm:text-[15px] relative",
             isUser
               ? "dark:bg-muted-foreground/15 bg-muted-foreground/5 font-medium max-w-[300px] md:max-w-md wrap-break-word py-2"
               : "bg-transparent w-full wrap-break-word"

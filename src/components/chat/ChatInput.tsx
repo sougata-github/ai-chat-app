@@ -46,6 +46,7 @@ interface Props {
   setMessageToEdit: React.Dispatch<SetStateAction<Doc<"messages"> | null>>;
   messageToEdit: Doc<"messages"> | null;
   handleRegenerate: (() => Promise<void>) | undefined;
+  isNewChat: boolean;
 }
 
 const ChatInput = ({
@@ -61,6 +62,7 @@ const ChatInput = ({
   messageToEdit,
   setMessageToEdit,
   handleRegenerate,
+  isNewChat = false,
 }: Props) => {
   const [optimisticTool, setOptimisticTool] = useLocalStorage<Tool>(
     "chat-tool",
@@ -372,7 +374,9 @@ const ChatInput = ({
           : "sticky bottom-0 inset-x-0 pt-0 sm:hidden"
       )}
     >
-      <div className="max-w-3xl mx-auto relative">
+      <div
+        className={cn("mx-auto relative max-w-3xl", isNewChat && "max-w-xl")}
+      >
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}

@@ -14,6 +14,7 @@ export default function ChatLayout({
       <AuthGate>
         <ChatProvider>
           <SidebarProvider
+            defaultOpen={false}
             style={
               {
                 "--sidebar-width": "calc(var(--spacing) * 62)",
@@ -21,7 +22,7 @@ export default function ChatLayout({
               } as React.CSSProperties
             }
           >
-            <ChatSidebar variant="inset" />
+            <ChatSidebar />
             <SidebarInset className="flex-1 flex flex-col relative min-w-0">
               <ChatHeader />
               <section className="flex-1 flex flex-col">{children}</section>
