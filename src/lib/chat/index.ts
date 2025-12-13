@@ -5,7 +5,7 @@ import { generateText } from "ai";
 
 export async function generateTitleFromUserMessage(message: string) {
   const { text: title } = await generateText({
-    model: google("gemini-2.0-flash"),
+    model: google("gemini-2.5-flash"),
     prompt: message,
     system: `
 You are a helpful assistant that summarizes the user's first message into a short, clear title.
