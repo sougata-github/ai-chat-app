@@ -18,13 +18,20 @@ const Thinking = ({
   return (
     <motion.div
       className="relative flex items-center space-x-2 text-muted-foreground"
-      initial={{ y: 5, opacity: 0 }}
+      initial={{ opacity: 0, scale: 0.8 }}
       animate={{
-        y: 0,
         opacity: 1,
+        scale: 1,
         transition: {
+          duration: 0.2,
           ease: "easeOut",
+          delay: 0.1, // Small delay prevents flash on quick responses
         },
+      }}
+      exit={{
+        opacity: 0,
+        scale: 0.8,
+        transition: { duration: 0.15 },
       }}
     >
       <div className={cn("relative", sizeClasses[size], className)}>

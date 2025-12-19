@@ -250,7 +250,8 @@ export async function POST(req: Request) {
   const streamContext = getStreamContext();
   if (streamContext) {
     try {
-      const resumableStream = await streamContext.resumableStream(
+      // Use createNewResumableStream for POST - creates a new stream that can be resumed by multiple clients
+      const resumableStream = await streamContext.createNewResumableStream(
         streamId,
         () => stream.pipeThrough(new JsonToSseTransformStream())
       );

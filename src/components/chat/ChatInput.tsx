@@ -4,7 +4,12 @@ import { useEffect, startTransition, useState, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { CreateUIMessage, FileUIPart, UIMessage } from "ai";
+import type {
+  ChatRequestOptions,
+  CreateUIMessage,
+  FileUIPart,
+  UIMessage,
+} from "ai";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
@@ -42,7 +47,10 @@ interface Props {
   handleInitialSubmit?: () => void;
   updateChat: () => void;
   isHomepageCentered?: boolean;
-  sendMessage: (message: UIMessage | CreateUIMessage<UIMessage>) => void;
+  sendMessage: (
+    message: CreateUIMessage<UIMessage> | string,
+    options?: Omit<ChatRequestOptions, "id" | "messages">
+  ) => void;
   setMessageToEdit: React.Dispatch<SetStateAction<Doc<"messages"> | null>>;
   messageToEdit: Doc<"messages"> | null;
   handleRegenerate: (() => Promise<void>) | undefined;

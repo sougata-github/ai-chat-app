@@ -15,6 +15,7 @@ export async function GET(
   const streamContext = getStreamContext();
   const resumeRequestedAt = new Date();
 
+  // No Redis configured - return immediately
   if (!streamContext) {
     return new Response(null, { status: 204 });
   }
@@ -22,81 +23,62 @@ export async function GET(
   const { id: chatId } = await params;
 
   if (!chatId) {
-    return new Response("chatId is required", { status: 400 });
+    return new Response(null, { status: 204 });
   }
 
-  const token = await getToken(createAuth);
-
-  if (!token) {
-    return new Response("Unautorized", { status: 401 });
-  }
-
-  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
-
-  if (!user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  if (!chatId) {
-    return new Response("Chat ID is required", { status: 400 });
-  }
-
-  const chat = await fetchQuery(api.chats.getChatByUUID, { chatId });
-
-  if (!chat) {
-    return new Response("Chat not found", { status: 404 });
-  }
-
+  // Get stream IDs first - this is the cheapest check
   const streamIds = await fetchQuery(api.streams.loadStreams, { chatId });
 
   if (!streamIds.length) {
-    return new Response("No streams found", { status: 404 });
+    // No streams ever created for this chat - return immediately
+    return new Response(null, { status: 204 });
   }
 
   const latestStreamId = streamIds.at(-1);
   if (!latestStreamId) {
-    return new Response("No recent stream found", { status: 404 });
+    return new Response(null, { status: 204 });
   }
 
-  const emptyStream = createUIMessageStream<UIMessage>({
-    execute: () => {},
-  });
-
+  // Try to resume the existing stream from Redis
   let resumable;
   try {
-    resumable = await streamContext.resumableStream(latestStreamId, () =>
-      emptyStream.pipeThrough(new JsonToSseTransformStream())
-    );
+    // Use resumeExistingStream - it only subscribes to an existing stream, doesn't create one
+    // Returns: ReadableStream if active, null if done, undefined if not found
+    resumable = await streamContext.resumeExistingStream(latestStreamId);
   } catch (error) {
     console.error("Error resuming stream:", error);
-    return new Response(emptyStream, { status: 200 });
+    return new Response(null, { status: 204 });
   }
 
+  // If we got a resumable stream (active stream exists), return it
   if (resumable) {
     return new Response(resumable, { status: 200 });
   }
 
-  // If stream already finished, try sending the assistant's last message
+  // resumable is null (stream done) or undefined (stream not found)
+
+  // Stream not in Redis (expired or completed) - check if we should send the last message
+  // Only do this expensive check if the stream was recently created
   const dbMessages = await fetchQuery(api.chats.getMessagesByChatId, {
     chatId,
   });
 
   const messages = convertConvexMessagesToAISDK(dbMessages);
-
   const mostRecent = messages.at(-1);
 
   if (!mostRecent || mostRecent.role !== "assistant") {
-    return new Response(emptyStream, { status: 200 });
+    return new Response(null, { status: 204 });
   }
 
   const mostRecentDBMessage = dbMessages.at(-1);
-
   const messageCreatedAt = new Date(mostRecentDBMessage!.createdAt);
 
+  // Only send the message if it was created within the last 15 seconds
   if (differenceInSeconds(resumeRequestedAt, messageCreatedAt) > 15) {
-    return new Response(emptyStream, { status: 200 });
+    return new Response(null, { status: 204 });
   }
 
+  // Send the recently completed message
   const streamWithMessage = createUIMessageStream<UIMessage>({
     execute({ writer }) {
       writer.write({

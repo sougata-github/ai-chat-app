@@ -1,22 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import ChatSuggestions from "./ChatSuggestions";
 import ChatInput from "./ChatInput";
-import { type UIMessage } from "ai";
+import { DefaultChatTransport, type UIMessage, type CreateUIMessage } from "ai";
 import Messages from "../messages/Messages";
 import ScrollToBottom from "./ScrollToBottom";
 import { useScrollMessages } from "@/hooks/use-scroll-messages";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { v4 as uuidv4 } from "uuid";
-import { useEffect, useState } from "react";
-import { useChatContext } from "../providers/ChatProvider";
+import { useEffect, useMemo, useState } from "react";
+import { useChat } from "@ai-sdk/react";
 import { convertConvexMessagesToAISDK } from "@/lib/utils";
 import { WandSparkles } from "lucide-react";
 import { Doc } from "@convex/_generated/dataModel";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface Props {
   chatId: string;
@@ -24,11 +24,11 @@ interface Props {
   isNewChat: boolean;
 }
 
-const ChatView = ({ chatId, isNewChat }: Props) => {
+const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
   const router = useRouter();
   const [input, setInput] = useState("");
   const createChat = useMutation(api.chats.createChat);
-  const updateChat = useMutation(api.chats.updateChatStatus);
+  const updateChatStatus = useMutation(api.chats.updateChatStatus);
   const createMessage = useMutation(api.chats.createMessage);
   const createAttachment = useMutation(api.chats.createAttachment);
   const convexMessages = useQuery(api.chats.getMessagesByChatId, {
@@ -45,24 +45,106 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
     (() => Promise<void>) | undefined
   >(undefined);
 
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Convert Convex messages to AI SDK format for initial state
+  const initialMessages = useMemo(() => {
+    if (!convexMessages) return [];
+    return convertConvexMessagesToAISDK(convexMessages);
+  }, [convexMessages]);
+
+  // Transport configuration with resume support
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: ({
+          messages,
+          id,
+          body,
+          trigger,
+          messageId,
+        }) => {
+          if (trigger === "regenerate-message") {
+            return {
+              body: {
+                trigger: "regenerate-message",
+                id,
+                messageId,
+                timezone: userTimeZone,
+                ...body,
+              },
+            };
+          }
+          return {
+            body: {
+              message: messages[messages.length - 1],
+              id,
+              timezone: userTimeZone,
+              ...body,
+            },
+          };
+        },
+        // Resume endpoint configuration
+        prepareReconnectToStreamRequest: ({ id }) => ({
+          api: `/api/chat/${id}/stream`,
+        }),
+        fetch: async (input, init) => {
+          const res = await fetch(input, init);
+          if (!res.ok) {
+            toast.error("Failed to get response from AI");
+          }
+          return res;
+        },
+      }),
+    [userTimeZone]
+  );
+
   const {
     messages,
     status,
     regenerate,
     setMessages,
-    setInitialMessages,
-    sendMessage,
-    setChatId,
-  } = useChatContext();
+    sendMessage: sendChatMessage,
+  } = useChat({
+    id: chatId,
+    messages: initialMessages,
+    resume: autoResume,
+    transport,
+    generateId: () => uuidv4(),
+    experimental_throttle: 50,
+    onData: (dataPart) => {
+      if (dataPart.type === "data-appendMessage") {
+        try {
+          if (typeof dataPart.data === "string") {
+            const message = JSON.parse(dataPart.data);
+            setMessages((prev) => {
+              if (
+                message.id &&
+                prev.some((m: UIMessage) => m.id === message.id)
+              )
+                return prev;
+              return [...prev, message];
+            });
+          }
+        } catch (err) {
+          console.error("Failed to parse appendMessage:", err);
+        }
+      }
+    },
+    onError: async (error) => {
+      console.error(error.message);
+      toast.error("Error generating response");
+    },
+  });
 
+  // Sync Convex messages to useChat when they load (for page refresh)
   useEffect(() => {
-    setChatId(chatId);
-    if (convexMessages) {
+    if (convexMessages && convexMessages.length > 0) {
       const aiMessages = convertConvexMessagesToAISDK(convexMessages);
       setMessages(aiMessages);
-      setInitialMessages(aiMessages);
     }
-  }, [setChatId, chatId, setMessages, setInitialMessages, convexMessages]);
+  }, [convexMessages, setMessages]);
 
   const {
     endRef,
@@ -120,17 +202,21 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
   };
 
   const handleInitialSubmit = async () => {
-    //first create the chat
     await createChat({
       id: chatId,
       title: "New Chat",
     });
-    //then redirect to the chat ID page
-    router.replace(`/chat/${chatId}?skipResume=1`);
+
+    router.replace(`/chat/${chatId}`);
   };
 
   const handleUpdateChat = async () => {
-    await updateChat({ chatId, status: "streaming" });
+    await updateChatStatus({ chatId, status: "streaming" });
+  };
+
+  // Wrapper to match ChatInput's expected sendMessage type
+  const sendMessage = (message: CreateUIMessage<UIMessage> | string) => {
+    sendChatMessage(message as Parameters<typeof sendChatMessage>[0]);
   };
 
   const visibleMessages = messages.filter((m) => !hiddenMessageIds.has(m.id));
