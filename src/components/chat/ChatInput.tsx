@@ -196,10 +196,13 @@ const ChatInput = ({
       updateChat();
       return;
     }
-
-    sendMessage(message);
+    //if it is a new chat, create the chat and redirect to the chat page
     handleInitialSubmit?.();
+    //create the user message
     await createUserMessage(message, fileKey);
+    //trigger the stream
+    sendMessage(message);
+
     form.reset();
     setInput("");
     updateChat();

@@ -95,7 +95,7 @@ const ReasoningBlock = ({ reasoningText, isStreaming = false }: Props) => {
           <div className="mt-2 p-2 pl-0">
             <div>
               {reasoningSteps.map((step, index) => (
-                <div key={index} className={cn("px-4 py-2")}>
+                <div key={index} className={cn("px-4 py-1")}>
                   <MemoizedMarkdown
                     id={`reasoning-step-${index}`}
                     content={step.trim()}

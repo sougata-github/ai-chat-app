@@ -112,10 +112,7 @@ export async function POST(req: Request) {
   }
 
   // Prepare messages and start stream immediately
-  const uiMessages =
-    trigger === "regenerate-message"
-      ? convertConvexMessagesToAISDK(previousMessages)
-      : [...convertConvexMessagesToAISDK(previousMessages), message];
+  const uiMessages = convertConvexMessagesToAISDK(previousMessages);
 
   // Generate title in background (non-blocking)
   if (
@@ -179,7 +176,7 @@ export async function POST(req: Request) {
         toolChoice: "auto",
         stopWhen: stepCountIs(5),
         experimental_transform: smoothStream({
-          delayInMs: 1,
+          delayInMs: 0.5,
           chunking: "word",
         }),
       });

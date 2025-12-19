@@ -119,11 +119,13 @@ const ChatView = ({ chatId, isNewChat }: Props) => {
     });
   };
 
-  const handleInitialSubmit = () => {
-    void createChat({
+  const handleInitialSubmit = async () => {
+    //first create the chat
+    await createChat({
       id: chatId,
       title: "New Chat",
     });
+    //then redirect to the chat ID page
     router.replace(`/chat/${chatId}?skipResume=1`);
   };
 
