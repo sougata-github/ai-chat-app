@@ -1,5 +1,7 @@
+"use client";
+
 import { redirect } from "next/navigation";
 
-export default async function ChatPage() {
-  return redirect("/");
+export default function ChatPage() {
+  redirect("/");
 }

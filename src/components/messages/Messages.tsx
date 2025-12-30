@@ -4,7 +4,6 @@ import { UIMessage } from "ai";
 import MessageItem from "./MessageItem";
 import Thinking from "./Thinking";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { Doc } from "@convex/_generated/dataModel";
 
@@ -31,13 +30,10 @@ const Messages = ({
   regenerate,
   chatId,
 }: Props) => {
-  const lastMessage = messages.at(-1);
-  const pathname = usePathname();
+  const lastMessage = messages[messages.length - 1];
 
   const showLoader =
-    (status === "submitted" &&
-      messages.length > 0 &&
-      messages[messages.length - 1].role === "user") ||
+    (status === "submitted" && lastMessage?.role === "user") ||
     (status === "streaming" &&
       lastMessage?.role === "assistant" &&
       lastMessage?.parts?.length === 0);
@@ -61,11 +57,7 @@ const Messages = ({
         );
       })}
 
-      {showLoader && pathname !== "/" && (
-        <div className="flex w-full justify-start pt-4 pl-4">
-          <Thinking size="sm" />
-        </div>
-      )}
+      {showLoader && <Thinking size="sm" />}
 
       {status === "error" &&
         messages.length > 0 &&

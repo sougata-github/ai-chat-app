@@ -21,7 +21,7 @@ import { useState } from "react";
 import DeleteChatModal from "../modals/DeleteChatModal";
 import ChatRenameModal from "../modals/ChatRenameModal";
 import { toast } from "sonner";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { chatGetManyOutput } from "@/types";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -51,7 +51,7 @@ const ChatItem = ({ chat }: Props) => {
       setIsLoading(true);
       await archiveChat({ chatId });
       toast.success("Chat Archived");
-      router.replace("/");
+      router.replace("/chat");
     } catch (error) {
       console.log((error as Error).message);
       toast.error("Failed to archive chat");

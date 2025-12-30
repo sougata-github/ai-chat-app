@@ -1,11 +1,12 @@
 "use server";
 
-import { google } from "@ai-sdk/google";
+// import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { openrouter } from "../model/model";
 
 export async function generateTitleFromUserMessage(message: string) {
   const { text: title } = await generateText({
-    model: google("gemini-2.5-flash"),
+    model: openrouter.completion("gpt-4o-mini"),
     prompt: message,
     system: `
 You are a helpful assistant that summarizes the user's first message into a short, clear title.

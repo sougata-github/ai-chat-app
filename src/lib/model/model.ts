@@ -4,17 +4,24 @@ import {
   wrapLanguageModel,
 } from "ai";
 import { createGateway } from "@ai-sdk/gateway";
-import { Google, Qwen, Moonshot } from "@lobehub/icons";
+import { Google, Qwen, Moonshot, Meta, OpenAI } from "@lobehub/icons";
 import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 const gateway = createGateway({
   apiKey: process.env.AI_GATEWAY_API_KEY ?? "",
 });
 
+export const openrouter = createOpenRouter({
+  apiKey: process.env.OPEN_ROUTER_KEY ?? "",
+});
+
 const custom = customProvider({
   languageModels: {
     "gemini-2.5-flash": google("gemini-2.5-flash"),
+    "gpt-4o-mini": openrouter("gpt-4o-mini"),
+    "llama-3.3-70b-versatile": groq("llama-3.3-70b-versatile"),
     "moonshotai/kimi-k2-instruct-0905": groq(
       "moonshotai/kimi-k2-instruct-0905"
     ),
@@ -45,11 +52,23 @@ export const MODEL_REGISTRY = {
   //   name: "Gemini 3.0 Flash",
   //   logo: Google,
   // },
+  "llama-3.3-70b-versatile": {
+    provider: custom,
+    id: "llama-3.3-70b-versatile",
+    name: "Llama 3.3 70b",
+    logo: Meta,
+  },
   "moonshotai/kimi-k2-instruct-0905": {
     provider: custom,
     id: "moonshotai/kimi-k2-instruct-0905",
     name: "Kimi K2",
     logo: Moonshot,
+  },
+  "gpt-4o-mini": {
+    provider: custom,
+    id: "gpt-4o-mini",
+    name: "4o Mini",
+    logo: OpenAI,
   },
   "gemini-2.5-flash": {
     provider: custom,

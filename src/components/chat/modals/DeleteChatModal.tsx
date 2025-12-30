@@ -24,8 +24,9 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
 
   const handleDelete = async (chatId: string) => {
     try {
-      if (pathname === `chat/${chatId}`) {
-        router.replace("/");
+      // If we're currently viewing this chat, redirect to new chat
+      if (pathname === `/chat/${chatId}`) {
+        router.replace("/chat");
       }
       setIsDeleting(true);
       await deleteChat({ chatId });
@@ -57,7 +58,7 @@ const DeleteChatModal = ({ open, onOpenChange, onCancel, chatId }: Props) => {
             Cancel
           </Button>
           <Button
-            className="transition-all sm:w-20"
+            className="transition-all w-full md:w-20"
             variant="destructive"
             onClick={() => handleDelete(chatId)}
             disabled={isDeleting}

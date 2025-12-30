@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import ChatInput from "./ChatInput";
 import { DefaultChatTransport, type UIMessage, type CreateUIMessage } from "ai";
 import Messages from "../messages/Messages";
@@ -9,7 +9,7 @@ import { useScrollMessages } from "@/hooks/use-scroll-messages";
 import { useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { v4 as uuidv4 } from "uuid";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { convertConvexMessagesToAISDK } from "@/lib/utils";
 import { WandSparkles } from "lucide-react";
@@ -21,11 +21,12 @@ import { toast } from "sonner";
 interface Props {
   chatId: string;
   autoResume: boolean;
-  isNewChat: boolean;
+  chatStatus?: string; // "streaming" | "ready" | undefined
 }
 
-const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
+const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [input, setInput] = useState("");
   const createChat = useMutation(api.chats.createChat);
   const updateChatStatus = useMutation(api.chats.updateChatStatus);
@@ -34,6 +35,21 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
   const convexMessages = useQuery(api.chats.getMessagesByChatId, {
     chatId,
   });
+
+  // Handle browser back/forward navigation (popstate event)
+  // This ensures component state stays in sync when user uses browser navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      // When user navigates back/forward, refresh to sync with the URL
+      // This ensures messages and state are correct when using browser navigation
+      router.refresh();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [router]);
 
   const [hiddenMessageIds, setHiddenMessageIds] = useState<Set<string>>(
     new Set()
@@ -100,6 +116,16 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
     [userTimeZone]
   );
 
+  // Track if we should enable resume - only if:
+  // 1. Chat status is "streaming" (indicates an active stream)
+  // 2. Messages are loaded (prevents blank screen)
+  // This ensures we only try to resume when there's actually an active stream,
+  // not on every navigation to an existing chat
+  const shouldResume = 
+    autoResume && 
+    chatStatus === "streaming" && 
+    convexMessages !== undefined;
+
   const {
     messages,
     status,
@@ -109,7 +135,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
   } = useChat({
     id: chatId,
     messages: initialMessages,
-    resume: autoResume,
+    resume: shouldResume,
     transport,
     generateId: () => uuidv4(),
     experimental_throttle: 50,
@@ -138,13 +164,64 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
     },
   });
 
-  // Sync Convex messages to useChat when they load (for page refresh)
+  // Track previous chatId to detect navigation
+  const prevChatIdRef = useRef(chatId);
+
+  // Sync Convex messages to useChat ONLY when they load asynchronously
+  // This is needed because:
+  // 1. When chatId changes, useChat resets and uses initialMessages (which might be empty initially)
+  // 2. When convexMessages loads later, we need to sync them
+  //
+  // Performance: Uses already-computed initialMessages (no double conversion)
+  // Only syncs once per chatId when messages first load
   useEffect(() => {
-    if (convexMessages && convexMessages.length > 0) {
-      const aiMessages = convertConvexMessagesToAISDK(convexMessages);
-      setMessages(aiMessages);
+    const chatIdChanged = prevChatIdRef.current !== chatId;
+
+    if (chatIdChanged) {
+      prevChatIdRef.current = chatId;
+      // When chatId changes, useChat resets - clear messages immediately
+      // Determine if new chat based on whether messages exist
+      const isNewChatState =
+        convexMessages === undefined || convexMessages.length === 0;
+
+      if (isNewChatState) {
+        setMessages([]);
+      } else {
+        // For existing chats, clear messages if they're still loading
+        // This prevents showing stale messages from the previous chat during navigation
+        if (convexMessages === undefined) {
+          setMessages([]);
+        }
+      }
+      // The initialMessages will be used by useChat for existing chats once loaded
+      return;
     }
-  }, [convexMessages, setMessages]);
+
+    // Only sync if messages loaded asynchronously (after mount or navigation)
+    // This handles: page refresh, mid-stream refresh, or slow message loading
+    // Important: Sync even if messages are empty to clear stale data from previous chat
+    if (convexMessages !== undefined) {
+      // Always sync when messages are loaded to ensure we have the correct state
+      // This is especially important when navigating between chats during streaming
+      setMessages((current) => {
+        // Only update if messages are different
+        if (current.length !== initialMessages.length) {
+          return initialMessages;
+        }
+        // Check if any message IDs differ
+        const currentIds = current.map((m) => m.id).join(",");
+        const newIds = initialMessages.map((m) => m.id).join(",");
+        return currentIds !== newIds ? initialMessages : current;
+      });
+    }
+  }, [convexMessages, initialMessages, chatId, setMessages]);
+
+  // Determine if this is a new chat based on actual state
+  // Since we use window.history.replaceState, the component doesn't remount
+  // So we need to compute isNewChat based on messages length instead of props
+  // Important: If we're on /chat/[chatId] route, it's an existing chat (even if loading)
+  // Only show new chat UI if we're on homepage (/) AND messages are empty
+  const isOnChatRoute = pathname.startsWith("/chat/") && pathname !== "/chat";
 
   const {
     endRef,
@@ -156,7 +233,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
     chatId,
     messages,
     status,
-    isNewChat,
+    isNewChat: !isOnChatRoute,
   });
 
   const handleCreateUserMessage = async (
@@ -207,7 +284,11 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
       title: "New Chat",
     });
 
-    router.replace(`/chat/${chatId}`);
+    // Update URL without navigation to preserve component state
+    // Using window.history.replaceState to avoid remounting the component
+    // This preserves the useChat hook state and prevents stream interruption
+    const newUrl = `/chat/${chatId}`;
+    window.history.replaceState({}, "", newUrl);
   };
 
   const handleUpdateChat = async () => {
@@ -223,7 +304,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {isNewChat ? (
+      {!isOnChatRoute ? (
         <>
           <div className="sm:flex flex-1 flex-col items-center justify-center px-4 hidden">
             <div className="w-full max-w-3xl">
@@ -247,6 +328,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
                 status={status}
                 isHomepageCentered={true}
                 isNewChat={true}
+                setMessages={setMessages}
               />
               {/* <ChatSuggestions setSuggestions={setInput} /> */}
             </div>
@@ -280,6 +362,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
             status={status}
             isHomepageCentered={false}
             isNewChat={false}
+            setMessages={setMessages}
           />
         </>
       ) : (
@@ -309,7 +392,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
             </div>
             <ScrollToBottom
               show={showScrollButton}
-              onClick={() => scrollToBottom("auto")}
+              onClick={() => scrollToBottom("smooth")}
             />
           </div>
           <ChatInput
@@ -325,6 +408,7 @@ const ChatView = ({ chatId, isNewChat, autoResume }: Props) => {
             status={status}
             isHomepageCentered={true}
             isNewChat={false}
+            setMessages={setMessages}
           />
         </>
       )}

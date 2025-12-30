@@ -11,29 +11,29 @@ export default function MessagesPage() {
   const params = useParams();
   const router = useRouter();
   const chatId = params.chatId as string;
+
   const chat = useQuery(api.chats.getChatByUUID, {
     chatId,
   });
   const user = useQuery(api.auth.getCurrentUser);
 
   useEffect(() => {
-    if (
-      !uuidValidate(params.chatId as string) ||
-      (chat && user && chat.userId !== user.userId)
-    ) {
-      router.replace("/");
+    if (!uuidValidate(chatId)) {
+      router.replace("/chat");
+      return;
+    }
+    if (chat && user && chat.userId !== user.userId) {
+      router.replace("/chat");
       return;
     }
     if (chat === null) {
-      router.replace("/");
+      router.replace("/chat");
     }
-  }, [params, chat, router, user]);
+  }, [chatId, chat, router, user]);
 
-  return (
-    <ChatView
-      chatId={params.chatId as string}
-      isNewChat={false}
-      autoResume={true}
-    />
-  );
+  // Auto-resume if chat exists (undefined means loading, so also enable resume)
+  const autoResume = chat !== null;
+  const chatStatus = chat?.status;
+
+  return <ChatView chatId={chatId} autoResume={autoResume} chatStatus={chatStatus} />;
 }

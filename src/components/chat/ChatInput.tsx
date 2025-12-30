@@ -54,6 +54,9 @@ interface Props {
   setMessageToEdit: React.Dispatch<SetStateAction<Doc<"messages"> | null>>;
   messageToEdit: Doc<"messages"> | null;
   handleRegenerate: (() => Promise<void>) | undefined;
+  setMessages?: (
+    messages: UIMessage[] | ((prev: UIMessage[]) => UIMessage[])
+  ) => void;
   isNewChat: boolean;
 }
 
@@ -71,6 +74,7 @@ const ChatInput = ({
   setMessageToEdit,
   handleRegenerate,
   isNewChat = false,
+  setMessages,
 }: Props) => {
   const [optimisticTool, setOptimisticTool] = useLocalStorage<Tool>(
     "chat-tool",
@@ -187,7 +191,7 @@ const ChatInput = ({
         }
       }
 
-      //updateMessage
+      // Update message in database
       await updateMessage({
         messageId: messageToEdit.id,
         parts: message.parts,
@@ -195,12 +199,33 @@ const ChatInput = ({
         attachmentId,
       });
 
-      //regenerate response
-      handleRegenerate?.();
+      // Update message in UI immediately (before streaming)
+      // This ensures the edited message is reflected in real-time
+      if (setMessages) {
+        setMessages((prev) => {
+          return prev.map((msg) => {
+            if (msg.id === messageToEdit.id) {
+              // Update the message with new parts
+              return {
+                ...msg,
+                parts: message.parts,
+              };
+            }
+            return msg;
+          });
+        });
+      }
 
+      // Clear edit state
       setMessageToEdit(null);
       form.reset();
       setInput("");
+
+      // Wait a tick to ensure UI updates before streaming
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Now regenerate response (stream will start)
+      handleRegenerate?.();
       updateChat();
       return;
     }
