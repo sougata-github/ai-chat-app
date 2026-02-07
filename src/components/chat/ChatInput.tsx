@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, startTransition, useState, SetStateAction } from "react";
+import { useEffect, startTransition, useState, useRef, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,6 @@ import type {
   FileUIPart,
   UIMessage,
 } from "ai";
-import type { useChat } from "@ai-sdk/react";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
@@ -56,7 +55,9 @@ interface Props {
   messageToEdit: Doc<"messages"> | null;
   handleRegenerate: (() => Promise<void>) | undefined;
   setMessages?: (
-    messages: UIMessage[] | ((prev: UIMessage[]) => UIMessage[])
+    messages:
+      | UIMessage[]
+      | ((prev: UIMessage[]) => UIMessage[])
   ) => void;
   isNewChat: boolean;
 }
@@ -104,6 +105,7 @@ const ChatInput = ({
   const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const isMobile = useIsMobile();
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     form.setValue("prompt", input, { shouldDirty: true, shouldTouch: true });
@@ -155,6 +157,7 @@ const ChatInput = ({
     fileKey: string | undefined = undefined
   ) => {
     if (
+      isSubmittingRef.current ||
       status === "streaming" ||
       status === "submitted" ||
       isUploadingFile ||
@@ -163,83 +166,89 @@ const ChatInput = ({
     )
       return;
 
-    if (messageToEdit) {
-      let attachmentId: string | undefined = undefined;
-      //create an attachment if currently there is a file in editing mode
-      if (message.parts.some((part) => part.type === "file")) {
-        if (fileKey !== undefined) {
-          const fileAttachment = (message as UIMessage).parts?.find(
-            (part) => part.type === "file"
-          );
+    isSubmittingRef.current = true;
 
-          if (
-            fileAttachment &&
-            fileAttachment.filename &&
-            fileAttachment.url &&
-            fileAttachment.type
-          ) {
-            const attachment = await createAttachment({
-              id: uuidv4(),
-              messageId: message.id,
-              name: fileAttachment.filename,
-              type: fileAttachment.mediaType,
-              url: fileAttachment.url,
-              key: fileKey,
-              chatId,
-            });
-            attachmentId = attachment.uuid;
+    try {
+      if (messageToEdit) {
+        let attachmentId: string | undefined = undefined;
+        //create an attachment if currently there is a file in editing mode
+        if (message.parts.some((part) => part.type === "file")) {
+          if (fileKey !== undefined) {
+            const fileAttachment = (message as UIMessage).parts?.find(
+              (part) => part.type === "file"
+            );
+
+            if (
+              fileAttachment &&
+              fileAttachment.filename &&
+              fileAttachment.url &&
+              fileAttachment.type
+            ) {
+              const attachment = await createAttachment({
+                id: uuidv4(),
+                messageId: message.id,
+                name: fileAttachment.filename,
+                type: fileAttachment.mediaType,
+                url: fileAttachment.url,
+                key: fileKey,
+                chatId,
+              });
+              attachmentId = attachment.uuid;
+            }
           }
         }
-      }
 
-      // Update message in database
-      await updateMessage({
-        messageId: messageToEdit.id,
-        parts: message.parts,
-        fileKey,
-        attachmentId,
-      });
-
-      // Update message in UI immediately (before streaming)
-      // This ensures the edited message is reflected in real-time
-      if (setMessages) {
-        setMessages((prev: UIMessage[]) => {
-          return prev.map((msg: UIMessage) => {
-            if (msg.id === messageToEdit.id) {
-              // Update the message with new parts
-              return {
-                ...msg,
-                parts: message.parts,
-              };
-            }
-            return msg;
-          });
+        // Update message in database
+        await updateMessage({
+          messageId: messageToEdit.id,
+          parts: message.parts,
+          fileKey,
+          attachmentId,
         });
-      }
 
-      // Clear edit state
-      setMessageToEdit(null);
+        // Update message in UI immediately (before streaming)
+        // This ensures the edited message is reflected in real-time
+        if (setMessages) {
+          setMessages((prev) => {
+            return prev.map((msg) => {
+              if (msg.id === messageToEdit.id) {
+                // Update the message with new parts
+                return {
+                  ...msg,
+                  parts: message.parts,
+                };
+              }
+              return msg;
+            });
+          });
+        }
+
+        // Clear edit state
+        setMessageToEdit(null);
+        form.reset();
+        setInput("");
+
+        // Wait a tick to ensure UI updates before streaming
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Now regenerate response (stream will start)
+        handleRegenerate?.();
+        updateChat();
+        return;
+      }
+      //if it is a new chat, create the chat and redirect to the chat page
+      handleInitialSubmit?.();
+      //create the user message
+      await createUserMessage(message, fileKey);
+      //trigger the stream
+      sendMessage(message);
+
       form.reset();
       setInput("");
-
-      // Wait a tick to ensure UI updates before streaming
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Now regenerate response (stream will start)
-      handleRegenerate?.();
       updateChat();
-      return;
+    } finally {
+      isSubmittingRef.current = false;
     }
-    //if it is a new chat, create the chat and redirect to the chat page
-    handleInitialSubmit?.();
-    //create the user message
-    await createUserMessage(message, fileKey);
-    //trigger the stream
-    sendMessage(message);
-
-    form.reset();
-    setInput("");
-    updateChat();
   };
 
   const onSubmit = async (values: z.infer<typeof chatInputSchema>) => {

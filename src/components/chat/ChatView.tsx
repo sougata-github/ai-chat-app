@@ -185,51 +185,24 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
   // Track previous chatId to detect navigation
   const prevChatIdRef = useRef(chatId);
 
-  // Sync Convex messages to useChat ONLY when they load asynchronously
-  // This is needed because:
-  // 1. When chatId changes, useChat resets and uses initialMessages (which might be empty initially)
-  // 2. When convexMessages loads later, we need to sync them
-  //
-  // Performance: Uses already-computed initialMessages (no double conversion)
-  // Only syncs once per chatId when messages first load
+  // Sync Convex messages to useChat when they load asynchronously
   useEffect(() => {
-    const chatIdChanged = prevChatIdRef.current !== chatId;
-
-    if (chatIdChanged) {
+    // chatId changed — clear immediately, useChat will re-initialize with initialMessages
+    if (prevChatIdRef.current !== chatId) {
       prevChatIdRef.current = chatId;
-      // When chatId changes, useChat resets - clear messages immediately
-      // Determine if new chat based on whether messages exist
-      const isNewChatState =
-        convexMessages === undefined || convexMessages.length === 0;
-
-      if (isNewChatState) {
-        setMessages([]);
-      } else {
-        // For existing chats, clear messages if they're still loading
-        // This prevents showing stale messages from the previous chat during navigation
-        if (convexMessages === undefined) {
-          setMessages([]);
-        }
-      }
-      // The initialMessages will be used by useChat for existing chats once loaded
+      setMessages([]);
       return;
     }
 
-    // Only sync if messages loaded asynchronously (after mount or navigation)
-    // This handles: page refresh, mid-stream refresh, or slow message loading
-    // Important: Sync even if messages are empty to clear stale data from previous chat
-    if (convexMessages !== undefined) {
-      // Always sync when messages are loaded to ensure we have the correct state
-      // This is especially important when navigating between chats during streaming
+    // Convex messages loaded — hydrate if useChat is empty or stale
+    // Skip if useChat already has messages (e.g. from active streaming)
+    if (convexMessages !== undefined && initialMessages.length > 0) {
       setMessages((current) => {
-        // Only update if messages are different
-        if (current.length !== initialMessages.length) {
-          return initialMessages;
+        // Don't overwrite if useChat already has more messages (streaming in progress)
+        if (current.length >= initialMessages.length) {
+          return current;
         }
-        // Check if any message IDs differ
-        const currentIds = current.map((m) => m.id).join(",");
-        const newIds = initialMessages.map((m) => m.id).join(",");
-        return currentIds !== newIds ? initialMessages : current;
+        return initialMessages;
       });
     }
   }, [convexMessages, initialMessages, chatId, setMessages]);
@@ -318,6 +291,12 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
     sendChatMessage(message as Parameters<typeof sendChatMessage>[0]);
   };
 
+  // Type-safe wrapper: useChat narrows role to "user" | "assistant" but ChatInput uses UIMessage (includes "system")
+  // This is safe because chat messages are never "system" role in practice
+  const handleSetMessages = setMessages as (
+    messages: UIMessage[] | ((prev: UIMessage[]) => UIMessage[])
+  ) => void;
+
   const visibleMessages = messages.filter((m) => !hiddenMessageIds.has(m.id));
 
   return (
@@ -346,7 +325,7 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
                 status={status}
                 isHomepageCentered={true}
                 isNewChat={true}
-                setMessages={setMessages as typeof setMessages}
+                setMessages={handleSetMessages}
               />
               {/* <ChatSuggestions setSuggestions={setInput} /> */}
             </div>
@@ -380,7 +359,7 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
             status={status}
             isHomepageCentered={false}
             isNewChat={false}
-            setMessages={setMessages}
+            setMessages={handleSetMessages}
           />
         </>
       ) : (
@@ -426,7 +405,7 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
             status={status}
             isHomepageCentered={true}
             isNewChat={false}
-            setMessages={setMessages}
+            setMessages={handleSetMessages}
           />
         </>
       )}
