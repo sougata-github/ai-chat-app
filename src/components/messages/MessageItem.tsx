@@ -314,7 +314,11 @@ const MessageItem = ({
 
             if (type === "text") {
               return isUser ? (
-                <span key={key}>{part.text}</span>
+                <MemoizedMarkdown
+                  key={key}
+                  id={message.id}
+                  content={part.text}
+                />
               ) : (
                 <MemoizedMarkdown
                   key={key}
