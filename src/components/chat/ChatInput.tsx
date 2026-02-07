@@ -10,6 +10,7 @@ import type {
   FileUIPart,
   UIMessage,
 } from "ai";
+import type { useChat } from "@ai-sdk/react";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
@@ -202,8 +203,8 @@ const ChatInput = ({
       // Update message in UI immediately (before streaming)
       // This ensures the edited message is reflected in real-time
       if (setMessages) {
-        setMessages((prev) => {
-          return prev.map((msg) => {
+        setMessages((prev: UIMessage[]) => {
+          return prev.map((msg: UIMessage) => {
             if (msg.id === messageToEdit.id) {
               // Update the message with new parts
               return {

@@ -37,7 +37,8 @@ import { createAuth } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import { after } from "next/server";
 
-export const maxDuration = 100;
+// Increased timeout for long responses (300 seconds = 5 minutes)
+export const maxDuration = 300;
 
 let globalStreamContext: ResumableStreamContext | null = null;
 

@@ -121,10 +121,8 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
   // 2. Messages are loaded (prevents blank screen)
   // This ensures we only try to resume when there's actually an active stream,
   // not on every navigation to an existing chat
-  const shouldResume = 
-    autoResume && 
-    chatStatus === "streaming" && 
-    convexMessages !== undefined;
+  const shouldResume =
+    autoResume && chatStatus === "streaming" && convexMessages !== undefined;
 
   const {
     messages,
@@ -159,8 +157,28 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
       }
     },
     onError: async (error) => {
-      console.error(error.message);
-      toast.error("Error generating response");
+      console.error("Chat error:", error);
+      // Provide more specific error messages
+      const errorMessage = error.message || String(error);
+      if (
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("aborted")
+      ) {
+        toast.error(
+          "Response timed out. The response may be too long. Please try again."
+        );
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("fetch")
+      ) {
+        toast.error(
+          "Network error. Please check your connection and try again."
+        );
+      } else if (errorMessage.includes("429")) {
+        toast.error("Rate limit exceeded. Please try again later.");
+      } else {
+        toast.error(`Error generating response: ${errorMessage}`);
+      }
     },
   });
 
@@ -328,7 +346,7 @@ const ChatView = ({ chatId, autoResume, chatStatus }: Props) => {
                 status={status}
                 isHomepageCentered={true}
                 isNewChat={true}
-                setMessages={setMessages}
+                setMessages={setMessages as typeof setMessages}
               />
               {/* <ChatSuggestions setSuggestions={setInput} /> */}
             </div>
