@@ -4,7 +4,7 @@ import {
   wrapLanguageModel,
 } from "ai";
 import { createGateway } from "@ai-sdk/gateway";
-import { Google, Qwen, Moonshot, Meta, OpenAI } from "@lobehub/icons";
+import { Google, Qwen, Meta } from "@lobehub/icons";
 import { google } from "@ai-sdk/google";
 import { groq } from "@ai-sdk/groq";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
@@ -20,11 +20,11 @@ export const openrouter = createOpenRouter({
 const custom = customProvider({
   languageModels: {
     "gemini-2.5-flash": google("gemini-2.5-flash"),
-    "gpt-4o-mini": openrouter("gpt-4o-mini"),
+    // "gpt-4o-mini": openrouter("gpt-4o-mini"),
     "llama-3.3-70b-versatile": groq("llama-3.3-70b-versatile"),
-    "moonshotai/kimi-k2-instruct-0905": groq(
-      "moonshotai/kimi-k2-instruct-0905"
-    ),
+    // "moonshotai/kimi-k2-instruct-0905": groq(
+    //   "moonshotai/kimi-k2-instruct-0905"
+    // ),
     // "gemini-3.0-flash": google("gemini-3-flash-preview"),
     "qwen/qwen3-32b": wrapLanguageModel({
       model: groq("qwen/qwen3-32b"),
@@ -58,18 +58,18 @@ export const MODEL_REGISTRY = {
     name: "Llama 3.3 70b",
     logo: Meta,
   },
-  "moonshotai/kimi-k2-instruct-0905": {
-    provider: custom,
-    id: "moonshotai/kimi-k2-instruct-0905",
-    name: "Kimi K2",
-    logo: Moonshot,
-  },
-  "gpt-4o-mini": {
-    provider: custom,
-    id: "gpt-4o-mini",
-    name: "4o Mini",
-    logo: OpenAI,
-  },
+  // "moonshotai/kimi-k2-instruct-0905": {
+  //   provider: custom,
+  //   id: "moonshotai/kimi-k2-instruct-0905",
+  //   name: "Kimi K2",
+  //   logo: Moonshot,
+  // },
+  // "gpt-4o-mini": {
+  //   provider: custom,
+  //   id: "gpt-4o-mini",
+  //   name: "4o Mini",
+  //   logo: OpenAI,
+  // },
   "gemini-2.5-flash": {
     provider: custom,
     id: "gemini-2.5-flash",
